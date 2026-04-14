@@ -1,7 +1,0 @@
-app:
-  # your app-specific settings here
-  example: "value"
-
-kontiki:
-  amqp:
-    url: "amqp://guest:guest@localhost"

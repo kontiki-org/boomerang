@@ -1,10 +1,17 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import re
 import secrets
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
+from boomerang.core.contracts.notification import (
+    NotificationContext,
+    NotificationDestination,
+    NotificationMessage,
+    NotificationRequest,
+)
 from boomerang.services.subscription.exceptions import RateLimitError, ValidationError
 from boomerang.services.subscription.outcome import EntrypointOutcome, OutboundEvent
 
@@ -43,6 +50,14 @@ class SubscriptionDelegate(ServiceDelegate):
             self.container.config,
             "app.auth.magic_link.notification_event_type",
             "alerting.notification.requested",
+        )
+        logging.info(
+            "SubscriptionDelegate configured (ttl=%ss cooldown=%ss max_requests=%s window=%ss event=%s)",
+            self._ttl_seconds,
+            self._cooldown_seconds,
+            self._rate_limit_max_requests,
+            self._rate_limit_window_seconds,
+            self._notification_event_type,
         )
 
     async def _parse_request_email(self, request):
@@ -92,6 +107,7 @@ class SubscriptionDelegate(ServiceDelegate):
     async def request_magic_link(self, request):
         email = await self._parse_request_email(request)
         now = datetime.now(timezone.utc)
+        logging.info("request_magic_link received for email=%s", email)
         self._enforce_rate_limits(email, now)
 
         token = secrets.token_urlsafe(24)
@@ -101,25 +117,26 @@ class SubscriptionDelegate(ServiceDelegate):
             "expires_at": expires_at,
             "used": False,
         }
+        logging.info("magic link token created for email=%s expires_at=%s", email, expires_at)
 
-        message = {
-            "channel": "email",
-            "destination": {
-                "kind": "email_address",
-                "value": email,
-            },
-            "message": {
-                "title": "Boomerang sign in",
-                "body": "Use this link to sign in.",
-                "context": {
-                    "kind": "auth.magic_link",
-                    "data": {
+        message = NotificationRequest(
+            channel="email",
+            destination=NotificationDestination(
+                kind="email_address",
+                value=email,
+            ),
+            message=NotificationMessage(
+                title="Boomerang sign in",
+                body="Use this link to sign in.",
+                context=NotificationContext(
+                    kind="auth.magic_link",
+                    data={
                         "magic_link_url": self._build_magic_link_url(token),
                         "expires_at": expires_at.isoformat().replace("+00:00", "Z"),
                     },
-                },
-            },
-        }
+                ),
+            ),
+        )
 
         return EntrypointOutcome(
             http_response={"status": "ok"},

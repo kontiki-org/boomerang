@@ -1,3 +1,5 @@
+import logging
+
 from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
@@ -20,7 +22,6 @@ class SubscriptionService:
         RateLimitError: (429, "Too many requests. Please try again later."),
         NotFoundError: (404, "Resource not found."),
     }
-
     @rpc
     async def get_recipients_for_zone(self, zone_code, severity, category):
         return await self.delegate.get_recipients_for_zone(zone_code, severity, category)
@@ -33,8 +34,13 @@ class SubscriptionService:
     )
     async def request_magic_link(self, request):
         outcome = await self.delegate.request_magic_link(request)
+        logging.info(
+            "request_magic_link produced %s outbound event(s)",
+            len(outcome.events),
+        )
         for event in outcome.events:
             await self.messenger.publish(event.event_type, event.payload)
+            logging.info("published event type=%s", event.event_type)
         return outcome.http_response
 
     @http(

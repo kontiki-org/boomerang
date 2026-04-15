@@ -112,8 +112,12 @@ def step_event_is_published(context, event_type):
         if event.get("event_type") == event_type:
             match = event
     assert match is not None, f"Event {event_type} not found in {events}"
+    actual_payload = match.get("payload", {})
+    if hasattr(actual_payload, "model_dump"):
+        actual_payload = actual_payload.model_dump()
+
     normalized_payload = _normalize_actual_for_placeholders(
-        expected_payload, match.get("payload", {})
+        expected_payload, actual_payload
     )
     assert normalized_payload == expected_payload, (
         "Event payload mismatch.\n"

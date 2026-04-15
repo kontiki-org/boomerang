@@ -2,10 +2,12 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from boomerang.core.contracts.notification import NotificationRequest
+
 
 class OutboundEvent(BaseModel):
     event_type: str
-    payload: dict[str, Any]
+    payload: NotificationRequest
 
 
 class EntrypointOutcome(BaseModel):

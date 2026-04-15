@@ -40,25 +40,25 @@ class SubscriptionService:
         )
 
     @http(
-        "/auth/request-magic-link",
+        "/auth/request-auth-code",
         "POST",
         version="v1",
         errors=[ValidationError, RateLimitError],
     )
-    async def request_magic_link(self, request):
-        outcome = await self.delegate.request_magic_link(request)
-        logging.info("request_magic_link delegate outcome ready")
+    async def request_auth_code(self, request):
+        outcome = await self.delegate.request_auth_code(request)
+        logging.info("request_auth_code delegate outcome ready")
         return await self._finalize_entrypoint(outcome)
 
     @http(
-        "/auth/consume-magic-link",
+        "/auth/consume-auth-code",
         "POST",
         version="v1",
         errors=[ValidationError, AuthError, RateLimitError],
     )
-    async def consume_magic_link(self, request):
-        outcome = await self.delegate.consume_magic_link(request)
-        logging.info("consume_magic_link delegate outcome ready")
+    async def consume_auth_code(self, request):
+        outcome = await self.delegate.consume_auth_code(request)
+        logging.info("consume_auth_code delegate outcome ready")
         return await self._finalize_entrypoint(outcome)
 
     @http("/auth/logout", "POST", version="v1", errors=[AuthError])

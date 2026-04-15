@@ -1,7 +1,7 @@
-Feature: Consume magic link
+Feature: Consume auth code
   In order to authenticate without passwords
   As a Boomerang subscription user
-  I want to consume a valid magic link token
+  I want to consume a valid auth code
 
   Background:
     Given the subscription service is running with the following configuration
@@ -31,7 +31,7 @@ Feature: Consume magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 5
             cooldown_seconds: 0
             rate_limit:
@@ -39,14 +39,14 @@ Feature: Consume magic link
               window_seconds: 5
       """
 
-  Scenario: Consume a valid magic link token
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+  Scenario: Consume a valid auth code
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"
@@ -62,36 +62,38 @@ Feature: Consume magic link
         },
         "message": {
           "title": "Boomerang sign in",
-          "body": "Use this link to sign in.",
+          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.magic_link",
+            "kind": "auth.code",
             "data": {
-              "magic_link_url": "http://localhost:8000/auth/consume-magic-link?token=[TOKEN]",
+              "auth_code": "[CODE]",
               "expires_at": "[ISO8601_UTC]"
             }
           }
         }
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {
-        "token": "[LAST_TOKEN]"
+        "code": "[LAST_CODE]"
       }
       """
-    Then the consume-magic-link response is
+    Then the consume-auth-code response is
       """
       {
-        "status": "ok"
+        "status": "ok",
+        "access_token": "[ACCESS_TOKEN]",
+        "token_type": "Bearer"
       }
       """
 
   Scenario: Reject consume request when token is missing
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {}
       """
-    Then the consume-magic-link call is rejected with HTTP 400
+    Then the consume-auth-code call is rejected with HTTP 400
       """
       {
         "message": "Invalid request payload."
@@ -99,13 +101,13 @@ Feature: Consume magic link
       """
 
   Scenario: Reject consume request when token is unknown
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {
-        "token": "unknown-token"
+        "code": "123456"
       }
       """
-    Then the consume-magic-link call is rejected with HTTP 401
+    Then the consume-auth-code call is rejected with HTTP 401
       """
       {
         "message": "Authentication required or invalid."
@@ -113,13 +115,13 @@ Feature: Consume magic link
       """
 
   Scenario: Reject consume request when token is expired
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"
@@ -135,11 +137,11 @@ Feature: Consume magic link
         },
         "message": {
           "title": "Boomerang sign in",
-          "body": "Use this link to sign in.",
+          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.magic_link",
+            "kind": "auth.code",
             "data": {
-              "magic_link_url": "http://localhost:8000/auth/consume-magic-link?token=[TOKEN]",
+              "auth_code": "[CODE]",
               "expires_at": "[ISO8601_UTC]"
             }
           }
@@ -147,13 +149,13 @@ Feature: Consume magic link
       }
       """
     When I wait 6 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {
-        "token": "[LAST_TOKEN]"
+        "code": "[LAST_CODE]"
       }
       """
-    Then the consume-magic-link call is rejected with HTTP 401
+    Then the consume-auth-code call is rejected with HTTP 401
       """
       {
         "message": "Authentication required or invalid."
@@ -161,13 +163,13 @@ Feature: Consume magic link
       """
 
   Scenario: Reject consume request when token is already used
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"
@@ -183,36 +185,38 @@ Feature: Consume magic link
         },
         "message": {
           "title": "Boomerang sign in",
-          "body": "Use this link to sign in.",
+          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.magic_link",
+            "kind": "auth.code",
             "data": {
-              "magic_link_url": "http://localhost:8000/auth/consume-magic-link?token=[TOKEN]",
+              "auth_code": "[CODE]",
               "expires_at": "[ISO8601_UTC]"
             }
           }
         }
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {
-        "token": "[LAST_TOKEN]"
+        "code": "[LAST_CODE]"
       }
       """
-    Then the consume-magic-link response is
+    Then the consume-auth-code response is
       """
       {
-        "status": "ok"
+        "status": "ok",
+        "access_token": "[ACCESS_TOKEN]",
+        "token_type": "Bearer"
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
       """
       {
-        "token": "[LAST_TOKEN]"
+        "code": "[LAST_CODE]"
       }
       """
-    Then the consume-magic-link call is rejected with HTTP 401
+    Then the consume-auth-code call is rejected with HTTP 401
       """
       {
         "message": "Authentication required or invalid."

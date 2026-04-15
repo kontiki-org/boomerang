@@ -1,7 +1,6 @@
 import copy
 import json
 import time
-from urllib.parse import parse_qs, urlparse
 
 import yaml
 from behave import given, then, when
@@ -34,12 +33,8 @@ def _normalize_actual_for_placeholders(expected, actual):
     if isinstance(expected, str) and isinstance(actual, str):
         if expected.startswith("[") and expected.endswith("]"):
             return expected
-        if "[TOKEN]" in expected:
-            token_value = actual
-            if "token=" in actual:
-                token_value = actual.split("token=", 1)[1].split("&", 1)[0]
-            if token_value:
-                return actual.replace(token_value, "[TOKEN]", 1)
+        if "[CODE]" in expected and actual:
+            return "[CODE]"
         if "[ISO8601_UTC]" in expected:
             return "[ISO8601_UTC]"
 
@@ -73,8 +68,8 @@ def step_subscription_running_with_config(context):
 @when("I call the subscription service on {url} with the following payload")
 def step_call_subscription_service(context, url):
     payload_text = context.text.strip()
-    if hasattr(context, "last_token"):
-        payload_text = payload_text.replace("[LAST_TOKEN]", context.last_token)
+    if hasattr(context, "last_code"):
+        payload_text = payload_text.replace("[LAST_CODE]", context.last_code)
     payload = json.loads(payload_text)
 
     status, body = http_request(
@@ -93,8 +88,8 @@ def step_wait_seconds(context, seconds):
     time.sleep(seconds)
 
 
-@then("the request-magic-link response is")
-@then("the consume-magic-link response is")
+@then("the request-auth-code response is")
+@then("the consume-auth-code response is")
 def step_success_response(context):
     _assert_success_response(context)
 
@@ -133,22 +128,18 @@ def step_event_is_published(context, event_type):
         f"Actual:   {normalized_payload}"
     )
     if event_type == "alerting.notification.requested":
-        magic_link_url = (
-            actual_payload.get("message", {})
-            .get("context", {})
-            .get("data", {})
-            .get("magic_link_url", "")
+        auth_code = (
+            actual_payload.get("message", {}).get("context", {}).get("data", {}).get(
+                "auth_code", ""
+            )
         )
-        if magic_link_url:
-            parsed = urlparse(magic_link_url)
-            token_values = parse_qs(parsed.query).get("token", [])
-            if token_values and token_values[0]:
-                context.last_token = token_values[0]
+        if isinstance(auth_code, str) and auth_code:
+            context.last_code = auth_code
     context.manager.clean_events(catcher_name)
 
 
-@then("the request-magic-link call is rejected with HTTP {status_code:d}")
-@then("the consume-magic-link call is rejected with HTTP {status_code:d}")
+@then("the request-auth-code call is rejected with HTTP {status_code:d}")
+@then("the consume-auth-code call is rejected with HTTP {status_code:d}")
 def step_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (

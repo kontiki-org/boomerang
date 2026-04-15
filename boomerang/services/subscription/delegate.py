@@ -20,42 +20,43 @@ from boomerang.services.subscription.exceptions import (
 from boomerang.services.subscription.outcome import EntrypointOutcome, OutboundEvent
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+CODE_RE = re.compile(r"^\d{6}$")
 
 
 class SubscriptionDelegate(ServiceDelegate):
     async def setup(self):
         self._tokens = {}
+        self._access_tokens = {}
         self._request_timestamps = {}
         self._last_request_at = {}
 
         self._ttl_seconds = int(
-            get_parameter(self.container.config, "app.auth.magic_link.ttl_seconds", 600)
+            get_parameter(self.container.config, "app.auth.auth_code.ttl_seconds", 600)
         )
         self._cooldown_seconds = int(
             get_parameter(
-                self.container.config, "app.auth.magic_link.cooldown_seconds", 30
+                self.container.config,
+                "app.auth.auth_code.cooldown_seconds",
+                30,
             )
         )
         self._rate_limit_max_requests = int(
             get_parameter(
-                self.container.config, "app.auth.magic_link.rate_limit.max_requests", 3
+                self.container.config,
+                "app.auth.auth_code.rate_limit.max_requests",
+                3,
             )
         )
         self._rate_limit_window_seconds = int(
             get_parameter(
                 self.container.config,
-                "app.auth.magic_link.rate_limit.window_seconds",
+                "app.auth.auth_code.rate_limit.window_seconds",
                 600,
             )
         )
-        self._consume_base_url = get_parameter(
-            self.container.config,
-            "app.auth.magic_link.consume_url_base",
-            "http://localhost:8000/auth/consume-magic-link",
-        )
         self._notification_event_type = get_parameter(
             self.container.config,
-            "app.auth.magic_link.notification_event_type",
+            "app.auth.auth_code.notification_event_type",
             "alerting.notification.requested",
         )
         logging.info(
@@ -103,28 +104,27 @@ class SubscriptionDelegate(ServiceDelegate):
         self._request_timestamps[email] = timestamps
         self._last_request_at[email] = now
 
-    def _build_magic_link_url(self, token):
-        separator = "&" if "?" in self._consume_base_url else "?"
-        return f"{self._consume_base_url}{separator}token={token}"
+    def _generate_auth_code(self):
+        return f"{secrets.randbelow(1000000):06d}"
 
     async def get_recipients_for_zone(self, zone_code, severity, category):
         raise NotImplementedError
 
-    async def request_magic_link(self, request):
+    async def request_auth_code(self, request):
         email = await self._parse_request_email(request)
         now = datetime.now(timezone.utc)
-        logging.info("request_magic_link received for email=%s", email)
+        logging.info("request_auth_code received for email=%s", email)
         self._enforce_rate_limits(email, now)
 
-        token = secrets.token_urlsafe(24)
+        auth_code = self._generate_auth_code()
         expires_at = now + timedelta(seconds=self._ttl_seconds)
-        self._tokens[token] = {
+        self._tokens[auth_code] = {
             "email": email,
             "expires_at": expires_at,
             "used": False,
         }
         logging.info(
-            "magic link token created for email=%s expires_at=%s", email, expires_at
+            "auth code created for email=%s expires_at=%s", email, expires_at
         )
 
         message = NotificationRequest(
@@ -135,11 +135,11 @@ class SubscriptionDelegate(ServiceDelegate):
             ),
             message=NotificationMessage(
                 title="Boomerang sign in",
-                body="Use this link to sign in.",
+                body="Use this verification code to sign in.",
                 context=NotificationContext(
-                    kind="auth.magic_link",
+                    kind="auth.code",
                     data={
-                        "magic_link_url": self._build_magic_link_url(token),
+                        "auth_code": auth_code,
                         "expires_at": expires_at.isoformat().replace("+00:00", "Z"),
                     },
                 ),
@@ -156,18 +156,20 @@ class SubscriptionDelegate(ServiceDelegate):
             ],
         )
 
-    async def consume_magic_link(self, request):
+    async def consume_auth_code(self, request):
         try:
             body = await request.json()
         except Exception as exc:
             raise ValidationError("Invalid request payload.") from exc
 
-        token = body.get("token")
-        if not isinstance(token, str) or not token.strip():
+        auth_code = body.get("code")
+        if not isinstance(auth_code, str) or not auth_code.strip():
             raise ValidationError("Invalid request payload.")
-        token = token.strip()
+        auth_code = auth_code.strip()
+        if not CODE_RE.match(auth_code):
+            raise ValidationError("Invalid request payload.")
 
-        record = self._tokens.get(token)
+        record = self._tokens.get(auth_code)
         if record is None:
             raise AuthError("Authentication required or invalid.")
 
@@ -180,8 +182,19 @@ class SubscriptionDelegate(ServiceDelegate):
             raise AuthError("Authentication required or invalid.")
 
         record["used"] = True
-        logging.info("magic link token consumed for email=%s", record.get("email"))
-        return EntrypointOutcome(http_response={"status": "ok"})
+        access_token = secrets.token_urlsafe(32)
+        self._access_tokens[access_token] = {
+            "email": record.get("email"),
+            "created_at": now,
+        }
+        logging.info("auth code consumed for email=%s", record.get("email"))
+        return EntrypointOutcome(
+            http_response={
+                "status": "ok",
+                "access_token": access_token,
+                "token_type": "Bearer",
+            }
+        )
 
     async def logout(self, request):
         raise NotImplementedError

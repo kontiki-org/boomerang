@@ -1,9 +1,9 @@
-Feature: Request magic link
+Feature: Request auth code
   In order to authenticate without passwords
   As a Boomerang subscription user
-  I want to request a magic link with my email
+  I want to request an auth code with my email
 
-  Scenario: Request a magic link with a valid email
+  Scenario: Request an auth code with a valid email
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -31,20 +31,20 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 0
             rate_limit:
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"
@@ -60,11 +60,11 @@ Feature: Request magic link
         },
         "message": {
           "title": "Boomerang sign in",
-          "body": "Use this link to sign in.",
+          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.magic_link",
+            "kind": "auth.code",
             "data": {
-              "magic_link_url": "http://localhost:8000/auth/consume-magic-link?token=[TOKEN]",
+              "auth_code": "[CODE]",
               "expires_at": "[ISO8601_UTC]"
             }
           }
@@ -100,18 +100,18 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 2
             rate_limit:
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {}
       """
-    Then the request-magic-link call is rejected with HTTP 400
+    Then the request-auth-code call is rejected with HTTP 400
       """
       {
         "message": "Invalid request payload."
@@ -146,20 +146,20 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 2
             rate_limit:
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "not-an-email"
       }
       """
-    Then the request-magic-link call is rejected with HTTP 400
+    Then the request-auth-code call is rejected with HTTP 400
       """
       {
         "message": "Invalid request payload."
@@ -194,41 +194,41 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 1
             rate_limit:
               max_requests: 3
               window_seconds: 8
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link call is rejected with HTTP 429
+    Then the request-auth-code call is rejected with HTTP 429
       """
       {
         "message": "Too many requests. Please try again later."
@@ -263,27 +263,27 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 2
             rate_limit:
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 1 second
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link call is rejected with HTTP 429
+    Then the request-auth-code call is rejected with HTTP 429
       """
       {
         "message": "Too many requests. Please try again later."
@@ -318,27 +318,27 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 1
             rate_limit:
               max_requests: 5
               window_seconds: 8
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"
@@ -373,33 +373,33 @@ Feature: Request magic link
             - file
       app:
         auth:
-          magic_link:
+          auth_code:
             ttl_seconds: 30
             cooldown_seconds: 0
             rate_limit:
               max_requests: 2
               window_seconds: 2
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 3 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    Then the request-magic-link response is
+    Then the request-auth-code response is
       """
       {
         "status": "ok"

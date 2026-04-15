@@ -1,5 +1,6 @@
 import logging
 
+from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
@@ -10,6 +11,7 @@ from boomerang.services.subscription.exceptions import (
     RateLimitError,
     ValidationError,
 )
+from boomerang.services.subscription.http_models import CreateSubscriptionRequest
 
 
 class SubscriptionService:
@@ -17,7 +19,8 @@ class SubscriptionService:
     delegate = SubscriptionDelegate()
     messenger = Messenger()
     http_error_handlers = {
-        ValidationError: (400, "Invalid request payload."),
+        ValidationError: (422, "Invalid request payload."),
+        HTTPUnprocessableEntity: (422, "Invalid request payload."),
         AuthError: (401, "Authentication required or invalid."),
         RateLimitError: (429, "Too many requests. Please try again later."),
         NotFoundError: (404, "Resource not found."),
@@ -73,10 +76,12 @@ class SubscriptionService:
         "/subscriptions",
         "POST",
         version="v1",
+        request_model=CreateSubscriptionRequest,
+        validate_request=True,
         errors=[ValidationError, AuthError],
     )
-    async def create_subscription(self, request):
-        return await self.delegate.create_subscription(request)
+    async def create_subscription(self, request, body):
+        return await self.delegate.create_subscription(request, body)
 
     @http("/subscriptions", "GET", version="v1", errors=[AuthError])
     async def list_subscriptions(self, request):

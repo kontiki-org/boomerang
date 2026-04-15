@@ -1,6 +1,7 @@
 import logging
 import re
 import secrets
+from functools import wraps
 from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
@@ -17,6 +18,8 @@ from boomerang.services.subscription.exceptions import (
     RateLimitError,
     ValidationError,
 )
+from boomerang.services.subscription.database import Database
+from boomerang.services.subscription.http_models import CreateSubscriptionRequest
 from boomerang.services.subscription.outcome import EntrypointOutcome, OutboundEvent
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -24,6 +27,15 @@ CODE_RE = re.compile(r"^\d{6}$")
 
 
 class SubscriptionDelegate(ServiceDelegate):
+    @staticmethod
+    def requires_auth(handler):
+        @wraps(handler)
+        async def wrapper(self, request, *args, **kwargs):
+            email = self._require_authenticated_email(request)
+            return await handler(self, request, *args, email=email, **kwargs)
+
+        return wrapper
+
     async def setup(self):
         self._tokens = {}
         self._access_tokens = {}
@@ -59,13 +71,29 @@ class SubscriptionDelegate(ServiceDelegate):
             "app.auth.auth_code.notification_event_type",
             "alerting.notification.requested",
         )
+        self._storage_backend = get_parameter(
+            self.container.config,
+            "app.storage.backend",
+            "sqlite",
+        )
+        self._sqlite_path = get_parameter(
+            self.container.config,
+            "app.storage.sqlite_path",
+            "/data/subscriptions.db",
+        )
+        if self._storage_backend != "sqlite":
+            raise RuntimeError("Unsupported storage backend for MVP.")
+        self._database = Database(self._sqlite_path)
+        self._database.setup()
         logging.info(
-            "SubscriptionDelegate configured (ttl=%ss cooldown=%ss max_requests=%s window=%ss event=%s)",
+            "SubscriptionDelegate configured (ttl=%ss cooldown=%ss max_requests=%s window=%ss event=%s backend=%s path=%s)",
             self._ttl_seconds,
             self._cooldown_seconds,
             self._rate_limit_max_requests,
             self._rate_limit_window_seconds,
             self._notification_event_type,
+            self._storage_backend,
+            self._sqlite_path,
         )
 
     async def _parse_request_email(self, request):
@@ -219,13 +247,26 @@ class SubscriptionDelegate(ServiceDelegate):
     async def me(self, request):
         raise NotImplementedError
 
-    async def create_subscription(self, request):
-        raise NotImplementedError
+    @requires_auth
+    async def create_subscription(self, request, body: CreateSubscriptionRequest, email):
+        user_id = self._database.ensure_user(email)
+        created, skipped, errors = self._database.create_subscriptions(user_id, body)
 
-    async def list_subscriptions(self, request):
-        email = self._require_authenticated_email(request)
+        logging.info(
+            "create_subscription for email=%s created=%s skipped=%s errors=%s",
+            email,
+            len(created),
+            len(skipped),
+            len(errors),
+        )
+        return {"created": created, "skipped": skipped, "errors": errors}
+
+    @requires_auth
+    async def list_subscriptions(self, request, email):
+        user_id = self._database.ensure_user(email)
         logging.info("list_subscriptions for email=%s", email)
-        return {"items": []}
+        items = self._database.list_subscriptions(user_id)
+        return {"items": items}
 
     async def update_subscription(self, request):
         raise NotImplementedError

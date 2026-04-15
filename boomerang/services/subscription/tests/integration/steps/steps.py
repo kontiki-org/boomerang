@@ -1,6 +1,8 @@
 import copy
 import json
+import sqlite3
 import time
+from pathlib import Path
 
 import yaml
 from behave import given, then, when
@@ -13,11 +15,12 @@ from boomerang.services.subscription.tests.integration.utils import (
 
 def _normalize_actual_for_placeholders(expected, actual):
     if isinstance(expected, dict) and isinstance(actual, dict):
-        normalized = copy.deepcopy(actual)
+        # Keep only expected keys so scenarios can assert partial payloads.
+        normalized = {}
         for key, expected_value in expected.items():
-            if key in normalized:
+            if key in actual:
                 normalized[key] = _normalize_actual_for_placeholders(
-                    expected_value, normalized[key]
+                    expected_value, actual[key]
                 )
         return normalized
 
@@ -70,6 +73,71 @@ def _parse_request_block(context):
     return headers, payload
 
 
+def _sqlite_path_from_context(context):
+    config = getattr(context, "subscription_config", None) or {}
+    return (
+        config.get("app", {})
+        .get("storage", {})
+        .get("sqlite_path")
+    )
+
+
+def _fetch_all_rows(sqlite_path, table_name):
+    with sqlite3.connect(sqlite_path) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(f"SELECT * FROM {table_name}").fetchall()
+    return [dict(row) for row in rows]
+
+
+def _rows_from_context_table(context):
+    if context.table is None:
+        raise AssertionError("This step requires a Gherkin data table.")
+    return [{heading: row[heading] for heading in context.table.headings} for row in context.table]
+
+
+def _normalize_scalar(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped == "null":
+            return None
+        if stripped.startswith("{") or stripped.startswith("["):
+            try:
+                return json.loads(stripped)
+            except Exception:
+                return stripped
+        if stripped in {"0", "1"}:
+            return int(stripped)
+        return stripped
+    return value
+
+
+def _normalize_table_rows(rows):
+    normalized = []
+    for row in rows:
+        normalized.append({key: _normalize_scalar(value) for key, value in row.items()})
+    return normalized
+
+
+def _normalize_db_rows_for_expected(expected_rows, actual_rows):
+    normalized = []
+    for expected, actual in zip(expected_rows, actual_rows):
+        normalized_row = {}
+        for key, expected_value in expected.items():
+            actual_value = actual.get(key)
+            if (
+                isinstance(expected_value, str)
+                and expected_value.startswith("[")
+                and expected_value.endswith("]")
+            ):
+                normalized_row[key] = expected_value
+            else:
+                normalized_row[key] = actual_value
+        normalized.append(normalized_row)
+    return normalized
+
+
 def _extract_auth_code_from_notification_event(context):
     catcher_name = "notification-event-catcher"
     events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
@@ -101,6 +169,15 @@ def _extract_auth_code_from_notification_event(context):
 def step_subscription_running_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
+    context.subscription_config = config
+    sqlite_path = _sqlite_path_from_context(context)
+    context.subscription_sqlite_path = sqlite_path
+    if sqlite_path:
+        db_path = Path(sqlite_path)
+        if db_path.parent:
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+        if db_path.exists():
+            db_path.unlink()
 
     proc, config_path = start_subscription_subprocess(config)
     context.subscription_process = proc
@@ -158,6 +235,7 @@ def step_wait_seconds(context, seconds):
 
 @then("the request-auth-code response is")
 @then("the consume-auth-code response is")
+@then("the create-subscriptions response is")
 def step_success_response(context):
     _assert_success_response(context)
 
@@ -213,6 +291,7 @@ def step_event_is_published(context, event_type):
 @then("the request-auth-code call is rejected with HTTP {status_code:d}")
 @then("the consume-auth-code call is rejected with HTTP {status_code:d}")
 @then("the list-subscriptions call is rejected with HTTP {status_code:d}")
+@then("the create-subscriptions call is rejected with HTTP {status_code:d}")
 def step_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (
@@ -229,6 +308,59 @@ def step_rejected_response(context, status_code):
 @then("the list-subscriptions response is")
 def step_list_subscriptions_response(context):
     _assert_success_response(context)
+
+
+@given('the "{table_name}" table contains')
+def step_seed_table(context, table_name):
+    sqlite_path = _sqlite_path_from_context(context)
+    if not sqlite_path:
+        raise AssertionError("Missing app.storage.sqlite_path in test configuration.")
+    rows = _rows_from_context_table(context)
+    if not rows:
+        return
+
+    columns = context.table.headings
+    placeholders = ", ".join("?" for _ in columns)
+    quoted_columns = ", ".join(columns)
+    values = [[_normalize_scalar(row[col]) for col in columns] for row in rows]
+
+    with sqlite3.connect(sqlite_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
+        connection.execute(f"DELETE FROM {table_name}")
+        connection.executemany(
+            f"INSERT INTO {table_name} ({quoted_columns}) VALUES ({placeholders})",
+            values,
+        )
+
+
+@then('the "{table_name}" table should contain')
+def step_assert_table_equals(context, table_name):
+    sqlite_path = _sqlite_path_from_context(context)
+    if not sqlite_path:
+        raise AssertionError("Missing app.storage.sqlite_path in test configuration.")
+
+    expected_rows = _normalize_table_rows(_rows_from_context_table(context))
+    actual_rows = _normalize_table_rows(_fetch_all_rows(sqlite_path, table_name))
+
+    if len(expected_rows) != len(actual_rows):
+        raise AssertionError(
+            f"Row count mismatch for {table_name}. "
+            f"Expected {len(expected_rows)} rows, got {len(actual_rows)}.\n"
+            f"Expected: {expected_rows}\nActual: {actual_rows}"
+        )
+
+    normalized_actual = _normalize_db_rows_for_expected(expected_rows, actual_rows)
+    expected_signatures = sorted(
+        json.dumps(row, sort_keys=True, ensure_ascii=True) for row in expected_rows
+    )
+    actual_signatures = sorted(
+        json.dumps(row, sort_keys=True, ensure_ascii=True) for row in normalized_actual
+    )
+    assert actual_signatures == expected_signatures, (
+        f"Table mismatch for {table_name}.\n"
+        f"Expected: {expected_rows}\n"
+        f"Actual:   {normalized_actual}"
+    )
 
 
 @then("no account existence information is disclosed in the response")

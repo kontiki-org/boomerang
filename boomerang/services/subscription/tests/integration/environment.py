@@ -39,6 +39,17 @@ def after_scenario(context, scenario):
             pass
         context.subscription_config_path = None
 
+    if (
+        hasattr(context, "subscription_sqlite_path")
+        and context.subscription_sqlite_path
+        and os.path.isfile(context.subscription_sqlite_path)
+    ):
+        try:
+            os.unlink(context.subscription_sqlite_path)
+        except OSError:
+            pass
+        context.subscription_sqlite_path = None
+
     if hasattr(context, "manager"):
         context.manager.clean_events("notification-event-catcher")
 

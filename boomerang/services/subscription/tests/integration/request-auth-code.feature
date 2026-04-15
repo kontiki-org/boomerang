@@ -30,6 +30,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -101,6 +104,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -115,7 +121,7 @@ Feature: Request auth code
         "payload": {}
       }
       """
-    Then the request-auth-code call is rejected with HTTP 400
+    Then the request-auth-code call is rejected with HTTP 422
       """
       {
         "message": "Invalid request payload."
@@ -149,6 +155,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -165,7 +174,7 @@ Feature: Request auth code
         }
       }
       """
-    Then the request-auth-code call is rejected with HTTP 400
+    Then the request-auth-code call is rejected with HTTP 422
       """
       {
         "message": "Invalid request payload."
@@ -199,6 +208,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -276,6 +288,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -335,6 +350,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -394,6 +412,9 @@ Feature: Request auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30

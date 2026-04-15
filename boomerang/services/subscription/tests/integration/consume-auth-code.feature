@@ -30,6 +30,9 @@ Feature: Consume auth code
           handlers:
             - file
       app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         auth:
           auth_code:
             ttl_seconds: 5
@@ -99,7 +102,7 @@ Feature: Consume auth code
         "payload": {}
       }
       """
-    Then the consume-auth-code call is rejected with HTTP 400
+    Then the consume-auth-code call is rejected with HTTP 422
       """
       {
         "message": "Invalid request payload."

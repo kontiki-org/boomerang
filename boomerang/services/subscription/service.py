@@ -22,9 +22,22 @@ class SubscriptionService:
         RateLimitError: (429, "Too many requests. Please try again later."),
         NotFoundError: (404, "Resource not found."),
     }
+
+    async def _finalize_entrypoint(self, outcome):
+        events = outcome.events or []
+        logging.info("produced %s outbound event(s)", len(events))
+        for event in events:
+            await self.messenger.publish(event.event_type, event.payload)
+            logging.info("published event type=%s", event.event_type)
+        if outcome.http_status is not None:
+            return outcome.http_status, outcome.http_response
+        return outcome.http_response
+
     @rpc
     async def get_recipients_for_zone(self, zone_code, severity, category):
-        return await self.delegate.get_recipients_for_zone(zone_code, severity, category)
+        return await self.delegate.get_recipients_for_zone(
+            zone_code, severity, category
+        )
 
     @http(
         "/auth/request-magic-link",
@@ -34,14 +47,8 @@ class SubscriptionService:
     )
     async def request_magic_link(self, request):
         outcome = await self.delegate.request_magic_link(request)
-        logging.info(
-            "request_magic_link produced %s outbound event(s)",
-            len(outcome.events),
-        )
-        for event in outcome.events:
-            await self.messenger.publish(event.event_type, event.payload)
-            logging.info("published event type=%s", event.event_type)
-        return outcome.http_response
+        logging.info("request_magic_link delegate outcome ready")
+        return await self._finalize_entrypoint(outcome)
 
     @http(
         "/auth/consume-magic-link",
@@ -50,7 +57,9 @@ class SubscriptionService:
         errors=[ValidationError, AuthError, RateLimitError],
     )
     async def consume_magic_link(self, request):
-        return await self.delegate.consume_magic_link(request)
+        outcome = await self.delegate.consume_magic_link(request)
+        logging.info("consume_magic_link delegate outcome ready")
+        return await self._finalize_entrypoint(outcome)
 
     @http("/auth/logout", "POST", version="v1", errors=[AuthError])
     async def logout(self, request):
@@ -124,4 +133,3 @@ class SubscriptionService:
     @http("/categories", "GET", version="v1")
     async def list_categories(self, request):
         return await self.delegate.list_categories(request)
-

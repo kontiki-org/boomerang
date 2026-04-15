@@ -35,5 +35,5 @@ line-length = 88
 
 [tool.isort]
 profile = "black"
-line-length = 88
+line_length = 88
 known_first_party = ["boomerang"]

@@ -38,7 +38,7 @@ Feature: Request magic link
               max_requests: 3
               window_seconds: 5
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
@@ -107,7 +107,7 @@ Feature: Request magic link
               max_requests: 3
               window_seconds: 5
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {}
       """
@@ -153,7 +153,7 @@ Feature: Request magic link
               max_requests: 3
               window_seconds: 5
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "not-an-email"
@@ -201,28 +201,28 @@ Feature: Request magic link
               max_requests: 3
               window_seconds: 8
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
@@ -270,14 +270,14 @@ Feature: Request magic link
               max_requests: 3
               window_seconds: 5
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 1 second
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
@@ -325,14 +325,14 @@ Feature: Request magic link
               max_requests: 5
               window_seconds: 8
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 2 seconds
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
@@ -380,20 +380,20 @@ Feature: Request magic link
               max_requests: 2
               window_seconds: 2
       """
-    When I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    When I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"
       }
       """
     And I wait 3 seconds
-    And I call request-magic-link on the subscription service on http://127.0.0.1:8000 with the following payload
+    And I call the subscription service on http://127.0.0.1:8000/auth/request-magic-link with the following payload
       """
       {
         "email": "user@example.org"

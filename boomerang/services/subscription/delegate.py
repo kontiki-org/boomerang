@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta, timezone
 import logging
 import re
 import secrets
+from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
@@ -12,9 +12,12 @@ from boomerang.core.contracts.notification import (
     NotificationMessage,
     NotificationRequest,
 )
-from boomerang.services.subscription.exceptions import RateLimitError, ValidationError
+from boomerang.services.subscription.exceptions import (
+    AuthError,
+    RateLimitError,
+    ValidationError,
+)
 from boomerang.services.subscription.outcome import EntrypointOutcome, OutboundEvent
-
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -29,7 +32,9 @@ class SubscriptionDelegate(ServiceDelegate):
             get_parameter(self.container.config, "app.auth.magic_link.ttl_seconds", 600)
         )
         self._cooldown_seconds = int(
-            get_parameter(self.container.config, "app.auth.magic_link.cooldown_seconds", 30)
+            get_parameter(
+                self.container.config, "app.auth.magic_link.cooldown_seconds", 30
+            )
         )
         self._rate_limit_max_requests = int(
             get_parameter(
@@ -38,7 +43,9 @@ class SubscriptionDelegate(ServiceDelegate):
         )
         self._rate_limit_window_seconds = int(
             get_parameter(
-                self.container.config, "app.auth.magic_link.rate_limit.window_seconds", 600
+                self.container.config,
+                "app.auth.magic_link.rate_limit.window_seconds",
+                600,
             )
         )
         self._consume_base_url = get_parameter(
@@ -100,7 +107,6 @@ class SubscriptionDelegate(ServiceDelegate):
         separator = "&" if "?" in self._consume_base_url else "?"
         return f"{self._consume_base_url}{separator}token={token}"
 
-
     async def get_recipients_for_zone(self, zone_code, severity, category):
         raise NotImplementedError
 
@@ -117,7 +123,9 @@ class SubscriptionDelegate(ServiceDelegate):
             "expires_at": expires_at,
             "used": False,
         }
-        logging.info("magic link token created for email=%s expires_at=%s", email, expires_at)
+        logging.info(
+            "magic link token created for email=%s expires_at=%s", email, expires_at
+        )
 
         message = NotificationRequest(
             channel="email",
@@ -149,7 +157,31 @@ class SubscriptionDelegate(ServiceDelegate):
         )
 
     async def consume_magic_link(self, request):
-        raise NotImplementedError
+        try:
+            body = await request.json()
+        except Exception as exc:
+            raise ValidationError("Invalid request payload.") from exc
+
+        token = body.get("token")
+        if not isinstance(token, str) or not token.strip():
+            raise ValidationError("Invalid request payload.")
+        token = token.strip()
+
+        record = self._tokens.get(token)
+        if record is None:
+            raise AuthError("Authentication required or invalid.")
+
+        now = datetime.now(timezone.utc)
+        if record.get("used"):
+            raise AuthError("Authentication required or invalid.")
+
+        expires_at = record.get("expires_at")
+        if not isinstance(expires_at, datetime) or now >= expires_at:
+            raise AuthError("Authentication required or invalid.")
+
+        record["used"] = True
+        logging.info("magic link token consumed for email=%s", record.get("email"))
+        return EntrypointOutcome(http_response={"status": "ok"})
 
     async def logout(self, request):
         raise NotImplementedError

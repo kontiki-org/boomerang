@@ -1,13 +1,14 @@
 import copy
 import json
 import time
+from urllib.parse import parse_qs, urlparse
 
 import yaml
 from behave import given, then, when
 
 from boomerang.services.subscription.tests.integration.utils import (
     http_request,
-    start_subscription_subprocess
+    start_subscription_subprocess,
 )
 
 
@@ -69,14 +70,16 @@ def step_subscription_running_with_config(context):
         )
 
 
-@when(
-    "I call request-magic-link on the subscription service on {url} with the following payload"
-)
-def step_call_request_magic_link(context, url):
-    payload = json.loads(context.text.strip())
+@when("I call the subscription service on {url} with the following payload")
+def step_call_subscription_service(context, url):
+    payload_text = context.text.strip()
+    if hasattr(context, "last_token"):
+        payload_text = payload_text.replace("[LAST_TOKEN]", context.last_token)
+    payload = json.loads(payload_text)
+
     status, body = http_request(
         "POST",
-        f"{url}/auth/request-magic-link",
+        url,
         payload=payload,
     )
     context.last_http_status = status
@@ -91,14 +94,19 @@ def step_wait_seconds(context, seconds):
 
 
 @then("the request-magic-link response is")
-def step_request_magic_link_response(context):
+@then("the consume-magic-link response is")
+def step_success_response(context):
+    _assert_success_response(context)
+
+
+def _assert_success_response(context):
     expected = json.loads(context.text.strip()) if context.text else {}
     status, body = _last_response(context)
     assert status == 200, f"Expected HTTP 200, got {status} body={body}"
     normalized_body = _normalize_actual_for_placeholders(expected, body)
-    assert normalized_body == expected, (
-        f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-    )
+    assert (
+        normalized_body == expected
+    ), f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
 
 
 @then('a "{event_type}" event is published')
@@ -124,19 +132,34 @@ def step_event_is_published(context, event_type):
         f"Expected: {expected_payload}\n"
         f"Actual:   {normalized_payload}"
     )
+    if event_type == "alerting.notification.requested":
+        magic_link_url = (
+            actual_payload.get("message", {})
+            .get("context", {})
+            .get("data", {})
+            .get("magic_link_url", "")
+        )
+        if magic_link_url:
+            parsed = urlparse(magic_link_url)
+            token_values = parse_qs(parsed.query).get("token", [])
+            if token_values and token_values[0]:
+                context.last_token = token_values[0]
     context.manager.clean_events(catcher_name)
 
 
 @then("the request-magic-link call is rejected with HTTP {status_code:d}")
-def step_request_magic_link_rejected(context, status_code):
+@then("the consume-magic-link call is rejected with HTTP {status_code:d}")
+def step_rejected_response(context, status_code):
     status, body = _last_response(context)
-    assert status == status_code, f"Expected HTTP {status_code}, got {status} body={body}"
+    assert (
+        status == status_code
+    ), f"Expected HTTP {status_code}, got {status} body={body}"
     if context.text and context.text.strip():
         expected = json.loads(context.text.strip())
         normalized_body = _normalize_actual_for_placeholders(expected, body)
-        assert normalized_body == expected, (
-            f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-        )
+        assert (
+            normalized_body == expected
+        ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
 
 
 @then("no account existence information is disclosed in the response")

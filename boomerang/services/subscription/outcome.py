@@ -12,4 +12,5 @@ class OutboundEvent(BaseModel):
 
 class EntrypointOutcome(BaseModel):
     http_response: dict[str, Any]
+    http_status: int | None = None
     events: list[OutboundEvent] = Field(default_factory=list)

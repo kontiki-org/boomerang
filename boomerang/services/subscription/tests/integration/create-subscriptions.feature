@@ -108,7 +108,7 @@ Feature: Create subscriptions with database state assertions
       | user_id   | email            | display_name | status | created_at    | updated_at    |
       | [USER_ID] | user@example.org | null         | active | [ISO8601_UTC] | [ISO8601_UTC] |
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                                 | policy_json                                                                                                  | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                                              | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"22:00","end":"07:00","timezone":"Europe/Paris"}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
   Scenario: Second identical request is skipped and table state stays stable
@@ -208,7 +208,7 @@ Feature: Create subscriptions with database state assertions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                         | policy_json                                                               | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
   Scenario: Expand atomic rows for multiple categories event types and areas
@@ -245,7 +245,7 @@ Feature: Create subscriptions with database state assertions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                         | policy_json                                                               | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-75      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
       | [SUB_ID]        | [USER_ID] | transport.traffic | thunderstorm | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
@@ -278,7 +278,7 @@ Feature: Create subscriptions with database state assertions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category   | event_type  | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category   | event_type  | area_type | area_value | min_severity | delivery_json                                         | policy_json                                                               | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | iot.device | battery.low | global    | *          | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
   Scenario: Empty event_types list is normalized to wildcard
@@ -309,7 +309,7 @@ Feature: Create subscriptions with database state assertions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type | area_type | area_value | min_severity | delivery_json                                         | policy_json                                                               | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | *          | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
   Scenario: Reject payload with unknown field

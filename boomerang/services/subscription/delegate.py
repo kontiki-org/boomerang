@@ -15,11 +15,15 @@ from boomerang.core.contracts.notification import (
 )
 from boomerang.services.subscription.exceptions import (
     AuthError,
+    NotFoundError,
     RateLimitError,
     ValidationError,
 )
 from boomerang.services.subscription.database import Database
-from boomerang.services.subscription.http_models import CreateSubscriptionRequest
+from boomerang.services.subscription.http_models import (
+    CreateSubscriptionRequest,
+    UpdateSubscriptionRequest,
+)
 from boomerang.services.subscription.outcome import EntrypointOutcome, OutboundEvent
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -268,11 +272,33 @@ class SubscriptionDelegate(ServiceDelegate):
         items = self._database.list_subscriptions(user_id)
         return {"items": items}
 
-    async def update_subscription(self, request):
-        raise NotImplementedError
+    @requires_auth
+    async def update_subscription(
+        self,
+        request,
+        subscription_id,
+        body: UpdateSubscriptionRequest,
+        email,
+    ):
+        user_id = self._database.ensure_user(email)
+        updated = self._database.update_subscription(
+            user_id=user_id,
+            subscription_id=subscription_id,
+            min_severity=body.min_severity,
+            policy=body.policy.model_dump() if body.policy is not None else None,
+            status=body.status,
+        )
+        if updated is None:
+            raise NotFoundError("Resource not found.")
+        return {"status": "ok", "item": updated}
 
-    async def delete_subscription(self, request):
-        raise NotImplementedError
+    @requires_auth
+    async def delete_subscription(self, request, subscription_id, email):
+        user_id = self._database.ensure_user(email)
+        deleted = self._database.delete_subscription(user_id, subscription_id)
+        if not deleted:
+            raise NotFoundError("Resource not found.")
+        return {"status": "deleted"}
 
     async def upsert_channel(self, request):
         raise NotImplementedError

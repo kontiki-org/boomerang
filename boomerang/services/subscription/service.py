@@ -11,7 +11,10 @@ from boomerang.services.subscription.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from boomerang.services.subscription.http_models import CreateSubscriptionRequest
+from boomerang.services.subscription.http_models import (
+    CreateSubscriptionRequest,
+    UpdateSubscriptionRequest,
+)
 
 
 class SubscriptionService:
@@ -91,10 +94,12 @@ class SubscriptionService:
         "/subscriptions/{subscription_id}",
         "PATCH",
         version="v1",
+        request_model=UpdateSubscriptionRequest,
+        validate_request=True,
         errors=[ValidationError, AuthError, NotFoundError],
     )
-    async def update_subscription(self, request):
-        return await self.delegate.update_subscription(request)
+    async def update_subscription(self, request, subscription_id, body):
+        return await self.delegate.update_subscription(request, subscription_id, body)
 
     @http(
         "/subscriptions/{subscription_id}",
@@ -102,8 +107,8 @@ class SubscriptionService:
         version="v1",
         errors=[AuthError, NotFoundError],
     )
-    async def delete_subscription(self, request):
-        return await self.delegate.delete_subscription(request)
+    async def delete_subscription(self, request, subscription_id):
+        return await self.delegate.delete_subscription(request, subscription_id)
 
     @http("/channels", "POST", version="v1", errors=[ValidationError, AuthError])
     async def upsert_channel(self, request):

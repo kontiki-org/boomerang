@@ -14,7 +14,10 @@ from boomerang.services.subscription.database.queries import (
     CREATE_USERS_TABLE,
     INSERT_OR_IGNORE_SUBSCRIPTION,
     INSERT_OR_IGNORE_USER,
+    DELETE_SUBSCRIPTION,
+    SELECT_SUBSCRIPTION_BY_ID_AND_USER,
     SELECT_SUBSCRIPTIONS_BY_USER,
+    UPDATE_SUBSCRIPTION,
 )
 
 
@@ -118,22 +121,61 @@ class Database:
         with self._connection() as connection:
             rows = connection.execute(SELECT_SUBSCRIPTIONS_BY_USER, (user_id,)).fetchall()
 
-        return [
-            {
-                "subscription_id": row["subscription_id"],
-                "user_id": row["user_id"],
-                "category": row["category"],
-                "event_type": row["event_type"],
-                "area": {"type": row["area_type"], "value": row["area_value"]},
-                "min_severity": row["min_severity"],
-                "delivery": json.loads(row["delivery_json"]),
-                "policy": json.loads(row["policy_json"]),
-                "status": row["status"],
-                "created_at": row["created_at"],
-                "updated_at": row["updated_at"],
-            }
-            for row in rows
-        ]
+        return [self._row_to_subscription_item(row) for row in rows]
+
+    def update_subscription(
+        self,
+        user_id: str,
+        subscription_id: str,
+        min_severity: str | None,
+        policy: dict | None,
+        status: str | None,
+    ) -> dict | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                SELECT_SUBSCRIPTION_BY_ID_AND_USER,
+                (subscription_id, user_id),
+            ).fetchone()
+            if row is None:
+                return None
+
+            current_min_severity = row["min_severity"]
+            current_policy = json.loads(row["policy_json"])
+            current_status = row["status"]
+
+            next_min_severity = (
+                min_severity if min_severity is not None else current_min_severity
+            )
+            next_policy = policy if policy is not None else current_policy
+            next_status = status if status is not None else current_status
+            now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+            connection.execute(
+                UPDATE_SUBSCRIPTION,
+                (
+                    next_min_severity,
+                    json.dumps(next_policy, separators=(",", ":")),
+                    next_status,
+                    now_iso,
+                    subscription_id,
+                    user_id,
+                ),
+            )
+            updated_row = connection.execute(
+                SELECT_SUBSCRIPTION_BY_ID_AND_USER,
+                (subscription_id, user_id),
+            ).fetchone()
+        if updated_row is None:
+            return None
+        return self._row_to_subscription_item(updated_row)
+
+    def delete_subscription(self, user_id: str, subscription_id: str) -> bool:
+        with self._connection() as connection:
+            cursor = connection.execute(
+                DELETE_SUBSCRIPTION,
+                (subscription_id, user_id),
+            )
+        return cursor.rowcount > 0
 
     def _connection(self):
         connection = sqlite3.connect(self.sqlite_path)
@@ -161,3 +203,19 @@ class Database:
         )
         digest = sha256(canonical.encode("utf-8")).hexdigest()
         return f"sub_{digest[:20]}"
+
+    @staticmethod
+    def _row_to_subscription_item(row: sqlite3.Row) -> dict:
+        return {
+            "subscription_id": row["subscription_id"],
+            "user_id": row["user_id"],
+            "category": row["category"],
+            "event_type": row["event_type"],
+            "area": {"type": row["area_type"], "value": row["area_value"]},
+            "min_severity": row["min_severity"],
+            "delivery": json.loads(row["delivery_json"]),
+            "policy": json.loads(row["policy_json"]),
+            "status": row["status"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }

@@ -83,3 +83,37 @@ FROM subscriptions
 WHERE user_id = ?
 ORDER BY created_at DESC
 """
+
+SELECT_SUBSCRIPTION_BY_ID_AND_USER = """
+SELECT
+    subscription_id,
+    user_id,
+    category,
+    event_type,
+    area_type,
+    area_value,
+    min_severity,
+    delivery_json,
+    policy_json,
+    status,
+    created_at,
+    updated_at
+FROM subscriptions
+WHERE subscription_id = ? AND user_id = ?
+LIMIT 1
+"""
+
+UPDATE_SUBSCRIPTION = """
+UPDATE subscriptions
+SET
+    min_severity = ?,
+    policy_json = ?,
+    status = ?,
+    updated_at = ?
+WHERE subscription_id = ? AND user_id = ?
+"""
+
+DELETE_SUBSCRIPTION = """
+DELETE FROM subscriptions
+WHERE subscription_id = ? AND user_id = ?
+"""

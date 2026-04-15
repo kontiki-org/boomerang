@@ -56,6 +56,8 @@ def _resolve_placeholders(text, context):
         resolved = resolved.replace("[LAST_CODE]", context.last_code)
     if hasattr(context, "last_access_token"):
         resolved = resolved.replace("[LAST_ACCESS_TOKEN]", context.last_access_token)
+    if hasattr(context, "last_subscription_id"):
+        resolved = resolved.replace("[SUB_ID]", context.last_subscription_id)
     return resolved
 
 
@@ -221,7 +223,8 @@ def step_i_am_authenticated_as(context, email):
 @when("I call {method} on the subscription service on {url} with the following request")
 def step_call_request_on_subscription_service_with_request(context, method, url):
     headers, payload = _parse_request_block(context)
-    status, body = http_request(method, url, payload=payload, headers=headers)
+    resolved_url = _resolve_placeholders(url, context)
+    status, body = http_request(method, resolved_url, payload=payload, headers=headers)
     context.last_http_status = status
     context.last_http_body = body
 
@@ -236,6 +239,8 @@ def step_wait_seconds(context, seconds):
 @then("the request-auth-code response is")
 @then("the consume-auth-code response is")
 @then("the create-subscriptions response is")
+@then("the update-subscription response is")
+@then("the delete-subscription response is")
 def step_success_response(context):
     _assert_success_response(context)
 
@@ -251,6 +256,19 @@ def _assert_success_response(context):
     access_token = body.get("access_token")
     if isinstance(access_token, str) and access_token:
         context.last_access_token = access_token
+    if isinstance(body, dict):
+        created = body.get("created")
+        if isinstance(created, list) and created:
+            first = created[0]
+            if isinstance(first, dict):
+                subscription_id = first.get("subscription_id")
+                if isinstance(subscription_id, str) and subscription_id:
+                    context.last_subscription_id = subscription_id
+        item = body.get("item")
+        if isinstance(item, dict):
+            subscription_id = item.get("subscription_id")
+            if isinstance(subscription_id, str) and subscription_id:
+                context.last_subscription_id = subscription_id
 
 
 @then('a "{event_type}" event is published')
@@ -292,6 +310,8 @@ def step_event_is_published(context, event_type):
 @then("the consume-auth-code call is rejected with HTTP {status_code:d}")
 @then("the list-subscriptions call is rejected with HTTP {status_code:d}")
 @then("the create-subscriptions call is rejected with HTTP {status_code:d}")
+@then("the update-subscription call is rejected with HTTP {status_code:d}")
+@then("the delete-subscription call is rejected with HTTP {status_code:d}")
 def step_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (

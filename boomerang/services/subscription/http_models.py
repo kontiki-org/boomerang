@@ -114,3 +114,34 @@ class CreateSubscriptionRequest(BaseModel):
     selectors: Selectors
     delivery: DeliveryConfig = Field(default_factory=DeliveryConfig)
     policy: PolicyConfig = Field(default_factory=PolicyConfig)
+
+
+class UpdateSubscriptionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    min_severity: str | None = None
+    policy: PolicyConfig | None = None
+    status: str | None = None
+
+    @model_validator(mode="after")
+    def _normalize(self) -> "UpdateSubscriptionRequest":
+        if self.min_severity is not None:
+            normalized_min_severity = self.min_severity.strip().lower()
+            if not normalized_min_severity:
+                raise ValueError("Invalid request payload.")
+            self.min_severity = normalized_min_severity
+
+        if self.status is not None:
+            normalized_status = self.status.strip().lower()
+            if normalized_status not in {"active", "paused"}:
+                raise ValueError("Invalid request payload.")
+            self.status = normalized_status
+
+        if (
+            self.min_severity is None
+            and self.policy is None
+            and self.status is None
+        ):
+            raise ValueError("Invalid request payload.")
+
+        return self

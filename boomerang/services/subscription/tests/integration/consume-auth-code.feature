@@ -40,10 +40,12 @@ Feature: Consume auth code
       """
 
   Scenario: Consume a valid auth code
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is
@@ -73,10 +75,12 @@ Feature: Consume auth code
         }
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
-        "code": "[LAST_CODE]"
+        "payload": {
+          "code": "[LAST_CODE]"
+        }
       }
       """
     Then the consume-auth-code response is
@@ -89,9 +93,11 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is missing
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
-      {}
+      {
+        "payload": {}
+      }
       """
     Then the consume-auth-code call is rejected with HTTP 400
       """
@@ -101,10 +107,12 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is unknown
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
-        "code": "123456"
+        "payload": {
+          "code": "123456"
+        }
       }
       """
     Then the consume-auth-code call is rejected with HTTP 401
@@ -115,10 +123,12 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is expired
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is
@@ -149,10 +159,12 @@ Feature: Consume auth code
       }
       """
     When I wait 6 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
-        "code": "[LAST_CODE]"
+        "payload": {
+          "code": "[LAST_CODE]"
+        }
       }
       """
     Then the consume-auth-code call is rejected with HTTP 401
@@ -163,10 +175,12 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is already used
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is
@@ -196,10 +210,12 @@ Feature: Consume auth code
         }
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
-        "code": "[LAST_CODE]"
+        "payload": {
+          "code": "[LAST_CODE]"
+        }
       }
       """
     Then the consume-auth-code response is
@@ -210,10 +226,12 @@ Feature: Consume auth code
         "token_type": "Bearer"
       }
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
-        "code": "[LAST_CODE]"
+        "payload": {
+          "code": "[LAST_CODE]"
+        }
       }
       """
     Then the consume-auth-code call is rejected with HTTP 401

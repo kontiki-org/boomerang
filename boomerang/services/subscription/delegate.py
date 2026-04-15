@@ -107,6 +107,25 @@ class SubscriptionDelegate(ServiceDelegate):
     def _generate_auth_code(self):
         return f"{secrets.randbelow(1000000):06d}"
 
+    def _extract_bearer_token(self, request):
+        auth_header = request.headers.get("Authorization", "")
+        if not isinstance(auth_header, str):
+            raise AuthError("Authentication required or invalid.")
+        scheme, _, token = auth_header.partition(" ")
+        if scheme.lower() != "bearer" or not token.strip():
+            raise AuthError("Authentication required or invalid.")
+        return token.strip()
+
+    def _require_authenticated_email(self, request):
+        access_token = self._extract_bearer_token(request)
+        session = self._access_tokens.get(access_token)
+        if not isinstance(session, dict):
+            raise AuthError("Authentication required or invalid.")
+        email = session.get("email")
+        if not isinstance(email, str) or not email:
+            raise AuthError("Authentication required or invalid.")
+        return email
+
     async def get_recipients_for_zone(self, zone_code, severity, category):
         raise NotImplementedError
 
@@ -123,9 +142,7 @@ class SubscriptionDelegate(ServiceDelegate):
             "expires_at": expires_at,
             "used": False,
         }
-        logging.info(
-            "auth code created for email=%s expires_at=%s", email, expires_at
-        )
+        logging.info("auth code created for email=%s expires_at=%s", email, expires_at)
 
         message = NotificationRequest(
             channel="email",
@@ -206,7 +223,9 @@ class SubscriptionDelegate(ServiceDelegate):
         raise NotImplementedError
 
     async def list_subscriptions(self, request):
-        raise NotImplementedError
+        email = self._require_authenticated_email(request)
+        logging.info("list_subscriptions for email=%s", email)
+        return {"items": []}
 
     async def update_subscription(self, request):
         raise NotImplementedError

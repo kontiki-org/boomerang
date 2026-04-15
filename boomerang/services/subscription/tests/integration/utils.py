@@ -45,14 +45,18 @@ def start_subscription_subprocess(config):
     return proc, config_path
 
 
-def http_request(method, url, payload=None, timeout_seconds=5):
+def http_request(method, url, payload=None, headers=None, timeout_seconds=5):
     data = None
-    headers = {"Accept": "application/json"}
+    request_headers = {"Accept": "application/json"}
+    if headers:
+        request_headers.update(headers)
     if payload is not None:
-        headers["Content-Type"] = "application/json"
+        request_headers["Content-Type"] = "application/json"
         data = json.dumps(payload).encode("utf-8")
 
-    req = request.Request(url=url, method=method.upper(), data=data, headers=headers)
+    req = request.Request(
+        url=url, method=method.upper(), data=data, headers=request_headers
+    )
     try:
         with request.urlopen(req, timeout=timeout_seconds) as resp:
             body_raw = resp.read().decode("utf-8") or "{}"

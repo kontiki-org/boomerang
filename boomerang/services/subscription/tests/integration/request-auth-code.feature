@@ -38,10 +38,12 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is
@@ -107,9 +109,11 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
-      {}
+      {
+        "payload": {}
+      }
       """
     Then the request-auth-code call is rejected with HTTP 400
       """
@@ -153,10 +157,12 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "not-an-email"
+        "payload": {
+          "email": "not-an-email"
+        }
       }
       """
     Then the request-auth-code call is rejected with HTTP 400
@@ -201,31 +207,39 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 8
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code call is rejected with HTTP 429
@@ -270,17 +284,21 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 1 second
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code call is rejected with HTTP 429
@@ -325,17 +343,21 @@ Feature: Request auth code
               max_requests: 5
               window_seconds: 8
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 2 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is
@@ -380,23 +402,29 @@ Feature: Request auth code
               max_requests: 2
               window_seconds: 2
       """
-    When I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     And I wait 3 seconds
-    And I call the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following payload
+    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
-        "email": "user@example.org"
+        "payload": {
+          "email": "user@example.org"
+        }
       }
       """
     Then the request-auth-code response is

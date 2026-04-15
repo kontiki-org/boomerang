@@ -47,6 +47,56 @@ def _last_response(context):
     return context.last_http_status, context.last_http_body
 
 
+def _resolve_placeholders(text, context):
+    resolved = text
+    if hasattr(context, "last_code"):
+        resolved = resolved.replace("[LAST_CODE]", context.last_code)
+    if hasattr(context, "last_access_token"):
+        resolved = resolved.replace("[LAST_ACCESS_TOKEN]", context.last_access_token)
+    return resolved
+
+
+def _parse_request_block(context):
+    if not context.text or not context.text.strip():
+        return None, None
+    request_text = _resolve_placeholders(context.text.strip(), context)
+    request_data = json.loads(request_text)
+    if not isinstance(request_data, dict):
+        raise AssertionError("Request block must be a JSON object.")
+    headers = request_data.get("headers")
+    payload = request_data.get("payload")
+    if headers is not None and not isinstance(headers, dict):
+        raise AssertionError("'headers' must be a JSON object when provided.")
+    return headers, payload
+
+
+def _extract_auth_code_from_notification_event(context):
+    catcher_name = "notification-event-catcher"
+    events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
+    assert events, "No event published for alerting.notification.requested"
+    match = None
+    for event in events:
+        if event.get("event_type") == "alerting.notification.requested":
+            match = event
+    assert (
+        match is not None
+    ), f"Event alerting.notification.requested not found in {events}"
+    payload = match.get("payload", {})
+    if hasattr(payload, "model_dump"):
+        payload = payload.model_dump()
+    auth_code = (
+        payload.get("message", {})
+        .get("context", {})
+        .get("data", {})
+        .get("auth_code", "")
+    )
+    assert (
+        isinstance(auth_code, str) and auth_code
+    ), f"No auth_code in payload: {payload}"
+    context.manager.clean_events(catcher_name)
+    return auth_code
+
+
 @given("the subscription service is running with the following configuration")
 def step_subscription_running_with_config(context):
     config_text = context.text.strip()
@@ -65,18 +115,36 @@ def step_subscription_running_with_config(context):
         )
 
 
-@when("I call the subscription service on {url} with the following payload")
-def step_call_subscription_service(context, url):
-    payload_text = context.text.strip()
-    if hasattr(context, "last_code"):
-        payload_text = payload_text.replace("[LAST_CODE]", context.last_code)
-    payload = json.loads(payload_text)
+@given('I am authenticated as "{email}"')
+def step_i_am_authenticated_as(context, email):
+    status, body = http_request(
+        "POST",
+        "http://127.0.0.1:8000/auth/request-auth-code",
+        payload={"email": email},
+    )
+    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
+    assert body == {"status": "ok"}, f"Unexpected response body: {body}"
+    context.last_code = _extract_auth_code_from_notification_event(context)
 
     status, body = http_request(
         "POST",
-        url,
-        payload=payload,
+        "http://127.0.0.1:8000/auth/consume-auth-code",
+        payload={"code": context.last_code},
     )
+    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
+    assert body.get("status") == "ok", f"Unexpected response body: {body}"
+    assert body.get("token_type") == "Bearer", f"Unexpected response body: {body}"
+    access_token = body.get("access_token")
+    assert (
+        isinstance(access_token, str) and access_token
+    ), f"Expected non-empty access_token, got {body}"
+    context.last_access_token = access_token
+
+
+@when("I call {method} on the subscription service on {url} with the following request")
+def step_call_request_on_subscription_service_with_request(context, method, url):
+    headers, payload = _parse_request_block(context)
+    status, body = http_request(method, url, payload=payload, headers=headers)
     context.last_http_status = status
     context.last_http_body = body
 
@@ -102,6 +170,9 @@ def _assert_success_response(context):
     assert (
         normalized_body == expected
     ), f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+    access_token = body.get("access_token")
+    if isinstance(access_token, str) and access_token:
+        context.last_access_token = access_token
 
 
 @then('a "{event_type}" event is published')
@@ -129,9 +200,10 @@ def step_event_is_published(context, event_type):
     )
     if event_type == "alerting.notification.requested":
         auth_code = (
-            actual_payload.get("message", {}).get("context", {}).get("data", {}).get(
-                "auth_code", ""
-            )
+            actual_payload.get("message", {})
+            .get("context", {})
+            .get("data", {})
+            .get("auth_code", "")
         )
         if isinstance(auth_code, str) and auth_code:
             context.last_code = auth_code
@@ -140,6 +212,7 @@ def step_event_is_published(context, event_type):
 
 @then("the request-auth-code call is rejected with HTTP {status_code:d}")
 @then("the consume-auth-code call is rejected with HTTP {status_code:d}")
+@then("the list-subscriptions call is rejected with HTTP {status_code:d}")
 def step_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (
@@ -151,6 +224,11 @@ def step_rejected_response(context, status_code):
         assert (
             normalized_body == expected
         ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+
+
+@then("the list-subscriptions response is")
+def step_list_subscriptions_response(context):
+    _assert_success_response(context)
 
 
 @then("no account existence information is disclosed in the response")

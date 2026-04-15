@@ -1,7 +1,7 @@
 Feature: Create subscriptions with database state assertions
-  In order to verify persistence behavior
-  As a Boomerang subscription user
-  I want to describe database state fully with Gherkin tables
+  In order to subscribe to relevant alerts
+  As an authenticated Boomerang user
+  I want to create subscriptions with predictable idempotent behavior
 
   Background:
     Given the subscription service is running with the following configuration

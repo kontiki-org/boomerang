@@ -4,8 +4,8 @@ import time
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
 from boomerang.services.subscription.tests.integration.mocks import (
-    NotificationEventCatcher,
     IdentityServiceMock,
+    NotificationEventCatcher,
 )
 from boomerang.services.subscription.tests.integration.utils import _safe_unlink
 

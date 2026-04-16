@@ -46,4 +46,3 @@ def requires_identity_auth(handler):
         )
 
     return wrapper
-

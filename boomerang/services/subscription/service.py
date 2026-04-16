@@ -4,10 +4,7 @@ from kontiki.web import http
 
 from boomerang.core.auth import AuthError, requires_identity_auth
 from boomerang.services.subscription.delegate import SubscriptionDelegate
-from boomerang.services.subscription.exceptions import (
-    NotFoundError,
-    ValidationError,
-)
+from boomerang.services.subscription.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.http_models import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
@@ -29,6 +26,21 @@ class SubscriptionService:
     async def get_recipients_for_zone(self, zone_code, severity, category):
         return await self.delegate.get_recipients_for_zone(
             zone_code, severity, category
+        )
+
+    @rpc
+    async def attach_channel_endpoint(
+        self,
+        user_id: str,
+        channel: str,
+        endpoint_key: str,
+        is_default: bool = False,
+    ):
+        return await self.delegate.attach_channel_endpoint(
+            user_id=user_id,
+            channel=channel,
+            endpoint_key=endpoint_key,
+            is_default=is_default,
         )
 
     @http(

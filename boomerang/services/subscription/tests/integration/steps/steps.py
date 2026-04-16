@@ -8,8 +8,8 @@ from behave import given, then, when
 
 from boomerang.services.subscription.tests.integration.utils import (
     http_request,
-    start_subscription_subprocess,
     register_identity_session,
+    start_subscription_subprocess,
 )
 
 
@@ -58,6 +58,8 @@ def _resolve_placeholders(text, context):
         resolved = resolved.replace("[LAST_ACCESS_TOKEN]", context.last_access_token)
     if hasattr(context, "last_subscription_id"):
         resolved = resolved.replace("[SUB_ID]", context.last_subscription_id)
+    if hasattr(context, "last_user_id"):
+        resolved = resolved.replace("[USER_ID]", context.last_user_id)
     return resolved
 
 
@@ -208,6 +210,50 @@ def step_call_request_on_subscription_service_with_request(context, method, url)
     status, body = http_request(method, resolved_url, payload=payload, headers=headers)
     context.last_http_status = status
     context.last_http_body = body
+
+
+@when(
+    "I call the RPC {method_name} on the subscription service with the following arguments"
+)
+def step_call_rpc_on_subscription_service(context, method_name):
+    payload_text = _resolve_placeholders(context.text.strip(), context)
+    payload = json.loads(payload_text) if payload_text else {}
+    context.last_rpc_error = None
+    try:
+        context.last_rpc_result = context.runner.call(
+            "subscription-service",
+            method_name,
+            **payload,
+        )
+    except Exception as exc:
+        context.last_rpc_result = None
+        context.last_rpc_error = exc
+
+
+@given('I have resolved the subscription user id as "{user_id}"')
+@then('I have resolved the subscription user id as "{user_id}"')
+def step_resolve_subscription_user_id(context, user_id):
+    resolved_user_id = _resolve_placeholders(user_id, context)
+    context.last_user_id = resolved_user_id
+
+
+@then("the attach_channel_endpoint RPC call succeeds")
+def step_attach_channel_endpoint_rpc_success(context):
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+
+
+@then("the attach_channel_endpoint request is rejected due to validation error")
+def step_attach_channel_endpoint_validation_error(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC validation error, but call succeeded."
+    actual = {"code": error.code, "message": error.message}
+    assert (
+        actual == expected
+    ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
 
 
 @when("I wait {seconds:d} seconds")

@@ -6,12 +6,17 @@ from hashlib import sha256
 from pathlib import Path
 
 from boomerang.services.subscription.database.queries import (
+    CREATE_CHANNEL_ENDPOINTS_TABLE,
+    CREATE_CHANNEL_ENDPOINTS_UNIQUE_KEY,
+    CREATE_CHANNEL_ENDPOINTS_USER_INDEX,
     CREATE_SUBSCRIPTIONS_IDENTITY_INDEX,
     CREATE_SUBSCRIPTIONS_LOOKUP_INDEX,
     CREATE_SUBSCRIPTIONS_TABLE,
     CREATE_SUBSCRIPTIONS_USER_INDEX,
     DELETE_SUBSCRIPTION,
+    INSERT_OR_IGNORE_CHANNEL_ENDPOINT,
     INSERT_OR_IGNORE_SUBSCRIPTION,
+    SELECT_CHANNEL_ENDPOINT_BY_KEY,
     SELECT_SUBSCRIPTION_BY_ID_AND_USER,
     SELECT_SUBSCRIPTIONS_BY_USER,
     UPDATE_SUBSCRIPTION,
@@ -33,6 +38,9 @@ class Database:
             connection.execute(CREATE_SUBSCRIPTIONS_USER_INDEX)
             connection.execute(CREATE_SUBSCRIPTIONS_LOOKUP_INDEX)
             connection.execute(CREATE_SUBSCRIPTIONS_IDENTITY_INDEX)
+            connection.execute(CREATE_CHANNEL_ENDPOINTS_TABLE)
+            connection.execute(CREATE_CHANNEL_ENDPOINTS_USER_INDEX)
+            connection.execute(CREATE_CHANNEL_ENDPOINTS_UNIQUE_KEY)
 
     def create_subscriptions(
         self,
@@ -169,6 +177,36 @@ class Database:
             )
         return cursor.rowcount > 0
 
+    def attach_channel_endpoint(
+        self,
+        user_id: str,
+        channel: str,
+        endpoint_key: str,
+        is_default: bool,
+    ) -> dict:
+        now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        endpoint_id = self._build_endpoint_id(user_id, channel, endpoint_key)
+        with self._connection() as connection:
+            connection.execute(
+                INSERT_OR_IGNORE_CHANNEL_ENDPOINT,
+                (
+                    endpoint_id,
+                    user_id,
+                    channel,
+                    endpoint_key,
+                    1 if is_default else 0,
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            row = connection.execute(
+                SELECT_CHANNEL_ENDPOINT_BY_KEY,
+                (user_id, channel, endpoint_key),
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Channel endpoint persistence failed.")
+        return dict(row)
+
     def _connection(self):
         connection = sqlite3.connect(self.sqlite_path)
         connection.row_factory = sqlite3.Row
@@ -190,6 +228,12 @@ class Database:
         )
         digest = sha256(canonical.encode("utf-8")).hexdigest()
         return f"sub_{digest[:20]}"
+
+    @staticmethod
+    def _build_endpoint_id(user_id: str, channel: str, endpoint_key: str) -> str:
+        canonical = f"v1|{user_id}|{channel}|{endpoint_key}"
+        digest = sha256(canonical.encode("utf-8")).hexdigest()
+        return f"ep_{digest[:20]}"
 
     @staticmethod
     def _row_to_subscription_item(row: sqlite3.Row) -> dict:

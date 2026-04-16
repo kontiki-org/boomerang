@@ -1,11 +1,11 @@
 import logging
+
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
+from kontiki.messaging import rpc_error
 
 from boomerang.services.subscription.database import Database
-from boomerang.services.subscription.exceptions import (
-    NotFoundError
-)
+from boomerang.services.subscription.exceptions import NotFoundError
 from boomerang.services.subscription.http_models import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
@@ -38,10 +38,39 @@ class SubscriptionDelegate(ServiceDelegate):
             self._sqlite_path,
         )
 
-
     async def get_recipients_for_zone(self, zone_code, severity, category):
         raise NotImplementedError
 
+    async def attach_channel_endpoint(
+        self,
+        user_id: str,
+        channel: str,
+        endpoint_key: str,
+        is_default: bool = False,
+    ):
+        user_id = user_id.strip()
+        normalized_channel = channel.strip().lower()
+        endpoint_key = endpoint_key.strip()
+
+        logging.info(
+            "attach_channel_endpoint for user_id=%s channel=%s endpoint_key=%s is_default=%s",
+            user_id,
+            normalized_channel,
+            endpoint_key,
+            is_default,
+        )
+        if not user_id or not normalized_channel or not endpoint_key:
+            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+        if normalized_channel not in self._configured_channels:
+            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+
+        self._database.attach_channel_endpoint(
+            user_id=user_id,
+            channel=normalized_channel,
+            endpoint_key=endpoint_key,
+            is_default=is_default,
+        )
+        return None
 
     async def create_subscription(self, body: CreateSubscriptionRequest, user_id: str):
         created, skipped, errors = self._database.create_subscriptions(user_id, body)

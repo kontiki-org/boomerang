@@ -1,11 +1,10 @@
-import logging
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger, RpcProxy, rpc
+from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
+from boomerang.core.auth import AuthError, requires_identity_auth
 from boomerang.services.subscription.delegate import SubscriptionDelegate
 from boomerang.services.subscription.exceptions import (
-    AuthError,
     NotFoundError,
     ValidationError,
 )
@@ -26,39 +25,6 @@ class SubscriptionService:
         NotFoundError: (404, "Resource not found."),
     }
 
-    @staticmethod
-    def requires_auth(handler):
-        async def wrapper(self, request, *args, **kwargs):
-            session = await self._require_authenticated_session(request)
-            return await handler(
-                self,
-                request,
-                *args,
-                user_id=session["user_id"],
-                email=session["email"],
-                **kwargs,
-            )
-
-        return wrapper
-
-    async def _require_authenticated_session(self, request):
-        auth_header = request.headers.get("Authorization", "")
-        if not isinstance(auth_header, str):
-            raise AuthError("Authentication required or invalid.")
-        scheme, _, token = auth_header.partition(" ")
-        if scheme.lower() != "bearer" or not token.strip():
-            raise AuthError("Authentication required or invalid.")
-        access_token = token.strip()
-
-        rpc_client = RpcProxy(self.messenger, "identity-service")
-        try:
-            session = await rpc_client.verify_session(access_token)
-        except Exception as exc:
-            logging.error("Authentication required or invalid.", exc_info=exc)
-            raise AuthError("Authentication required or invalid.") from exc
-
-        return session
-
     @rpc
     async def get_recipients_for_zone(self, zone_code, severity, category):
         return await self.delegate.get_recipients_for_zone(
@@ -73,13 +39,13 @@ class SubscriptionService:
         validate_request=True,
         errors=[ValidationError, AuthError],
     )
-    @requires_auth
+    @requires_identity_auth
     async def create_subscription(self, request, body, user_id, email):
         _ = email
         return await self.delegate.create_subscription(body, user_id)
 
     @http("/subscriptions", "GET", version="v1", errors=[AuthError])
-    @requires_auth
+    @requires_identity_auth
     async def list_subscriptions(self, request, user_id, email):
         _ = email
         return await self.delegate.list_subscriptions(user_id)
@@ -92,7 +58,7 @@ class SubscriptionService:
         validate_request=True,
         errors=[ValidationError, AuthError, NotFoundError],
     )
-    @requires_auth
+    @requires_identity_auth
     async def update_subscription(self, request, subscription_id, body, user_id, email):
         _ = email
         return await self.delegate.update_subscription(subscription_id, body, user_id)
@@ -103,7 +69,7 @@ class SubscriptionService:
         version="v1",
         errors=[AuthError, NotFoundError],
     )
-    @requires_auth
+    @requires_identity_auth
     async def delete_subscription(self, request, subscription_id, user_id, email):
         _ = email
         return await self.delegate.delete_subscription(subscription_id, user_id)

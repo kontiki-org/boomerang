@@ -77,11 +77,7 @@ def _parse_request_block(context):
 
 def _sqlite_path_from_context(context):
     config = getattr(context, "subscription_config", None) or {}
-    return (
-        config.get("app", {})
-        .get("storage", {})
-        .get("sqlite_path")
-    )
+    return config.get("app", {}).get("storage", {}).get("sqlite_path")
 
 
 def _fetch_all_rows(sqlite_path, table_name):
@@ -94,7 +90,10 @@ def _fetch_all_rows(sqlite_path, table_name):
 def _rows_from_context_table(context):
     if context.table is None:
         raise AssertionError("This step requires a Gherkin data table.")
-    return [{heading: row[heading] for heading in context.table.headings} for row in context.table]
+    return [
+        {heading: row[heading] for heading in context.table.headings}
+        for row in context.table
+    ]
 
 
 def _normalize_scalar(value):
@@ -326,6 +325,7 @@ def step_rejected_response(context, status_code):
 
 
 @then("the list-subscriptions response is")
+@then("the list-channels response is")
 def step_list_subscriptions_response(context):
     _assert_success_response(context)
 

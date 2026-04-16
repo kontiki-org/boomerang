@@ -1,8 +1,8 @@
 import logging
 import re
 import secrets
-from functools import wraps
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
@@ -13,13 +13,13 @@ from boomerang.core.contracts.notification import (
     NotificationMessage,
     NotificationRequest,
 )
+from boomerang.services.subscription.database import Database
 from boomerang.services.subscription.exceptions import (
     AuthError,
     NotFoundError,
     RateLimitError,
     ValidationError,
 )
-from boomerang.services.subscription.database import Database
 from boomerang.services.subscription.http_models import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
@@ -84,6 +84,10 @@ class SubscriptionDelegate(ServiceDelegate):
             self.container.config,
             "app.storage.sqlite_path",
             "/data/subscriptions.db",
+        )
+        configured_channels = get_parameter(self.container.config, "app.channels", [])
+        self._configured_channels = (
+            configured_channels if isinstance(configured_channels, list) else []
         )
         if self._storage_backend != "sqlite":
             raise RuntimeError("Unsupported storage backend for MVP.")
@@ -252,7 +256,9 @@ class SubscriptionDelegate(ServiceDelegate):
         raise NotImplementedError
 
     @requires_auth
-    async def create_subscription(self, request, body: CreateSubscriptionRequest, email):
+    async def create_subscription(
+        self, request, body: CreateSubscriptionRequest, email
+    ):
         user_id = self._database.ensure_user(email)
         created, skipped, errors = self._database.create_subscriptions(user_id, body)
 
@@ -303,16 +309,23 @@ class SubscriptionDelegate(ServiceDelegate):
     async def upsert_channel(self, request):
         raise NotImplementedError
 
-    async def list_channels(self, request):
-        raise NotImplementedError
+    async def list_channels(self):
+        items = []
+        for entry in self._configured_channels:
+            if isinstance(entry, str):
+                channel = entry.strip().lower()
+            else:
+                channel = ""
+
+            if channel:
+                items.append(channel)
+
+        return {"items": items}
 
     async def update_channel(self, request):
         raise NotImplementedError
 
     async def delete_channel(self, request):
-        raise NotImplementedError
-
-    async def list_channel_catalog(self, request):
         raise NotImplementedError
 
     async def list_categories(self, request):

@@ -137,11 +137,7 @@ class UpdateSubscriptionRequest(BaseModel):
                 raise ValueError("Invalid request payload.")
             self.status = normalized_status
 
-        if (
-            self.min_severity is None
-            and self.policy is None
-            and self.status is None
-        ):
+        if self.min_severity is None and self.policy is None and self.status is None:
             raise ValueError("Invalid request payload.")
 
         return self

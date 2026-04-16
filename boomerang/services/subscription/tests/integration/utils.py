@@ -69,3 +69,14 @@ def http_request(method, url, payload=None, headers=None, timeout_seconds=5):
         except Exception:
             body = {}
         return exc.code, body
+
+
+def _safe_unlink(path: str | None) -> None:
+    if not path:
+        return
+    if not os.path.isfile(path):
+        return
+    try:
+        os.unlink(path)
+    except OSError:
+        pass

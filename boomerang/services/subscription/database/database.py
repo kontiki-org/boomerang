@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 
-from boomerang.services.subscription.http_models import CreateSubscriptionRequest
 from boomerang.services.subscription.database.queries import (
     CREATE_SUBSCRIPTIONS_IDENTITY_INDEX,
     CREATE_SUBSCRIPTIONS_LOOKUP_INDEX,
@@ -12,13 +11,14 @@ from boomerang.services.subscription.database.queries import (
     CREATE_SUBSCRIPTIONS_USER_INDEX,
     CREATE_USERS_EMAIL_INDEX,
     CREATE_USERS_TABLE,
+    DELETE_SUBSCRIPTION,
     INSERT_OR_IGNORE_SUBSCRIPTION,
     INSERT_OR_IGNORE_USER,
-    DELETE_SUBSCRIPTION,
     SELECT_SUBSCRIPTION_BY_ID_AND_USER,
     SELECT_SUBSCRIPTIONS_BY_USER,
     UPDATE_SUBSCRIPTION,
 )
+from boomerang.services.subscription.http_models import CreateSubscriptionRequest
 
 
 class Database:
@@ -42,7 +42,9 @@ class Database:
         now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         user_id = self._build_user_id(email)
         with self._connection() as connection:
-            connection.execute(INSERT_OR_IGNORE_USER, (user_id, email, None, now_iso, now_iso))
+            connection.execute(
+                INSERT_OR_IGNORE_USER, (user_id, email, None, now_iso, now_iso)
+            )
         return user_id
 
     def create_subscriptions(
@@ -119,7 +121,9 @@ class Database:
 
     def list_subscriptions(self, user_id: str) -> list[dict]:
         with self._connection() as connection:
-            rows = connection.execute(SELECT_SUBSCRIPTIONS_BY_USER, (user_id,)).fetchall()
+            rows = connection.execute(
+                SELECT_SUBSCRIPTIONS_BY_USER, (user_id,)
+            ).fetchall()
 
         return [self._row_to_subscription_item(row) for row in rows]
 

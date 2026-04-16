@@ -114,9 +114,10 @@ class SubscriptionService:
     async def upsert_channel(self, request):
         return await self.delegate.upsert_channel(request)
 
-    @http("/channels", "GET", version="v1", errors=[AuthError])
+    @http("/channels", "GET", version="v1")
     async def list_channels(self, request):
-        return await self.delegate.list_channels(request)
+        _ = request
+        return await self.delegate.list_channels()
 
     @http(
         "/channels/{channel_id}",
@@ -135,10 +136,6 @@ class SubscriptionService:
     )
     async def delete_channel(self, request):
         return await self.delegate.delete_channel(request)
-
-    @http("/channels/catalog", "GET", version="v1")
-    async def list_channel_catalog(self, request):
-        return await self.delegate.list_channel_catalog(request)
 
     @http("/categories", "GET", version="v1")
     async def list_categories(self, request):

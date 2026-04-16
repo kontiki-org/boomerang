@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import rpc, rpc_error
+from pydantic import ValidationError as PydanticValidationError
 
 from boomerang.core.contracts.notification import (
     NotificationContext,
@@ -123,7 +124,10 @@ class IdentityDelegate(ServiceDelegate):
         except Exception as exc:
             raise ValidationError("Invalid request payload.") from exc
 
-        model = RequestAuthCodeRequest.model_validate(body)
+        try:
+            model = RequestAuthCodeRequest.model_validate(body)
+        except PydanticValidationError as exc:
+            raise ValidationError("Invalid request payload.") from exc
         email = model.email.strip().lower()
         if not EMAIL_RE.match(email):
             raise ValidationError("Invalid request payload.")
@@ -169,7 +173,10 @@ class IdentityDelegate(ServiceDelegate):
         except Exception as exc:
             raise ValidationError("Invalid request payload.") from exc
 
-        model = ConsumeAuthCodeRequest.model_validate(body)
+        try:
+            model = ConsumeAuthCodeRequest.model_validate(body)
+        except PydanticValidationError as exc:
+            raise ValidationError("Invalid request payload.") from exc
         auth_code = model.code.strip()
         if not CODE_RE.match(auth_code):
             raise ValidationError("Invalid request payload.")

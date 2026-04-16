@@ -40,6 +40,7 @@ class IdentityService:
         errors=[ValidationError, RateLimitError],
     )
     async def request_auth_code(self, request):
+        logging.info("request_auth_code called with request=%s", request)
         outcome = await self.delegate.request_auth_code(request)
         return await self._finalize_entrypoint(outcome)
 
@@ -50,6 +51,7 @@ class IdentityService:
         errors=[ValidationError, AuthError, RateLimitError],
     )
     async def consume_auth_code(self, request):
+        logging.info("consume_auth_code called with request=%s", request)
         outcome = await self.delegate.consume_auth_code(request)
         return await self._finalize_entrypoint(outcome)
 

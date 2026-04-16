@@ -3,7 +3,7 @@ import time
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
 from boomerang.services.identity.tests.integration.mocks import NotificationEventCatcher
-from boomerang.services.identity.tests.integration.utils import _safe_unlink
+from boomerang.testing import safe_unlink
 
 
 def before_all(context):
@@ -28,10 +28,10 @@ def after_scenario(context, scenario):
         context.identity_process.wait(timeout=5)
         context.identity_process = None
 
-    _safe_unlink(context.identity_config_path)
+    safe_unlink(context.identity_config_path)
     context.identity_config_path = None
 
-    _safe_unlink(context.identity_sqlite_path)
+    safe_unlink(context.identity_sqlite_path)
     context.identity_sqlite_path = None
 
     context.manager.clean_events("notification-event-catcher")

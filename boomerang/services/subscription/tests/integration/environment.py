@@ -7,7 +7,7 @@ from boomerang.services.subscription.tests.integration.mocks import (
     IdentityServiceMock,
     NotificationEventCatcher,
 )
-from boomerang.services.subscription.tests.integration.utils import _safe_unlink
+from boomerang.testing import safe_unlink
 
 
 def before_all(context):
@@ -33,10 +33,10 @@ def after_scenario(context, scenario):
         context.subscription_process.wait(timeout=5)
         context.subscription_process = None
 
-    _safe_unlink(context.subscription_config_path)
+    safe_unlink(context.subscription_config_path)
     context.subscription_config_path = None
 
-    _safe_unlink(context.subscription_sqlite_path)
+    safe_unlink(context.subscription_sqlite_path)
     context.subscription_sqlite_path = None
 
     context.manager.clean_events("notification-event-catcher")

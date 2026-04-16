@@ -109,7 +109,7 @@ def step_identity_running_with_config(context):
     proc, config_path = start_identity_subprocess(config)
     context.identity_process = proc
     context.identity_config_path = config_path
-    time.sleep(3)
+    time.sleep(5)
     if proc.poll() is not None:
         stderr = (
             proc.stderr.read().decode(errors="replace") if proc.stderr else ""

@@ -157,3 +157,21 @@ FROM channel_endpoints
 WHERE user_id = ? AND channel = ? AND endpoint_key = ?
 LIMIT 1;
 """
+
+SELECT_RECIPIENT_CANDIDATES_FOR_ALERT = """
+SELECT
+    s.user_id,
+    s.min_severity,
+    s.delivery_json,
+    ce.channel,
+    ce.endpoint_key
+FROM subscriptions AS s
+JOIN channel_endpoints AS ce
+    ON ce.user_id = s.user_id
+WHERE s.status = 'active'
+  AND ce.status = 'active'
+  AND s.alert = ?
+  AND (s.event_type = ? OR s.event_type = '*')
+  AND s.area_type = ?
+  AND s.area_value = ?;
+"""

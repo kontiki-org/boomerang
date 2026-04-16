@@ -116,6 +116,12 @@ def _normalize_scalar(value):
     return value
 
 
+def _sql_literal(value):
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, separators=(",", ":"))
+    return value
+
+
 def _normalize_table_rows(rows):
     normalized = []
     for row in rows:
@@ -245,6 +251,28 @@ def step_attach_channel_endpoint_rpc_success(context):
         )
 
 
+@then("the RPC call succeeds")
+def step_rpc_call_succeeds(context):
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+
+
+@then("the RPC response is")
+def step_rpc_response_is(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+    actual = context.last_rpc_result
+    normalized_actual = _normalize_actual_for_placeholders(expected, actual)
+    assert (
+        normalized_actual == expected
+    ), f"RPC response mismatch.\nExpected: {expected}\nActual:   {normalized_actual}"
+
+
 @then("the attach_channel_endpoint request is rejected due to validation error")
 def step_attach_channel_endpoint_validation_error(context):
     expected = json.loads(context.text.strip()) if context.text else {}
@@ -371,7 +399,9 @@ def step_seed_table(context, table_name):
     columns = context.table.headings
     placeholders = ", ".join("?" for _ in columns)
     quoted_columns = ", ".join(columns)
-    values = [[_normalize_scalar(row[col]) for col in columns] for row in rows]
+    values = [
+        [_sql_literal(_normalize_scalar(row[col])) for col in columns] for row in rows
+    ]
 
     with sqlite3.connect(sqlite_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;")

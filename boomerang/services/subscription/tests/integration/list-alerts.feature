@@ -36,9 +36,12 @@ Feature: List allowed alerts from configuration
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alerts:
           allowed:
-            - weather.wind
-            - weather.rain
-            - transport.road
+            - category: weather
+              event_type: wind
+            - category: weather
+              event_type: rain
+            - category: transport
+              event_type: road
       """
     When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
       """
@@ -48,9 +51,9 @@ Feature: List allowed alerts from configuration
       """
       {
         "items": [
-          "weather.wind",
-          "weather.rain",
-          "transport.road"
+          {"category": "weather", "event_type": "wind"},
+          {"category": "weather", "event_type": "rain"},
+          {"category": "transport", "event_type": "road"}
         ]
       }
       """
@@ -131,12 +134,17 @@ Feature: List allowed alerts from configuration
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alerts:
           allowed:
-            - " Weather.Wind "
-            - ""
-            - "  "
-            - 12
-            - WEATHER.RAIN
-            - "transport.road"
+            - category: " Weather "
+              event_type: " Wind "
+            - category: ""
+              event_type: "wind"
+            - event_type: "wind"
+            - category: 12
+              event_type: "rain"
+            - category: WEATHER
+              event_type: RAIN
+            - category: "transport"
+              event_type: "road"
       """
     When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
       """
@@ -146,9 +154,9 @@ Feature: List allowed alerts from configuration
       """
       {
         "items": [
-          "weather.wind",
-          "weather.rain",
-          "transport.road"
+          {"category": "weather", "event_type": "wind"},
+          {"category": "weather", "event_type": "rain"},
+          {"category": "transport", "event_type": "road"}
         ]
       }
       """

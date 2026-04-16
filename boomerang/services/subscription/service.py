@@ -23,9 +23,20 @@ class SubscriptionService:
     }
 
     @rpc
-    async def get_recipients_for_zone(self, zone_code, severity, category):
-        return await self.delegate.get_recipients_for_zone(
-            zone_code, severity, category
+    async def get_recipients_for_alert(
+        self,
+        area_type,
+        area_value,
+        severity,
+        category,
+        event_type,
+    ):
+        return await self.delegate.get_recipients_for_alert(
+            area_type=area_type,
+            area_value=area_value,
+            severity=severity,
+            category=category,
+            event_type=event_type,
         )
 
     @rpc

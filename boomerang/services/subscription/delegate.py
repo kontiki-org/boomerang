@@ -44,8 +44,34 @@ class SubscriptionDelegate(ServiceDelegate):
             self._sqlite_path,
         )
 
-    async def get_recipients_for_zone(self, zone_code, severity, category):
-        raise NotImplementedError
+    async def get_recipients_for_alert(
+        self,
+        area_type,
+        area_value,
+        severity,
+        category,
+        event_type,
+    ):
+        normalized_area_type = area_type.strip().lower()
+        normalized_area_value = area_value.strip()
+        normalized_severity = severity.strip().lower()
+        normalized_category = category.strip().lower()
+        normalized_event_type = event_type.strip().lower()
+        if (
+            not normalized_area_type
+            or not normalized_area_value
+            or not normalized_severity
+            or not normalized_category
+            or not normalized_event_type
+        ):
+            return []
+        return self._database.get_recipients_for_alert(
+            area_type=normalized_area_type,
+            area_value=normalized_area_value,
+            severity=normalized_severity,
+            category=normalized_category,
+            event_type=normalized_event_type,
+        )
 
     async def attach_channel_endpoint(
         self,
@@ -134,12 +160,15 @@ class SubscriptionDelegate(ServiceDelegate):
     async def list_alerts(self):
         items = []
         for entry in self._configured_alerts:
-            if isinstance(entry, str):
-                alert = entry.strip().lower()
-            else:
-                alert = ""
-
-            if alert:
-                items.append(alert)
+            if not isinstance(entry, dict):
+                continue
+            raw_category = entry.get("category")
+            raw_event_type = entry.get("event_type")
+            if not isinstance(raw_category, str) or not isinstance(raw_event_type, str):
+                continue
+            category = raw_category.strip().lower()
+            event_type = raw_event_type.strip().lower()
+            if category and event_type:
+                items.append({"category": category, "event_type": event_type})
 
         return {"items": items}

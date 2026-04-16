@@ -106,7 +106,7 @@ Feature: List subscriptions
           {
             "subscription_id": "[SUB_ID]",
             "user_id": "[USER_ID]",
-            "alert": "weather.vigilance",
+            "category": "weather.vigilance",
             "event_type": "thunderstorm",
             "area": {"type": "zone_code", "value": "FR-69"},
             "min_severity": "moderate",
@@ -134,7 +134,7 @@ Feature: List subscriptions
           {
             "subscription_id": "[SUB_ID]",
             "user_id": "[USER_ID]",
-            "alert": "weather.vigilance",
+            "category": "weather.vigilance",
             "event_type": "thunderstorm",
             "area": {"type": "zone_code", "value": "FR-69"},
             "min_severity": "moderate",
@@ -146,5 +146,5 @@ Feature: List subscriptions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | alert             | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |

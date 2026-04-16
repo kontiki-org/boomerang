@@ -9,7 +9,7 @@ CREATE_SUBSCRIPTIONS_TABLE = """
 CREATE TABLE IF NOT EXISTS subscriptions (
     subscription_id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
-    alert TEXT NOT NULL,
+    category TEXT NOT NULL,
     event_type TEXT NOT NULL,
     area_type TEXT NOT NULL,
     area_value TEXT NOT NULL,
@@ -29,19 +29,19 @@ ON subscriptions(user_id);
 
 CREATE_SUBSCRIPTIONS_LOOKUP_INDEX = """
 CREATE INDEX IF NOT EXISTS idx_subscriptions_lookup
-ON subscriptions(alert, area_type, area_value, status);
+ON subscriptions(category, area_type, area_value, status);
 """
 
 CREATE_SUBSCRIPTIONS_IDENTITY_INDEX = """
 CREATE UNIQUE INDEX IF NOT EXISTS uq_subscriptions_identity
-ON subscriptions(user_id, alert, event_type, area_type, area_value, min_severity);
+ON subscriptions(user_id, category, event_type, area_type, area_value, min_severity);
 """
 
 INSERT_OR_IGNORE_SUBSCRIPTION = """
 INSERT OR IGNORE INTO subscriptions (
     subscription_id,
     user_id,
-    alert,
+    category,
     event_type,
     area_type,
     area_value,
@@ -58,7 +58,7 @@ SELECT_SUBSCRIPTIONS_BY_USER = """
 SELECT
     subscription_id,
     user_id,
-    alert,
+    category,
     event_type,
     area_type,
     area_value,
@@ -77,7 +77,7 @@ SELECT_SUBSCRIPTION_BY_ID_AND_USER = """
 SELECT
     subscription_id,
     user_id,
-    alert,
+    category,
     event_type,
     area_type,
     area_value,
@@ -170,7 +170,7 @@ JOIN channel_endpoints AS ce
     ON ce.user_id = s.user_id
 WHERE s.status = 'active'
   AND ce.status = 'active'
-  AND s.alert = ?
+  AND s.category = ?
   AND (s.event_type = ? OR s.event_type = '*')
   AND s.area_type = ?
   AND s.area_value = ?;

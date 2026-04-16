@@ -41,7 +41,7 @@ Feature: Get recipients for alert via RPC
 
   Scenario: Return matching recipient for exact area and category
     Given the "subscriptions" table contains
-      | subscription_id | user_id | alert        | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
+      | subscription_id | user_id | category     | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
       | sub_1           | usr_1   | weather.wind | *          | zone      | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
     And the "channel_endpoints" table contains
       | endpoint_id | user_id | channel | endpoint_key  | status | is_default | created_at           | updated_at           |
@@ -70,7 +70,7 @@ Feature: Get recipients for alert via RPC
 
   Scenario: Ignore paused subscriptions and non-matching category
     Given the "subscriptions" table contains
-      | subscription_id | user_id | alert        | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
+      | subscription_id | user_id | category     | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
       | sub_1           | usr_1   | weather.wind | *          | zone      | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | paused | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
       | sub_2           | usr_2   | weather.rain | *          | zone      | FR-69      | moderate     | {"channels":["sms"],"fallback_to_default_channels":true}   | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
     And the "channel_endpoints" table contains

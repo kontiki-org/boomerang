@@ -64,7 +64,7 @@ class Database:
                         try:
                             subscription_id = self._build_subscription_id(
                                 user_id=user_id,
-                                alert=alert,
+                                category=alert,
                                 event_type=event_type,
                                 area_type=area.type,
                                 area_value=area.value,
@@ -73,7 +73,7 @@ class Database:
                             item = {
                                 "subscription_id": subscription_id,
                                 "user_id": user_id,
-                                "alert": alert,
+                                "category": alert,
                                 "event_type": event_type,
                                 "area": {"type": area.type, "value": area.value},
                                 "min_severity": payload.selectors.min_severity,
@@ -107,7 +107,7 @@ class Database:
                             logging.error("Error creating subscription.", exc_info=exc)
                             errors.append(
                                 {
-                                    "alert": alert,
+                                    "category": alert,
                                     "event_type": event_type,
                                     "area": {"type": area.type, "value": area.value},
                                     "message": str(exc),
@@ -273,14 +273,14 @@ class Database:
     @staticmethod
     def _build_subscription_id(
         user_id: str,
-        alert: str,
+        category: str,
         event_type: str,
         area_type: str,
         area_value: str,
         min_severity: str,
     ) -> str:
         canonical = (
-            f"v1|{user_id}|{alert}|{event_type}|"
+            f"v1|{user_id}|{category}|{event_type}|"
             f"{area_type}|{area_value}|{min_severity}"
         )
         digest = sha256(canonical.encode("utf-8")).hexdigest()
@@ -311,7 +311,7 @@ class Database:
         return {
             "subscription_id": row["subscription_id"],
             "user_id": row["user_id"],
-            "alert": row["alert"],
+            "category": row["category"],
             "event_type": row["event_type"],
             "area": {"type": row["area_type"], "value": row["area_value"]},
             "min_severity": row["min_severity"],

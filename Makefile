@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag cov fmt lint check clean run-service run-amqp down-amqp
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -24,11 +24,24 @@ integration-test-identity:
 integration-test-identity-tag:
 	poetry run behave boomerang/services/identity/tests/integration --stop --tags "$(TAG)"
 
+integration-test-email-notifier:
+	poetry run behave boomerang/services/email_notifier/tests/integration --stop
+
+integration-test-email-notifier-tag:
+	poetry run behave boomerang/services/email_notifier/tests/integration --stop --tags "$(TAG)"
+
+
 run-amqp:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 60 rabbitmq
 
 down-amqp:
 	docker compose -f $(COMPOSE_FILE) down
+
+run-mailhog:
+	docker run -d --rm --name boomerang-mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
+
+down-mailhog:
+	docker stop boomerang-mailhog || true
 
 cov:
 	$(PY) -m pytest --cov=. --cov-report=term-missing

@@ -1,5 +1,7 @@
-from kontiki.messaging import on_event, rpc
+from kontiki.messaging import on_event
 from kontiki.testing import MockService
+
+from boomerang.testing import IdentityServiceMock
 
 
 class NotificationEventCatcher(MockService):
@@ -12,10 +14,3 @@ class NotificationEventCatcher(MockService):
         )
 
 
-class IdentityServiceMock(MockService):
-    name = "identity-service"
-
-    @rpc
-    async def verify_session(self,access_token: str):
-        self.remote_call_manager.store_call_args(access_token)
-        return self.remote_call_manager.get_return_value()

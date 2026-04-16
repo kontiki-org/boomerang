@@ -1,4 +1,5 @@
 import json
+import logging
 import sqlite3
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -9,11 +10,8 @@ from boomerang.services.subscription.database.queries import (
     CREATE_SUBSCRIPTIONS_LOOKUP_INDEX,
     CREATE_SUBSCRIPTIONS_TABLE,
     CREATE_SUBSCRIPTIONS_USER_INDEX,
-    CREATE_USERS_EMAIL_INDEX,
-    CREATE_USERS_TABLE,
     DELETE_SUBSCRIPTION,
     INSERT_OR_IGNORE_SUBSCRIPTION,
-    INSERT_OR_IGNORE_USER,
     SELECT_SUBSCRIPTION_BY_ID_AND_USER,
     SELECT_SUBSCRIPTIONS_BY_USER,
     UPDATE_SUBSCRIPTION,
@@ -31,21 +29,10 @@ class Database:
             db_path.parent.mkdir(parents=True, exist_ok=True)
 
         with self._connection() as connection:
-            connection.execute(CREATE_USERS_TABLE)
             connection.execute(CREATE_SUBSCRIPTIONS_TABLE)
-            connection.execute(CREATE_USERS_EMAIL_INDEX)
             connection.execute(CREATE_SUBSCRIPTIONS_USER_INDEX)
             connection.execute(CREATE_SUBSCRIPTIONS_LOOKUP_INDEX)
             connection.execute(CREATE_SUBSCRIPTIONS_IDENTITY_INDEX)
-
-    def ensure_user(self, email: str) -> str:
-        now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        user_id = self._build_user_id(email)
-        with self._connection() as connection:
-            connection.execute(
-                INSERT_OR_IGNORE_USER, (user_id, email, None, now_iso, now_iso)
-            )
-        return user_id
 
     def create_subscriptions(
         self,
@@ -108,6 +95,7 @@ class Database:
                             else:
                                 created.append(item)
                         except Exception as exc:
+                            logging.error("Error creating subscription.", exc_info=exc)
                             errors.append(
                                 {
                                     "category": category,
@@ -186,11 +174,6 @@ class Database:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON;")
         return connection
-
-    @staticmethod
-    def _build_user_id(email: str) -> str:
-        digest = sha256(email.encode("utf-8")).hexdigest()
-        return f"usr_{digest[:20]}"
 
     @staticmethod
     def _build_subscription_id(

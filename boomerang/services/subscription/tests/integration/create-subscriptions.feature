@@ -33,13 +33,6 @@ Feature: Create subscriptions with database state assertions
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        auth:
-          auth_code:
-            ttl_seconds: 30
-            cooldown_seconds: 0
-            rate_limit:
-              max_requests: 5
-              window_seconds: 10
       """
 
   Scenario: Persist created subscriptions in SQLite
@@ -104,13 +97,11 @@ Feature: Create subscriptions with database state assertions
         "errors": []
       }
       """
-    And the "users" table should contain
-      | user_id   | email            | display_name | status | created_at    | updated_at    |
-      | [USER_ID] | user@example.org | null         | active | [ISO8601_UTC] | [ISO8601_UTC] |
     And the "subscriptions" table should contain
       | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                                              | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"22:00","end":"07:00","timezone":"Europe/Paris"}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
+  @identity_sessions_2
   Scenario: Second identical request is skipped and table state stays stable
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request

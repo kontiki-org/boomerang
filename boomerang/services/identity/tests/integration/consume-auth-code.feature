@@ -1,10 +1,10 @@
 Feature: Consume auth code
   In order to authenticate without passwords
-  As a Boomerang subscription user
+  As a Boomerang user
   I want to consume a valid auth code
 
   Background:
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -23,7 +23,7 @@ Feature: Consume auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -32,7 +32,7 @@ Feature: Consume auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 5
@@ -43,7 +43,7 @@ Feature: Consume auth code
       """
 
   Scenario: Consume a valid auth code
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -60,25 +60,16 @@ Feature: Consume auth code
     And a "alerting.notification.requested" event is published
       """
       {
-        "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
         "message": {
-          "title": "Boomerang sign in",
-          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.code",
             "data": {
-              "auth_code": "[CODE]",
-              "expires_at": "[ISO8601_UTC]"
+              "auth_code": "[CODE]"
             }
           }
         }
       }
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {
@@ -96,7 +87,7 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is missing
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {}
@@ -110,7 +101,7 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is unknown
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {
@@ -126,7 +117,7 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is expired
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -143,26 +134,17 @@ Feature: Consume auth code
     And a "alerting.notification.requested" event is published
       """
       {
-        "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
         "message": {
-          "title": "Boomerang sign in",
-          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.code",
             "data": {
-              "auth_code": "[CODE]",
-              "expires_at": "[ISO8601_UTC]"
+              "auth_code": "[CODE]"
             }
           }
         }
       }
       """
     When I wait 6 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {
@@ -178,7 +160,7 @@ Feature: Consume auth code
       """
 
   Scenario: Reject consume request when token is already used
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -195,25 +177,16 @@ Feature: Consume auth code
     And a "alerting.notification.requested" event is published
       """
       {
-        "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
         "message": {
-          "title": "Boomerang sign in",
-          "body": "Use this verification code to sign in.",
           "context": {
-            "kind": "auth.code",
             "data": {
-              "auth_code": "[CODE]",
-              "expires_at": "[ISO8601_UTC]"
+              "auth_code": "[CODE]"
             }
           }
         }
       }
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {
@@ -229,7 +202,7 @@ Feature: Consume auth code
         "token_type": "Bearer"
       }
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/consume-auth-code with the following request
       """
       {
         "payload": {
@@ -243,3 +216,4 @@ Feature: Consume auth code
         "message": "Authentication required or invalid."
       }
       """
+

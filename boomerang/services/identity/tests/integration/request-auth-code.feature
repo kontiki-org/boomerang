@@ -1,10 +1,10 @@
 Feature: Request auth code
   In order to authenticate without passwords
-  As a Boomerang subscription user
+  As a Boomerang user
   I want to request an auth code with my email
 
   Scenario: Request an auth code with a valid email
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -23,7 +23,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -32,7 +32,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -41,7 +41,7 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -78,7 +78,7 @@ Feature: Request auth code
       """
 
   Scenario: Reject request when email is missing
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -97,7 +97,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -106,7 +106,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -115,7 +115,7 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {}
@@ -129,7 +129,7 @@ Feature: Request auth code
       """
 
   Scenario: Reject request when email format is invalid
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -148,7 +148,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -157,7 +157,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -166,7 +166,7 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -182,7 +182,7 @@ Feature: Request auth code
       """
 
   Scenario: Reject request when rate limit is exceeded
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -201,7 +201,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -210,7 +210,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -219,7 +219,7 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 8
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -228,7 +228,7 @@ Feature: Request auth code
       }
       """
     And I wait 2 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -237,7 +237,7 @@ Feature: Request auth code
       }
       """
     And I wait 2 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -246,7 +246,7 @@ Feature: Request auth code
       }
       """
     And I wait 2 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -262,7 +262,7 @@ Feature: Request auth code
       """
 
   Scenario: Reject request during cooldown window for same email
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -281,7 +281,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -290,7 +290,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -299,7 +299,7 @@ Feature: Request auth code
               max_requests: 3
               window_seconds: 5
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -308,7 +308,7 @@ Feature: Request auth code
       }
       """
     And I wait 1 second
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -324,7 +324,7 @@ Feature: Request auth code
       """
 
   Scenario: Accept request once cooldown window has expired
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -343,7 +343,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -352,7 +352,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -361,7 +361,7 @@ Feature: Request auth code
               max_requests: 5
               window_seconds: 8
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -370,7 +370,7 @@ Feature: Request auth code
       }
       """
     And I wait 2 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -386,7 +386,7 @@ Feature: Request auth code
       """
 
   Scenario: Accept request once rate limit window has expired
-    Given the subscription service is running with the following configuration
+    Given the identity service is running with the following configuration
       """
       kontiki:
         amqp:
@@ -405,7 +405,7 @@ Feature: Request auth code
           file:
             class: logging.FileHandler
             formatter: default
-            filename: /tmp/subscription.log
+            filename: /tmp/identity.log
             level: INFO
         root:
           level: DEBUG
@@ -414,7 +414,7 @@ Feature: Request auth code
       app:
         storage:
           backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+          sqlite_path: boomerang/services/identity/tests/integration/db/identity.sqlite3
         auth:
           auth_code:
             ttl_seconds: 30
@@ -423,7 +423,7 @@ Feature: Request auth code
               max_requests: 2
               window_seconds: 2
       """
-    When I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -431,7 +431,7 @@ Feature: Request auth code
         }
       }
       """
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -440,7 +440,7 @@ Feature: Request auth code
       }
       """
     And I wait 3 seconds
-    And I call POST on the subscription service on http://127.0.0.1:8000/auth/request-auth-code with the following request
+    And I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
       {
         "payload": {
@@ -454,3 +454,4 @@ Feature: Request auth code
         "status": "ok"
       }
       """
+

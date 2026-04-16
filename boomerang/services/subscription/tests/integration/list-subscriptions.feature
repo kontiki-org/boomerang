@@ -1,3 +1,4 @@
+@list-subscriptions
 Feature: List subscriptions
   In order to manage my alert subscriptions
   As a Boomerang subscription user
@@ -33,13 +34,6 @@ Feature: List subscriptions
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        auth:
-          auth_code:
-            ttl_seconds: 30
-            cooldown_seconds: 0
-            rate_limit:
-              max_requests: 3
-              window_seconds: 5
       """
 
   Scenario: Reject list-subscriptions request without bearer token
@@ -87,6 +81,7 @@ Feature: List subscriptions
       }
       """
 
+  @identity_sessions_2
   Scenario: List persisted subscriptions for authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request

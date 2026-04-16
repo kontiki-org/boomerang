@@ -24,7 +24,7 @@ def write_temp_config(config):
     return config_path
 
 
-def start_subscription_subprocess(config):
+def start_identity_subprocess(config):
     config_path = write_temp_config(config)
     root = repo_root()
     proc = subprocess.Popen(
@@ -34,7 +34,7 @@ def start_subscription_subprocess(config):
             "python",
             "-m",
             "kontiki.runner.__main__",
-            "boomerang.services.subscription.service.SubscriptionService",
+            "boomerang.services.identity.service.IdentityService",
             "--config",
             config_path,
         ],
@@ -80,18 +80,3 @@ def _safe_unlink(path: str | None) -> None:
         os.unlink(path)
     except OSError:
         pass
-
-
-def register_identity_session(context, email: str, access_token: str) -> None:
-    # Queue the session object as the next return values for identity-service RPC
-    # calls (verify_session). The number of queued values can be controlled by a
-    # scenario tag (e.g. @identity_sessions_2).
-    from hashlib import sha256
-
-    digest = sha256(email.encode("utf-8")).hexdigest()
-    user_id = f"usr_{digest[:20]}"
-    context.last_user_id = user_id
-    repeats = getattr(context, "identity_session_repeats", 1)
-    session = {"user_id": user_id, "email": email}
-    for _ in range(repeats):
-        context.manager.add_remote_return_value("identity-service", session)

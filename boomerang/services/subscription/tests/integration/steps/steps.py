@@ -1,4 +1,3 @@
-import copy
 import json
 import sqlite3
 import time
@@ -10,6 +9,7 @@ from behave import given, then, when
 from boomerang.services.subscription.tests.integration.utils import (
     http_request,
     start_subscription_subprocess,
+    register_identity_session,
 )
 
 
@@ -171,6 +171,7 @@ def step_subscription_running_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
     context.subscription_config = config
+
     sqlite_path = _sqlite_path_from_context(context)
     context.subscription_sqlite_path = sqlite_path
     if sqlite_path:
@@ -195,28 +196,9 @@ def step_subscription_running_with_config(context):
 
 @given('I am authenticated as "{email}"')
 def step_i_am_authenticated_as(context, email):
-    status, body = http_request(
-        "POST",
-        "http://127.0.0.1:8000/auth/request-auth-code",
-        payload={"email": email},
-    )
-    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
-    assert body == {"status": "ok"}, f"Unexpected response body: {body}"
-    context.last_code = _extract_auth_code_from_notification_event(context)
-
-    status, body = http_request(
-        "POST",
-        "http://127.0.0.1:8000/auth/consume-auth-code",
-        payload={"code": context.last_code},
-    )
-    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
-    assert body.get("status") == "ok", f"Unexpected response body: {body}"
-    assert body.get("token_type") == "Bearer", f"Unexpected response body: {body}"
-    access_token = body.get("access_token")
-    assert (
-        isinstance(access_token, str) and access_token
-    ), f"Expected non-empty access_token, got {body}"
+    access_token = "test-access-token"
     context.last_access_token = access_token
+    register_identity_session(context, email, access_token)
 
 
 @when("I call {method} on the subscription service on {url} with the following request")

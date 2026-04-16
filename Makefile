@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag cov fmt lint check clean run-service run-amqp down-amqp
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag cov fmt lint check clean run-service run-amqp down-amqp
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -10,13 +10,19 @@ install:
 test:
 	$(PY) -m pytest -q
 
-integration-test: run-amqp integration-test-subscription
+integration-test: run-amqp integration-test-identity integration-test-subscription
 
 integration-test-subscription:
 	poetry run behave boomerang/services/subscription/tests/integration --stop
 
 integration-test-subscription-tag:
 	poetry run behave boomerang/services/subscription/tests/integration --stop --tags "$(TAG)"
+
+integration-test-identity:
+	poetry run behave boomerang/services/identity/tests/integration --stop
+
+integration-test-identity-tag:
+	poetry run behave boomerang/services/identity/tests/integration --stop --tags "$(TAG)"
 
 run-amqp:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 60 rabbitmq

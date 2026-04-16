@@ -34,13 +34,6 @@ Feature: List allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        auth:
-          auth_code:
-            ttl_seconds: 30
-            cooldown_seconds: 0
-            rate_limit:
-              max_requests: 3
-              window_seconds: 5
         channels:
           - email
           - sms
@@ -91,13 +84,6 @@ Feature: List allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        auth:
-          auth_code:
-            ttl_seconds: 30
-            cooldown_seconds: 0
-            rate_limit:
-              max_requests: 3
-              window_seconds: 5
         channels: []
       """
     When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request

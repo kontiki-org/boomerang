@@ -5,5 +5,6 @@ class ValidationError(Exception):
 class AuthError(Exception):
     pass
 
-class NotFoundError(Exception):
+
+class RateLimitError(Exception):
     pass

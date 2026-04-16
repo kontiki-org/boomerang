@@ -33,15 +33,9 @@ Feature: Update and delete subscriptions
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        auth:
-          auth_code:
-            ttl_seconds: 30
-            cooldown_seconds: 0
-            rate_limit:
-              max_requests: 5
-              window_seconds: 10
       """
 
+  @identity_sessions_2
   Scenario: Update one subscription for authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
@@ -112,6 +106,7 @@ Feature: Update and delete subscriptions
       | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                                                                  | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | severe       | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"23:00","end":"07:00","timezone":"Europe/Paris"}} | paused | [ISO8601_UTC] | [ISO8601_UTC] |
 
+  @identity_sessions_2
   Scenario: Delete one subscription for authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request

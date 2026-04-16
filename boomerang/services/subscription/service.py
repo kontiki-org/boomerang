@@ -86,36 +86,12 @@ class SubscriptionService:
         _ = email
         return await self.delegate.delete_subscription(subscription_id, user_id)
 
-    @http("/channels", "POST", version="v1", errors=[ValidationError, AuthError])
-    async def upsert_channel(self, request):
-        return await self.delegate.upsert_channel()
-
     @http("/channels", "GET", version="v1")
     async def list_channels(self, request):
         _ = request
         return await self.delegate.list_channels()
 
-    @http(
-        "/channels/{channel_id}",
-        "PATCH",
-        version="v1",
-        errors=[ValidationError, AuthError, NotFoundError],
-    )
-    async def update_channel(self, request):
+    @http("/alerts", "GET", version="v1")
+    async def list_alerts(self, request):
         _ = request
-        return await self.delegate.update_channel()
-
-    @http(
-        "/channels/{channel_id}",
-        "DELETE",
-        version="v1",
-        errors=[AuthError, NotFoundError],
-    )
-    async def delete_channel(self, request):
-        _ = request
-        return await self.delegate.delete_channel()
-
-    @http("/categories", "GET", version="v1")
-    async def list_categories(self, request):
-        _ = request
-        return await self.delegate.list_categories()
+        return await self.delegate.list_alerts()

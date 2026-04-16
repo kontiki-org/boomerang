@@ -28,6 +28,12 @@ class SubscriptionDelegate(ServiceDelegate):
         self._configured_channels = (
             configured_channels if isinstance(configured_channels, list) else []
         )
+        configured_alerts = get_parameter(
+            self.container.config, "app.alerts.allowed", []
+        )
+        self._configured_alerts = (
+            configured_alerts if isinstance(configured_alerts, list) else []
+        )
         if self._storage_backend != "sqlite":
             raise RuntimeError("Unsupported storage backend for MVP.")
         self._database = Database(self._sqlite_path)
@@ -112,9 +118,6 @@ class SubscriptionDelegate(ServiceDelegate):
             raise NotFoundError("Resource not found.")
         return {"status": "deleted"}
 
-    async def upsert_channel(self):
-        raise NotImplementedError
-
     async def list_channels(self):
         items = []
         for entry in self._configured_channels:
@@ -128,11 +131,15 @@ class SubscriptionDelegate(ServiceDelegate):
 
         return {"items": items}
 
-    async def update_channel(self):
-        raise NotImplementedError
+    async def list_alerts(self):
+        items = []
+        for entry in self._configured_alerts:
+            if isinstance(entry, str):
+                alert = entry.strip().lower()
+            else:
+                alert = ""
 
-    async def delete_channel(self):
-        raise NotImplementedError
+            if alert:
+                items.append(alert)
 
-    async def list_categories(self):
-        raise NotImplementedError
+        return {"items": items}

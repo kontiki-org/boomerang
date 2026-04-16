@@ -46,7 +46,7 @@ Feature: Update and delete subscriptions
         },
         "payload": {
           "selectors": {
-            "categories": ["weather.vigilance"],
+            "alerts": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -103,7 +103,7 @@ Feature: Update and delete subscriptions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                                                                  | status | created_at    | updated_at    |
+      | subscription_id | user_id   | alert             | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                                                                  | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | severe       | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"23:00","end":"07:00","timezone":"Europe/Paris"}} | paused | [ISO8601_UTC] | [ISO8601_UTC] |
 
   @identity_sessions_2
@@ -117,7 +117,7 @@ Feature: Update and delete subscriptions
         },
         "payload": {
           "selectors": {
-            "categories": ["weather.vigilance"],
+            "alerts": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -149,7 +149,7 @@ Feature: Update and delete subscriptions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id | category | event_type | area_type | area_value | min_severity | delivery_json | policy_json | status | created_at | updated_at |
+      | subscription_id | user_id | alert | event_type | area_type | area_value | min_severity | delivery_json | policy_json | status | created_at | updated_at |
 
   Scenario: Reject update for unknown subscription id
     Given I am authenticated as "user@example.org"

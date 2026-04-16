@@ -354,6 +354,7 @@ def step_rejected_response(context, status_code):
 
 @then("the list-subscriptions response is")
 @then("the list-channels response is")
+@then("the list-alerts response is")
 def step_list_subscriptions_response(context):
     _assert_success_response(context)
 

@@ -1,10 +1,10 @@
-@channels
-Feature: List allowed channels from configuration
-  In order to configure notification destinations consistently
+@alerts
+Feature: List allowed alerts from configuration
+  In order to create subscriptions consistently
   As a Boomerang subscription user
-  I want to list only channels allowed by service configuration
+  I want to list only alerts allowed by service configuration
 
-  Scenario: List configured channels
+  Scenario: List configured alerts
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -34,27 +34,28 @@ Feature: List allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - email
-          - sms
-          - slack
+        alerts:
+          allowed:
+            - weather.wind
+            - weather.rain
+            - transport.road
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
       """
       {}
       """
-    Then the list-channels response is
+    Then the list-alerts response is
       """
       {
         "items": [
-          "email",
-          "sms",
-          "slack"
+          "weather.wind",
+          "weather.rain",
+          "transport.road"
         ]
       }
       """
 
-  Scenario: Return empty list when no channel is configured
+  Scenario: Return empty list when no alert is configured
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -84,20 +85,21 @@ Feature: List allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels: []
+        alerts:
+          allowed: []
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
       """
       {}
       """
-    Then the list-channels response is
+    Then the list-alerts response is
       """
       {
         "items": []
       }
       """
 
-  Scenario: Normalize configured channels and ignore invalid entries
+  Scenario: Normalize configured alerts and ignore invalid entries
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -127,25 +129,26 @@ Feature: List allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - " Email "
-          - ""
-          - "  "
-          - 12
-          - SMS
-          - "slack"
+        alerts:
+          allowed:
+            - " Weather.Wind "
+            - ""
+            - "  "
+            - 12
+            - WEATHER.RAIN
+            - "transport.road"
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
       """
       {}
       """
-    Then the list-channels response is
+    Then the list-alerts response is
       """
       {
         "items": [
-          "email",
-          "sms",
-          "slack"
+          "weather.wind",
+          "weather.rain",
+          "transport.road"
         ]
       }
       """

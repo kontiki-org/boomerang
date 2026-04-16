@@ -33,7 +33,19 @@ def after_scenario(context, scenario):
     safe_unlink(context.email_notifier_sqlite_path)
     context.email_notifier_sqlite_path = None
 
+    # Prevent RPC return values/calls from leaking between scenarios.
+    context.manager.clean_remote_calls("identity-service")
+
 
 def after_all(context):
     context.runner.stop()
+
+
+def before_tag(context, tag):
+    if tag.startswith("identity_sessions_"):
+        try:
+            repeats = int(tag.rsplit("_", 1)[-1])
+        except ValueError:
+            return
+        context.identity_session_repeats = repeats
 

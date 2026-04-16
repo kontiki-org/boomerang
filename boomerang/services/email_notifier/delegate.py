@@ -2,7 +2,7 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
 from boomerang.services.email_notifier.database import Database
-from boomerang.services.email_notifier.exceptions import ValidationError
+from boomerang.services.email_notifier.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
 
 
@@ -46,3 +46,42 @@ class EmailNotifierDelegate(ServiceDelegate):
                 "address": record["address"],
             },
         }
+
+    async def list_email_endpoints(self, user_id: str) -> dict:
+        endpoints = self._database.list_email_endpoints(user_id)
+        return {
+            "status": "ok",
+            "endpoints": [
+                {
+                    "user_id": e["user_id"],
+                    "endpoint_key": e["endpoint_key"],
+                    "address": e["address"],
+                }
+                for e in endpoints
+            ],
+        }
+
+    async def get_email_endpoint(self, user_id: str, endpoint_key: str) -> dict:
+        key = (endpoint_key or "").strip()
+        if not key:
+            raise ValidationError("Invalid request payload.")
+        endpoint = self._database.get_email_endpoint(user_id, key)
+        if endpoint is None:
+            raise NotFoundError("Resource not found.")
+        return {
+            "status": "ok",
+            "endpoint": {
+                "user_id": endpoint["user_id"],
+                "endpoint_key": endpoint["endpoint_key"],
+                "address": endpoint["address"],
+            },
+        }
+
+    async def delete_email_endpoint(self, user_id: str, endpoint_key: str) -> dict:
+        key = (endpoint_key or "").strip()
+        if not key:
+            raise ValidationError("Invalid request payload.")
+        deleted = self._database.delete_email_endpoint(user_id, key)
+        if not deleted:
+            raise NotFoundError("Resource not found.")
+        return {"status": "ok"}

@@ -67,6 +67,12 @@ def _fetch_all_rows(sqlite_path: str, table_name: str):
         return [dict(zip(cols, row)) for row in cursor.fetchall()]
 
 
+def _rows_from_context_table(context):
+    if context.table is None:
+        raise AssertionError("This step requires a Gherkin data table.")
+    return [row.as_dict() for row in context.table]
+
+
 @given("the email-notifier service is running with the following configuration")
 def step_email_notifier_running_with_config(context):
     config_text = context.text.strip()
@@ -123,6 +129,21 @@ def step_create_email_endpoint_success_response(context):
     _assert_success_response(context)
 
 
+@then("the list-email-endpoints response is")
+def step_list_email_endpoints_success_response(context):
+    _assert_success_response(context)
+
+
+@then("the get-email-endpoint response is")
+def step_get_email_endpoint_success_response(context):
+    _assert_success_response(context)
+
+
+@then("the delete-email-endpoint response is")
+def step_delete_email_endpoint_success_response(context):
+    _assert_success_response(context)
+
+
 @then("the create-email-endpoint call is rejected with HTTP {status_code:d}")
 def step_create_email_endpoint_rejected_response(context, status_code):
     status, body = _last_response(context)
@@ -135,4 +156,44 @@ def step_create_email_endpoint_rejected_response(context, status_code):
         assert (
             normalized_body == expected
         ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+
+
+@then("the get-email-endpoint call is rejected with HTTP {status_code:d}")
+def step_get_email_endpoint_rejected_response(context, status_code):
+    status, body = _last_response(context)
+    assert (
+        status == status_code
+    ), f"Expected HTTP {status_code}, got {status} body={body}"
+    if context.text and context.text.strip():
+        expected = json.loads(context.text.strip())
+        normalized_body = _normalize_actual_for_placeholders(expected, body)
+        assert (
+            normalized_body == expected
+        ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+
+
+@then('the "email_endpoints" table should contain')
+def step_email_endpoints_table_should_contain(context):
+    sqlite_path = _sqlite_path_from_context(context)
+    assert sqlite_path, "No sqlite path configured for email-notifier tests."
+    expected_rows = _rows_from_context_table(context)
+    actual_rows = _fetch_all_rows(sqlite_path, "email_endpoints")
+
+    # For each expected row, ensure there is at least one matching actual row.
+    for expected in expected_rows:
+        matched = False
+        for actual in actual_rows:
+            ok = True
+            for key, expected_value in expected.items():
+                actual_value = actual.get(key)
+                if isinstance(expected_value, str) and expected_value.startswith("[") and expected_value.endswith("]"):
+                    # Placeholder: accept any actual value.
+                    continue
+                if actual_value != expected_value:
+                    ok = False
+                    break
+            if ok:
+                matched = True
+                break
+        assert matched, f"Expected row not found in email_endpoints: {expected}\nActual rows: {actual_rows}"
 

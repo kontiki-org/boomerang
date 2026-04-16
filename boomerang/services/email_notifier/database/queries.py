@@ -39,3 +39,20 @@ FROM email_endpoints
 WHERE user_id = ? AND endpoint_key = ?;
 """
 
+SELECT_EMAIL_ENDPOINTS_BY_USER = """
+SELECT
+    user_id,
+    endpoint_key,
+    address,
+    created_at,
+    updated_at
+FROM email_endpoints
+WHERE user_id = ?
+ORDER BY endpoint_key ASC;
+"""
+
+DELETE_EMAIL_ENDPOINT = """
+DELETE FROM email_endpoints
+WHERE user_id = ? AND endpoint_key = ?;
+"""
+

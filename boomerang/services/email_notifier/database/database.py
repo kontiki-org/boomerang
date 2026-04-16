@@ -36,6 +36,46 @@ class Database:
             "updated_at": row[4],
         }
 
+    def get_email_endpoint(self, user_id: str, endpoint_key: str) -> dict | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                queries.SELECT_EMAIL_ENDPOINT, (user_id, endpoint_key)
+            ).fetchone()
+        if not row:
+            return None
+        return {
+            "user_id": row[0],
+            "endpoint_key": row[1],
+            "address": row[2],
+            "created_at": row[3],
+            "updated_at": row[4],
+        }
+
+    def list_email_endpoints(self, user_id: str) -> list[dict]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                queries.SELECT_EMAIL_ENDPOINTS_BY_USER, (user_id,)
+            ).fetchall()
+        endpoints = []
+        for row in rows:
+            endpoints.append(
+                {
+                    "user_id": row[0],
+                    "endpoint_key": row[1],
+                    "address": row[2],
+                    "created_at": row[3],
+                    "updated_at": row[4],
+                }
+            )
+        return endpoints
+
+    def delete_email_endpoint(self, user_id: str, endpoint_key: str) -> bool:
+        with self._connection() as connection:
+            cursor = connection.execute(
+                queries.DELETE_EMAIL_ENDPOINT, (user_id, endpoint_key)
+            )
+            return cursor.rowcount > 0
+
     def _connection(self):
         connection = sqlite3.connect(self.sqlite_path)
         connection.execute("PRAGMA foreign_keys = ON;")

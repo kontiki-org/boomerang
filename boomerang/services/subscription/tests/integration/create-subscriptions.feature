@@ -45,7 +45,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}],
             "min_severity": "moderate"
@@ -112,7 +112,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -159,7 +159,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -212,7 +212,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance", "transport.traffic"],
+            "categories": ["weather.vigilance", "transport.traffic"],
             "event_types": ["thunderstorm"],
             "areas": [
               {"type": "zone_code", "value": "FR-69"},
@@ -252,7 +252,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["iot.device"],
+            "categories": ["iot.device"],
             "event_types": ["battery.low"]
           }
         }
@@ -282,7 +282,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": [],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -313,7 +313,7 @@ Feature: Create subscriptions with database state assertions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "areas": [{"type": "zone_code", "value": "FR-69"}],
             "unknown_field": true
           }

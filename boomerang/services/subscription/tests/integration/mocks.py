@@ -16,8 +16,6 @@ class IdentityServiceMock(MockService):
     name = "identity-service"
 
     @rpc
-    async def verify_session(container, access_token: str):
-        # Kontiki passes ServiceContainer as first argument for RPC handlers.
-        service = container.service_instance
-        service.store_call_args(access_token)
-        return service.get_return_value()
+    async def verify_session(self,access_token: str):
+        self.remote_call_manager.store_call_args(access_token)
+        return self.remote_call_manager.get_return_value()

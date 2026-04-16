@@ -58,13 +58,13 @@ class Database:
         policy_json = json.dumps(policy, separators=(",", ":"))
 
         with self._connection() as connection:
-            for alert in payload.selectors.alerts:
+            for category in payload.selectors.categories:
                 for event_type in payload.selectors.event_types:
                     for area in payload.selectors.areas:
                         try:
                             subscription_id = self._build_subscription_id(
                                 user_id=user_id,
-                                category=alert,
+                                category=category,
                                 event_type=event_type,
                                 area_type=area.type,
                                 area_value=area.value,
@@ -73,7 +73,7 @@ class Database:
                             item = {
                                 "subscription_id": subscription_id,
                                 "user_id": user_id,
-                                "category": alert,
+                                "category": category,
                                 "event_type": event_type,
                                 "area": {"type": area.type, "value": area.value},
                                 "min_severity": payload.selectors.min_severity,
@@ -88,7 +88,7 @@ class Database:
                                 (
                                     subscription_id,
                                     user_id,
-                                    alert,
+                                    category,
                                     event_type,
                                     area.type,
                                     area.value,
@@ -107,7 +107,7 @@ class Database:
                             logging.error("Error creating subscription.", exc_info=exc)
                             errors.append(
                                 {
-                                    "category": alert,
+                                    "category": category,
                                     "event_type": event_type,
                                     "area": {"type": area.type, "value": area.value},
                                     "message": str(exc),

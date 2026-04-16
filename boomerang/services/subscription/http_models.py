@@ -25,7 +25,7 @@ class AreaSelector(BaseModel):
 class Selectors(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    alerts: list[str] = Field(min_length=1)
+    categories: list[str] = Field(min_length=1)
     event_types: list[str] = Field(default_factory=list)
     areas: list[AreaSelector] = Field(default_factory=list)
     min_severity: str = "moderate"
@@ -33,14 +33,14 @@ class Selectors(BaseModel):
     @model_validator(mode="after")
     def _normalize(self) -> "Selectors":
         # Normalize identity fields early to keep comparisons/idempotency consistent.
-        normalized_alerts = [item.strip().lower() for item in self.alerts]
+        normalized_categories = [item.strip().lower() for item in self.categories]
         normalized_event_types = [item.strip().lower() for item in self.event_types]
         normalized_min_severity = self.min_severity.strip().lower()
         if not normalized_event_types:
             # Align with API behavior: empty list means wildcard.
             normalized_event_types = ["*"]
 
-        if any(not item for item in normalized_alerts):
+        if any(not item for item in normalized_categories):
             raise ValueError("Invalid request payload.")
         if any(not item for item in normalized_event_types):
             raise ValueError("Invalid request payload.")
@@ -50,7 +50,7 @@ class Selectors(BaseModel):
             # Keep identity tuple stable for non-geographic subscriptions.
             self.areas = [AreaSelector(type="global", value="*")]
 
-        self.alerts = normalized_alerts
+        self.categories = normalized_categories
         self.event_types = normalized_event_types
         self.min_severity = normalized_min_severity
         return self

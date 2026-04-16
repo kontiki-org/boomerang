@@ -46,7 +46,7 @@ Feature: Update and delete subscriptions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }
@@ -117,7 +117,7 @@ Feature: Update and delete subscriptions
         },
         "payload": {
           "selectors": {
-            "alerts": ["weather.vigilance"],
+            "categories": ["weather.vigilance"],
             "event_types": ["thunderstorm"],
             "areas": [{"type": "zone_code", "value": "FR-69"}]
           }

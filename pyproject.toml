@@ -28,6 +28,7 @@ behave = "^1.2.6"
 boomerang-subscription = "boomerang.services.subscription.main:run"
 boomerang-identity = "boomerang.services.identity.main:run"
 boomerang-email-notifier = "boomerang.services.email_notifier.main:run"
+boomerang-sms-notifier = "boomerang.services.sms_notifier.main:run"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

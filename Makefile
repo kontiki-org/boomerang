@@ -30,6 +30,11 @@ integration-test-email-notifier:
 integration-test-email-notifier-tag:
 	poetry run behave boomerang/services/email_notifier/tests/integration --stop --tags "$(TAG)"
 
+integration-test-sms-notifier:
+	poetry run behave boomerang/services/sms_notifier/tests/integration --stop
+
+integration-test-sms-notifier-tag:
+	poetry run behave boomerang/services/sms_notifier/tests/integration --stop --tags "$(TAG)"
 
 run-amqp:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 60 rabbitmq

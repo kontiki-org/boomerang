@@ -1,6 +1,12 @@
+import asyncio
+import logging
+import smtplib
+from email.message import EmailMessage
+
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
+from boomerang.core.contracts.notification import NotificationRequest
 from boomerang.services.email_notifier.database import Database
 from boomerang.services.email_notifier.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
@@ -85,3 +91,51 @@ class EmailNotifierDelegate(ServiceDelegate):
         if not deleted:
             raise NotFoundError("Resource not found.")
         return {"status": "ok"}
+
+    async def send_notification_email(self, request: NotificationRequest) -> None:
+        if request.channel != "email":
+            logging.warning(
+                "Ignoring notification request for non-email channel: %s",
+                request.channel,
+            )
+            return
+
+        destination_kind = request.destination.kind.strip().lower()
+        destination_value = request.destination.value.strip().lower()
+        subject = request.message.title.strip()
+        body = request.message.body.strip()
+        from_address = (self._from_address or "").strip()
+        if destination_kind != "email_address":
+            logging.warning(
+                "Unsupported destination kind for email notifier: %s", destination_kind
+            )
+            raise ValidationError("Invalid request payload.")
+
+        await asyncio.to_thread(
+            self._send_via_smtp,
+            from_address=from_address,
+            to_address=destination_value,
+            subject=subject,
+            body=body,
+        )
+
+    def _send_via_smtp(
+        self,
+        *,
+        from_address: str,
+        to_address: str,
+        subject: str,
+        body: str,
+    ) -> None:
+        message = EmailMessage()
+        message["From"] = from_address
+        message["To"] = to_address
+        message["Subject"] = subject
+        message.set_content(body)
+
+        with smtplib.SMTP(self._smtp_host, self._smtp_port, timeout=10) as smtp:
+            if self._smtp_use_starttls:
+                smtp.starttls()
+            if self._smtp_username:
+                smtp.login(self._smtp_username, self._smtp_password)
+            smtp.send_message(message)

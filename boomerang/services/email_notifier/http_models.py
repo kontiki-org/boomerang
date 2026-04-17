@@ -20,4 +20,3 @@ class CreateEmailEndpointRequest(BaseModel):
         self.endpoint_key = endpoint_key
         self.address = address
         return self
-

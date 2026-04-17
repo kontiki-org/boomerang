@@ -12,5 +12,3 @@ class NotificationEventCatcher(MockService):
         self.event_manager.store_event(
             {"event_type": "alerting.notification.requested", "payload": payload}
         )
-
-

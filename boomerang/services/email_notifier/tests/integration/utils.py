@@ -8,4 +8,3 @@ def start_email_notifier_subprocess(config):
 
 
 __all__ = ["http_request", "start_email_notifier_subprocess"]
-

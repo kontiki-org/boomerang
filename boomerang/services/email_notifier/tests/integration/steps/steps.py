@@ -5,7 +5,10 @@ from pathlib import Path
 
 import yaml
 from behave import given, then, when
+from pydantic import ValidationError as PydanticValidationError
 
+from boomerang.core.contracts.notification import NotificationRequest
+from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,
     start_email_notifier_subprocess,
@@ -73,6 +76,30 @@ def _rows_from_context_table(context):
     return [row.as_dict() for row in context.table]
 
 
+def _assert_event_published(context, event_type: str):
+    expected_payload = json.loads(context.text.strip()) if context.text else {}
+    catcher_name = "notification-outcome-catcher"
+    events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
+    assert events, f"No event published for {event_type}"
+    match = None
+    for event in events:
+        if event.get("event_type") == event_type:
+            match = event
+            break
+    assert match is not None, f"Event {event_type} not found in {events}"
+    actual_payload = match.get("payload", {})
+    if hasattr(actual_payload, "model_dump"):
+        actual_payload = actual_payload.model_dump()
+    normalized_payload = _normalize_actual_for_placeholders(
+        expected_payload, actual_payload
+    )
+    assert normalized_payload == expected_payload, (
+        "Event payload mismatch.\n"
+        f"Expected: {expected_payload}\n"
+        f"Actual:   {normalized_payload}"
+    )
+
+
 @given("the email-notifier service is running with the following configuration")
 def step_email_notifier_running_with_config(context):
     config_text = context.text.strip()
@@ -105,6 +132,24 @@ def step_i_am_authenticated_as(context, email):
     access_token = "test-access-token"
     context.last_access_token = access_token
     register_identity_session(context, email, access_token)
+
+
+@when('an "{event_type}" event is published with payload')
+def step_publish_event_with_payload(context, event_type):
+    payload = json.loads(context.text.strip()) if context.text else {}
+    assert (
+        event_type == "alerting.notification.requested"
+    ), f"Unsupported event type for this step: {event_type}"
+    mailhog.purge_messages()
+    context.last_published_event_type = event_type
+    context.last_published_event_payload = payload
+    request_payload = NotificationRequest.model_validate(payload)
+    context.runner.call(
+        "notification-publisher",
+        "publish_notification_requested",
+        payload=request_payload,
+    )
+    time.sleep(1)
 
 
 @when(
@@ -142,6 +187,66 @@ def step_get_email_endpoint_success_response(context):
 @then("the delete-email-endpoint response is")
 def step_delete_email_endpoint_success_response(context):
     _assert_success_response(context)
+
+
+@then("MailHog should contain an email matching")
+def step_mailhog_should_contain_email_matching(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    expected_to = expected.get("to", [])
+    expected_subject = expected.get("subject", "")
+    expected_from = expected.get("from", "")
+    expected_body_contains = expected.get("body_contains", [])
+
+    messages = mailhog.list_messages()
+    assert messages, "No email found in MailHog."
+
+    for message in messages:
+        content = message.get("Content", {})
+        headers = content.get("Headers", {})
+        raw_body = content.get("Body", "")
+        to_values = headers.get("To", [])
+        from_values = headers.get("From", [])
+        subject_values = headers.get("Subject", [])
+
+        actual_to = [value.strip() for value in to_values if isinstance(value, str)]
+        actual_from = from_values[0].strip() if from_values else ""
+        actual_subject = subject_values[0].strip() if subject_values else ""
+
+        if expected_to and actual_to != expected_to:
+            continue
+        if expected_from and actual_from != expected_from:
+            continue
+        if expected_subject and actual_subject != expected_subject:
+            continue
+        if any(fragment not in raw_body for fragment in expected_body_contains):
+            continue
+        return
+
+    raise AssertionError(
+        f"No MailHog message matched expected payload={expected}. Messages={messages}"
+    )
+
+
+@then('a "{event_type}" event is published')
+def step_event_is_published(context, event_type):
+    _assert_event_published(context, event_type)
+
+
+@then("the email-notifier service ignores the event")
+def step_email_notifier_ignores_event(context):
+    messages = mailhog.list_messages()
+    assert not messages, f"Expected no email in MailHog, got {messages}"
+
+
+@then("the email-notifier service rejects the event as invalid payload")
+def step_email_notifier_rejects_invalid_payload(context):
+    payload = getattr(context, "last_published_event_payload", None) or {}
+    try:
+        NotificationRequest.model_validate(payload)
+    except PydanticValidationError:
+        pass
+    messages = mailhog.list_messages()
+    assert not messages, f"Expected no email in MailHog, got {messages}"
 
 
 @then("the create-email-endpoint call is rejected with HTTP {status_code:d}")
@@ -186,7 +291,11 @@ def step_email_endpoints_table_should_contain(context):
             ok = True
             for key, expected_value in expected.items():
                 actual_value = actual.get(key)
-                if isinstance(expected_value, str) and expected_value.startswith("[") and expected_value.endswith("]"):
+                if (
+                    isinstance(expected_value, str)
+                    and expected_value.startswith("[")
+                    and expected_value.endswith("]")
+                ):
                     # Placeholder: accept any actual value.
                     continue
                 if actual_value != expected_value:
@@ -195,5 +304,6 @@ def step_email_endpoints_table_should_contain(context):
             if ok:
                 matched = True
                 break
-        assert matched, f"Expected row not found in email_endpoints: {expected}\nActual rows: {actual_rows}"
-
+        assert (
+            matched
+        ), f"Expected row not found in email_endpoints: {expected}\nActual rows: {actual_rows}"

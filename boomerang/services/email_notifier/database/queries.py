@@ -55,4 +55,3 @@ DELETE_EMAIL_ENDPOINT = """
 DELETE FROM email_endpoints
 WHERE user_id = ? AND endpoint_key = ?;
 """
-

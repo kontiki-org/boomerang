@@ -1,8 +1,13 @@
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger
+from kontiki.messaging import Messenger, on_event
 from kontiki.web import http
 
 from boomerang.core.auth import AuthError, requires_identity_auth
+from boomerang.core.contracts.notification import (
+    NotificationError,
+    NotificationOutcome,
+    NotificationRequest,
+)
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
 from boomerang.services.email_notifier.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
@@ -64,3 +69,37 @@ class EmailNotifierService:
     async def delete_email_endpoint(self, request, endpoint_key, user_id, email):
         _ = (request, email)
         return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
+
+    @on_event("alerting.notification.requested")
+    async def on_notification_requested(self, payload):
+        request = (
+            payload
+            if isinstance(payload, NotificationRequest)
+            else NotificationRequest.model_validate(payload)
+        )
+        try:
+            await self.delegate.send_notification_email(request)
+        except Exception as exc:
+            await self.messenger.publish(
+                "alerting.notification.failed",
+                NotificationOutcome(
+                    status="failed",
+                    channel=request.channel,
+                    destination=request.destination,
+                    message=request.message,
+                    error=NotificationError(
+                        type="delivery_error",
+                        message=str(exc),
+                    ),
+                ),
+            )
+            return
+        await self.messenger.publish(
+            "alerting.notification.delivered",
+            NotificationOutcome(
+                status="delivered",
+                channel=request.channel,
+                destination=request.destination,
+                message=request.message,
+            ),
+        )

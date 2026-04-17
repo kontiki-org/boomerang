@@ -17,7 +17,9 @@ class Database:
         with self._connection() as connection:
             connection.execute(queries.CREATE_EMAIL_ENDPOINTS_TABLE)
 
-    def upsert_email_endpoint(self, user_id: str, endpoint_key: str, address: str) -> dict:
+    def upsert_email_endpoint(
+        self, user_id: str, endpoint_key: str, address: str
+    ) -> dict:
         now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         with self._connection() as connection:
             connection.execute(
@@ -80,4 +82,3 @@ class Database:
         connection = sqlite3.connect(self.sqlite_path)
         connection.execute("PRAGMA foreign_keys = ON;")
         return connection
-

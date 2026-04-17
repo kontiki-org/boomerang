@@ -23,3 +23,17 @@ class NotificationRequest(BaseModel):
     channel: str
     destination: NotificationDestination
     message: NotificationMessage
+
+
+class NotificationError(BaseModel):
+    type: str
+    message: str
+
+
+class NotificationOutcome(BaseModel):
+    status: str
+    channel: str | None = None
+    destination: NotificationDestination | None = None
+    message: NotificationMessage | None = None
+    error: NotificationError | None = None
+    request: Any | None = None

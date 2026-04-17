@@ -5,7 +5,7 @@ from boomerang.testing.integration import (
     start_kontiki_subprocess,
     write_temp_config,
 )
-from boomerang.testing.mocks import IdentityServiceMock
+from boomerang.testing.mocks import IdentityServiceMock, NotificationPublisherMock
 
 __all__ = [
     "http_request",
@@ -14,4 +14,5 @@ __all__ = [
     "start_kontiki_subprocess",
     "write_temp_config",
     "IdentityServiceMock",
+    "NotificationPublisherMock",
 ]

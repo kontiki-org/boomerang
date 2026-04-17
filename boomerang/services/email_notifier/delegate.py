@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import smtplib
 from email.message import EmailMessage
 
@@ -93,23 +92,10 @@ class EmailNotifierDelegate(ServiceDelegate):
         return {"status": "ok"}
 
     async def send_notification_email(self, request: NotificationRequest) -> None:
-        if request.channel != "email":
-            logging.warning(
-                "Ignoring notification request for non-email channel: %s",
-                request.channel,
-            )
-            return
-
-        destination_kind = request.destination.kind.strip().lower()
-        destination_value = request.destination.value.strip().lower()
+        destination_value = self._resolve_destination_address(request)
         subject = request.message.title.strip()
         body = request.message.body.strip()
         from_address = (self._from_address or "").strip()
-        if destination_kind != "email_address":
-            logging.warning(
-                "Unsupported destination kind for email notifier: %s", destination_kind
-            )
-            raise ValidationError("Invalid request payload.")
 
         await asyncio.to_thread(
             self._send_via_smtp,
@@ -118,6 +104,21 @@ class EmailNotifierDelegate(ServiceDelegate):
             subject=subject,
             body=body,
         )
+
+    def _resolve_destination_address(self, request: NotificationRequest) -> str:
+        user_id = (request.recipient_id or "").strip()
+        endpoint_key = (request.endpoint_key or "").strip()
+        if not user_id or not endpoint_key:
+            raise ValidationError("Invalid request payload.")
+
+        endpoint = self._database.get_email_endpoint(user_id, endpoint_key)
+        if endpoint is None:
+            raise ValidationError("Invalid request payload.")
+
+        address = (endpoint.get("address") or "").strip().lower()
+        if not address:
+            raise ValidationError("Invalid request payload.")
+        return address
 
     def _send_via_smtp(
         self,

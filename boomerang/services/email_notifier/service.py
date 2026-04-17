@@ -70,7 +70,7 @@ class EmailNotifierService:
         _ = (request, email)
         return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
 
-    @on_event("alerting.notification.requested")
+    @on_event("email.alerting.notification.requested")
     async def on_notification_requested(self, payload):
         request = (
             payload
@@ -85,7 +85,6 @@ class EmailNotifierService:
                 NotificationOutcome(
                     status="failed",
                     channel=request.channel,
-                    destination=request.destination,
                     message=request.message,
                     error=NotificationError(
                         type="delivery_error",
@@ -99,7 +98,6 @@ class EmailNotifierService:
             NotificationOutcome(
                 status="delivered",
                 channel=request.channel,
-                destination=request.destination,
                 message=request.message,
             ),
         )

@@ -88,18 +88,29 @@ class SmsNotifierDelegate(ServiceDelegate):
         return {"status": "ok"}
 
     async def send_notification_sms(self, request: NotificationRequest) -> None:
-        if request.channel != "sms":
-            return
-        destination_kind = request.destination.kind.strip().lower()
-        if destination_kind != "phone_number":
-            raise ValidationError("Invalid request payload.")
+        to_number = self._resolve_phone_number(request)
         await asyncio.to_thread(
             self._send_via_http_provider,
-            to=request.destination.value,
+            to=to_number,
             body=request.message.body,
             sender_id=self._provider_sender_id,
             title=request.message.title,
         )
+
+    def _resolve_phone_number(self, request: NotificationRequest) -> str:
+        user_id = (request.recipient_id or "").strip()
+        endpoint_key = (request.endpoint_key or "").strip()
+        if not user_id or not endpoint_key:
+            raise ValidationError("Invalid request payload.")
+
+        endpoint = self._database.get_sms_endpoint(user_id, endpoint_key)
+        if endpoint is None:
+            raise ValidationError("Invalid request payload.")
+
+        phone_number = (endpoint.get("phone_number") or "").strip()
+        if not phone_number:
+            raise ValidationError("Invalid request payload.")
+        return phone_number
 
     def _send_via_http_provider(
         self, *, to: str, body: str, sender_id: str, title: str

@@ -18,3 +18,7 @@ class NotificationPublisherMock(MockService):
     @rpc
     async def publish_notification_requested(self, payload):
         await self.messenger.publish("alerting.notification.requested", payload)
+
+    @rpc
+    async def publish_event(self, event_type: str, payload):
+        await self.messenger.publish(event_type, payload)

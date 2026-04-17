@@ -10,7 +10,6 @@ from pydantic import ValidationError as PydanticValidationError
 
 from boomerang.core.contracts.notification import (
     NotificationContext,
-    NotificationDestination,
     NotificationMessage,
     NotificationRequest,
 )
@@ -143,7 +142,8 @@ class IdentityDelegate(ServiceDelegate):
 
         message = NotificationRequest(
             channel="email",
-            destination=NotificationDestination(kind="email_address", value=email),
+            recipient_id=Database.build_user_id(email),
+            endpoint_key="email_primary",
             message=NotificationMessage(
                 title="Boomerang sign in",
                 body="Use this verification code to sign in.",

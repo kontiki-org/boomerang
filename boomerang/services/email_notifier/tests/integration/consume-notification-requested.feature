@@ -2,7 +2,7 @@
 Feature: Consume notification delivery requests
   In order to deliver outgoing emails from the alerting pipeline
   As the email-notifier service
-  I want to consume "alerting.notification.requested" events for the email channel
+  I want to consume "email.alerting.notification.requested" events for the email channel
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -46,14 +46,15 @@ Feature: Consume notification delivery requests
       """
 
   Scenario: Consume a valid email notification request
-    When an "alerting.notification.requested" event is published with payload
+    Given the "email_endpoints" table contains
+      | user_id | endpoint_key  | address          |
+      | usr_1   | email_primary | user@example.org |
+    When an "email.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",
@@ -87,14 +88,12 @@ Feature: Consume notification delivery requests
       """
 
   Scenario: Ignore a notification request for a non-email channel
-    When an "alerting.notification.requested" event is published with payload
+    When an "email.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "sms",
-        "destination": {
-          "kind": "phone_number",
-          "value": "+33600000000"
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "sms_primary",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",
@@ -108,14 +107,12 @@ Feature: Consume notification delivery requests
     Then the email-notifier service ignores the event
 
   Scenario: Reject malformed notification payload
-    When an "alerting.notification.requested" event is published with payload
+    When an "email.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": ""
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",

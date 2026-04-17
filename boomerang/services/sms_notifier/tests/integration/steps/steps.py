@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -74,6 +75,32 @@ def _rows_from_context_table(context):
     return [row.as_dict() for row in context.table]
 
 
+def _insert_rows(sqlite_path: str, table_name: str, rows: list[dict]) -> None:
+    if not rows:
+        return
+    prepared_rows = []
+    for row in rows:
+        prepared = dict(row)
+        if table_name == "sms_endpoints":
+            now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            prepared.setdefault("created_at", now_iso)
+            prepared.setdefault("updated_at", now_iso)
+        prepared_rows.append(prepared)
+
+    columns = list(prepared_rows[0].keys())
+    placeholders = ", ".join(["?"] * len(columns))
+    sql = (
+        f"INSERT OR REPLACE INTO {table_name} "
+        f"({', '.join(columns)}) VALUES ({placeholders})"
+    )
+    with sqlite3.connect(sqlite_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
+        for row in prepared_rows:
+            values = [row.get(col) for col in columns]
+            connection.execute(sql, values)
+        connection.commit()
+
+
 def _assert_event_published(context, event_type: str):
     expected_payload = json.loads(context.text.strip()) if context.text else {}
     catcher_name = "notification-outcome-catcher"
@@ -132,6 +159,14 @@ def step_i_am_authenticated_as(context, email):
     register_identity_session(context, email, access_token)
 
 
+@given('the "sms_endpoints" table contains')
+def step_given_sms_endpoints_table_contains(context):
+    sqlite_path = _sqlite_path_from_context(context)
+    assert sqlite_path, "No sqlite path configured for sms-notifier tests."
+    rows = _rows_from_context_table(context)
+    _insert_rows(sqlite_path, "sms_endpoints", rows)
+
+
 @given("the sms provider will respond with")
 def step_sms_provider_will_respond_with(context):
     response = json.loads(context.text.strip()) if context.text else {}
@@ -161,15 +196,13 @@ def step_call_request_on_sms_notifier_service_with_request(context, method, url)
 @when('an "{event_type}" event is published with payload')
 def step_publish_event_with_payload(context, event_type):
     payload = json.loads(context.text.strip()) if context.text else {}
-    assert (
-        event_type == "alerting.notification.requested"
-    ), f"Unsupported event type for this step: {event_type}"
     context.manager.clean_http_requests("sms-provider-service")
     context.last_published_event_payload = payload
     request_payload = NotificationRequest.model_validate(payload)
     context.runner.call(
         "notification-publisher",
-        "publish_notification_requested",
+        "publish_event",
+        event_type=event_type,
         payload=request_payload,
     )
     time.sleep(1)

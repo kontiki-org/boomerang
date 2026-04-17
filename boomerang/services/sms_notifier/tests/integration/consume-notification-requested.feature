@@ -2,7 +2,7 @@
 Feature: Consume notification delivery requests
   In order to deliver outgoing SMS from the alerting pipeline
   As the sms-notifier service
-  I want to consume "alerting.notification.requested" events for the SMS channel
+  I want to consume "sms.alerting.notification.requested" events for the SMS channel
 
   Background:
     Given the sms-notifier service is running with the following configuration
@@ -42,14 +42,15 @@ Feature: Consume notification delivery requests
       """
 
   Scenario: Consume a valid SMS notification request
-    When an "alerting.notification.requested" event is published with payload
+    Given the "sms_endpoints" table contains
+      | user_id | endpoint_key | phone_number |
+      | usr_1   | sms_primary  | +33612345678 |
+    When an "sms.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "sms",
-        "destination": {
-          "kind": "phone_number",
-          "value": "+33612345678"
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "sms_primary",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",
@@ -81,14 +82,12 @@ Feature: Consume notification delivery requests
       """
 
   Scenario: Ignore a notification request for a non-sms channel
-    When an "alerting.notification.requested" event is published with payload
+    When an "sms.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",
@@ -109,14 +108,12 @@ Feature: Consume notification delivery requests
         "message": "invalid destination"
       }
       """
-    When an "alerting.notification.requested" event is published with payload
+    When an "sms.alerting.notification.requested" event is published with payload
       """
       {
         "channel": "sms",
-        "destination": {
-          "kind": "phone_number",
-          "value": ""
-        },
+        "recipient_id": "usr_1",
+        "endpoint_key": "",
         "message": {
           "title": "Weather alert",
           "body": "Storm warning for your area.",

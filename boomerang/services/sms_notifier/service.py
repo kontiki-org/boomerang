@@ -70,7 +70,7 @@ class SmsNotifierService:
         _ = (request, email)
         return await self.delegate.delete_sms_endpoint(user_id, endpoint_key)
 
-    @on_event("alerting.notification.requested")
+    @on_event("sms.alerting.notification.requested")
     async def on_notification_requested(self, payload):
         request = (
             payload
@@ -85,7 +85,6 @@ class SmsNotifierService:
                 NotificationOutcome(
                     status="failed",
                     channel=request.channel,
-                    destination=request.destination,
                     message=request.message,
                     error=NotificationError(type="delivery_error", message=str(exc)),
                 ),
@@ -96,7 +95,6 @@ class SmsNotifierService:
             NotificationOutcome(
                 status="delivered",
                 channel=request.channel,
-                destination=request.destination,
                 message=request.message,
             ),
         )

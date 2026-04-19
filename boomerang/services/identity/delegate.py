@@ -61,7 +61,7 @@ class IdentityDelegate(ServiceDelegate):
         self._notification_event_type = get_parameter(
             self.container.config,
             "app.auth.auth_code.notification_event_type",
-            "alerting.notification.requested",
+            "email.alerting.notification.requested",
         )
         self._storage_backend = get_parameter(
             self.container.config,

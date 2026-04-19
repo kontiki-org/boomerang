@@ -3,7 +3,7 @@
 `sms-notifier-service` is the Boomerang service responsible for:
 
 - managing authenticated user SMS endpoints over HTTP,
-- consuming `alerting.notification.requested` events,
+- consuming `sms.alerting.notification.requested` events,
 - sending SMS through an HTTP provider endpoint,
 - publishing delivery outcomes (`delivered` / `failed`).
 
@@ -26,13 +26,12 @@ Storage uses SQLite and table `sms_endpoints` keyed by `(user_id, endpoint_key)`
 
 Consumes:
 
-- `alerting.notification.requested`
+- `sms.alerting.notification.requested`
 
 Behavior:
 
 - parse payload as `NotificationRequest` (`boomerang.core.contracts.notification`),
-- ignore requests where `channel != "sms"`,
-- validate `destination.kind == "phone_number"`,
+- resolve the destination phone via SQLite using `(recipient_id, endpoint_key)`,
 - send HTTP request to provider `POST {app.sms.provider.base_url}/sms/send`,
 - publish:
   - `alerting.notification.delivered` on success,

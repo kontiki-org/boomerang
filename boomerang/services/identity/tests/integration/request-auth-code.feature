@@ -55,7 +55,7 @@ Feature: Request auth code
         "status": "ok"
       }
       """
-    And a "alerting.notification.requested" event is published
+    And an "email.alerting.notification.requested" event is published
       """
       {
         "channel": "email",

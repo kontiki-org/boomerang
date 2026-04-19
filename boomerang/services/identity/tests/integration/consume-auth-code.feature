@@ -57,7 +57,7 @@ Feature: Consume auth code
         "status": "ok"
       }
       """
-    And a "alerting.notification.requested" event is published
+    And an "email.alerting.notification.requested" event is published
       """
       {
         "message": {
@@ -131,7 +131,7 @@ Feature: Consume auth code
         "status": "ok"
       }
       """
-    And a "alerting.notification.requested" event is published
+    And an "email.alerting.notification.requested" event is published
       """
       {
         "message": {
@@ -174,7 +174,7 @@ Feature: Consume auth code
         "status": "ok"
       }
       """
-    And a "alerting.notification.requested" event is published
+    And an "email.alerting.notification.requested" event is published
       """
       {
         "message": {

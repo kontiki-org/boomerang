@@ -160,6 +160,7 @@ def step_rejected_response(context, status_code):
 
 
 @then('a "{event_type}" event is published')
+@then('an "{event_type}" event is published')
 def step_event_is_published(context, event_type):
     expected_payload = json.loads(context.text.strip()) if context.text else {}
     catcher_name = "notification-event-catcher"
@@ -182,7 +183,7 @@ def step_event_is_published(context, event_type):
         f"Expected: {expected_payload}\n"
         f"Actual:   {normalized_payload}"
     )
-    if event_type == "alerting.notification.requested":
+    if event_type == "email.alerting.notification.requested":
         auth_code = (
             actual_payload.get("message", {})
             .get("context", {})

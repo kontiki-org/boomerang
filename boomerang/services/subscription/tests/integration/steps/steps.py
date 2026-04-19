@@ -150,14 +150,14 @@ def _normalize_db_rows_for_expected(expected_rows, actual_rows):
 def _extract_auth_code_from_notification_event(context):
     catcher_name = "notification-event-catcher"
     events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
-    assert events, "No event published for alerting.notification.requested"
+    assert events, "No event published for email.alerting.notification.requested"
     match = None
     for event in events:
-        if event.get("event_type") == "alerting.notification.requested":
+        if event.get("event_type") == "email.alerting.notification.requested":
             match = event
     assert (
         match is not None
-    ), f"Event alerting.notification.requested not found in {events}"
+    ), f"Event email.alerting.notification.requested not found in {events}"
     payload = match.get("payload", {})
     if hasattr(payload, "model_dump"):
         payload = payload.model_dump()
@@ -349,7 +349,7 @@ def step_event_is_published(context, event_type):
         f"Expected: {expected_payload}\n"
         f"Actual:   {normalized_payload}"
     )
-    if event_type == "alerting.notification.requested":
+    if event_type == "email.alerting.notification.requested":
         auth_code = (
             actual_payload.get("message", {})
             .get("context", {})

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -45,6 +46,17 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         )
         self._category = get_parameter(config, "app.earthquake.category", "natural.earthquake")
         self._seen_ids: set[str] = set()
+        logging.info(
+            "EarthquakeFeedDelegate configured feed_url=%s min_magnitude=%s category=%s "
+            "area=%s/%s ttl_hours=%s dedupe_max_ids=%s",
+            self._feed_url,
+            self._min_magnitude,
+            self._category,
+            self._area_type,
+            self._area_value,
+            self._ttl_hours,
+            self._dedupe_max,
+        )
 
     def _trim_dedupe(self) -> None:
         if len(self._seen_ids) > self._dedupe_max:
@@ -92,10 +104,20 @@ class EarthquakeFeedDelegate(ServiceDelegate):
     async def build_normalized_alerts(self) -> list[dict[str, Any]]:
         try:
             doc = await asyncio.to_thread(_http_get_json, self._feed_url, self._http_timeout)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ValueError):
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
+            logging.warning(
+                "Earthquake feed HTTP/JSON fetch failed url=%s: %s",
+                self._feed_url,
+                exc,
+            )
             return []
 
         features = doc.get("features") or []
+        logging.info(
+            "Earthquake feed fetched %s feature(s) from %s",
+            len(features),
+            self._feed_url,
+        )
         out: list[dict[str, Any]] = []
         for feature in features:
             if not isinstance(feature, dict):
@@ -113,4 +135,16 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             self._seen_ids.add(sid)
             out.append(payload)
         self._trim_dedupe()
+        if out:
+            logging.info(
+                "Earthquake feed emitting %s new alert.normalized payload(s) (seen_ids=%s)",
+                len(out),
+                len(self._seen_ids),
+            )
+        else:
+            logging.info(
+                "Earthquake feed poll produced no new alerts (features=%s, seen_ids=%s)",
+                len(features),
+                len(self._seen_ids),
+            )
         return out

@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -41,6 +41,12 @@ integration-test-alert-engine:
 
 integration-test-alert-engine-tag:
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop --tags "$(TAG)"
+
+integration-test-earthquake-feed:
+	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop
+
+integration-test-earthquake-feed-tag:
+	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
 
 run-amqp:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 60 rabbitmq

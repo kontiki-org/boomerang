@@ -50,11 +50,9 @@ Feature: Request auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
     And the identity service calls email-notifier RPC ensure_auth_email_endpoint with
       """
@@ -384,11 +382,9 @@ Feature: Request auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
 
   @email_notifier_rpc_ready_3
@@ -455,10 +451,8 @@ Feature: Request auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
 

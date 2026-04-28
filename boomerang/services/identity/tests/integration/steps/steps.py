@@ -59,16 +59,6 @@ def _last_response(context):
     return context.last_http_status, context.last_http_body
 
 
-def _assert_success_response(context):
-    expected = json.loads(context.text.strip()) if context.text else {}
-    status, body = _last_response(context)
-    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
-    normalized_body = _normalize_actual_for_placeholders(expected, body)
-    assert (
-        normalized_body == expected
-    ), f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-
-
 def _sqlite_path_from_context(context):
     config = getattr(context, "identity_config", {}) or {}
     return config.get("app", {}).get("storage", {}).get("sqlite_path")
@@ -131,6 +121,34 @@ def step_call_request_on_identity_service_with_request(context, method, url):
     context.last_http_body = resp_body
 
 
+@when("I call the RPC {method_name} on the identity service with the following arguments")
+def step_call_rpc_on_identity_service(context, method_name):
+    payload_text = context.text.strip() if context.text else ""
+    payload = json.loads(payload_text) if payload_text else {}
+    payload = _resolve_placeholders(payload, context)
+    context.last_rpc_error = None
+    try:
+        if isinstance(payload, dict):
+            context.last_rpc_result = context.runner.call(
+                "identity-service",
+                method_name,
+                **payload,
+            )
+        elif isinstance(payload, list):
+            context.last_rpc_result = context.runner.call(
+                "identity-service",
+                method_name,
+                *payload,
+            )
+        else:
+            raise AssertionError(
+                f"RPC payload must be a JSON object or array, got {type(payload)}"
+            )
+    except Exception as exc:
+        context.last_rpc_result = None
+        context.last_rpc_error = exc
+
+
 @when("I wait {seconds:d} seconds")
 @when("I wait {seconds:d} second")
 def step_wait_seconds(context, seconds):
@@ -138,15 +156,11 @@ def step_wait_seconds(context, seconds):
     time.sleep(seconds)
 
 
-@then("the request-auth-code response is")
-@then("the consume-auth-code response is")
-def step_success_response(context):
-    _assert_success_response(context)
-
-
+@then("the request-auth-code call succeeds with HTTP {status_code:d}")
+@then("the consume-auth-code call succeeds with HTTP {status_code:d}")
 @then("the request-auth-code call is rejected with HTTP {status_code:d}")
 @then("the consume-auth-code call is rejected with HTTP {status_code:d}")
-def step_rejected_response(context, status_code):
+def step_http_status_response(context, status_code):
     status, body = _last_response(context)
     assert (
         status == status_code
@@ -156,7 +170,59 @@ def step_rejected_response(context, status_code):
         normalized_body = _normalize_actual_for_placeholders(expected, body)
         assert (
             normalized_body == expected
-        ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+        ), f"Response body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+
+
+@then("the request_auth_code RPC call succeeds")
+@then("the consume_auth_code RPC call succeeds")
+@then("the verify_session RPC call succeeds")
+def step_identity_rpc_call_succeeds(context):
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+
+
+@then("the request_auth_code RPC response is")
+@then("the consume_auth_code RPC response is")
+@then("the verify_session RPC response is")
+def step_identity_rpc_response_is(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+    actual = context.last_rpc_result
+    normalized_actual = _normalize_actual_for_placeholders(expected, actual)
+    assert (
+        normalized_actual == expected
+    ), f"RPC response mismatch.\nExpected: {expected}\nActual:   {normalized_actual}"
+    access_token = actual.get("access_token") if isinstance(actual, dict) else None
+    if isinstance(access_token, str) and access_token:
+        context.last_access_token = access_token
+
+
+@then("the request_auth_code request is rejected due to validation error")
+def step_request_auth_code_rpc_validation_error(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC validation error, but call succeeded."
+    actual = {"code": error.code, "message": error.message}
+    assert (
+        actual == expected
+    ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
+
+
+@then("the consume_auth_code request is rejected due to auth error")
+@then("the verify_session request is rejected due to auth error")
+def step_consume_auth_code_rpc_auth_error(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC auth error, but call succeeded."
+    actual = {"code": error.code, "message": error.message}
+    assert (
+        actual == expected
+    ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
 
 
 @then('a "{event_type}" event is published')

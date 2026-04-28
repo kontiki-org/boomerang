@@ -5,8 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import RpcProxy, rpc, rpc_error
-from pydantic import ValidationError as PydanticValidationError
+from kontiki.messaging import RpcProxy, rpc, rpc_error, Messenger
 
 from boomerang.core.contracts.notification import (
     NotificationContext,
@@ -20,11 +19,6 @@ from boomerang.services.identity.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from boomerang.services.identity.http_models import (
-    ConsumeAuthCodeRequest,
-    RequestAuthCodeRequest,
-)
-from boomerang.services.identity.outcome import EntrypointOutcome, OutboundEvent
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 CODE_RE = re.compile(r"^\d{6}$")
@@ -131,17 +125,8 @@ class IdentityDelegate(ServiceDelegate):
         except Exception as exc:
             raise DependencyError("Temporary service dependency failure.") from exc
 
-    async def request_auth_code(self, request, messenger):
-        try:
-            body = await request.json()
-        except Exception as exc:
-            raise ValidationError("Invalid request payload.") from exc
-
-        try:
-            model = RequestAuthCodeRequest.model_validate(body)
-        except PydanticValidationError as exc:
-            raise ValidationError("Invalid request payload.") from exc
-        email = model.email.strip().lower()
+    async def request_auth_code(self, email: str, messenger: Messenger):
+        email = email.strip().lower()
         if not EMAIL_RE.match(email):
             raise ValidationError("Invalid request payload.")
 
@@ -172,28 +157,12 @@ class IdentityDelegate(ServiceDelegate):
         )
 
         await self._ensure_auth_email_endpoint(messenger, message.recipient_id, email)
+        logging.info("request_auth_code: published event type=%s", self._notification_event_type)
+        await messenger.publish(self._notification_event_type, message)
+        return {}
 
-        return EntrypointOutcome(
-            http_response={"status": "ok"},
-            events=[
-                OutboundEvent(
-                    event_type=self._notification_event_type,
-                    payload=message,
-                )
-            ],
-        )
-
-    async def consume_auth_code(self, request):
-        try:
-            body = await request.json()
-        except Exception as exc:
-            raise ValidationError("Invalid request payload.") from exc
-
-        try:
-            model = ConsumeAuthCodeRequest.model_validate(body)
-        except PydanticValidationError as exc:
-            raise ValidationError("Invalid request payload.") from exc
-        auth_code = model.code.strip()
+    async def consume_auth_code(self, code: str):
+        auth_code = code.strip()
         if not CODE_RE.match(auth_code):
             raise ValidationError("Invalid request payload.")
 
@@ -221,13 +190,10 @@ class IdentityDelegate(ServiceDelegate):
         session_expires_iso = session_expires_at.isoformat().replace("+00:00", "Z")
         self._database.insert_session(access_token, user_id, email, session_expires_iso)
 
-        return EntrypointOutcome(
-            http_response={
-                "status": "ok",
-                "access_token": access_token,
-                "token_type": "Bearer",
-            }
-        )
+        return {
+            "access_token": access_token,
+            "token_type": "Bearer",
+        }
 
     @rpc
     async def verify_session(self, access_token: str):

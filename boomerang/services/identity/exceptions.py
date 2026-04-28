@@ -3,11 +3,13 @@ class ValidationError(Exception):
 
 
 class AuthError(Exception):
-    pass
+    code = "AUTH_ERROR"
+    message = "Authentication required or invalid."
 
 
 class RateLimitError(Exception):
-    pass
+    code = "RATE_LIMIT_ERROR"
+    message = "Too many requests. Please try again later."
 
 
 class DependencyError(Exception):

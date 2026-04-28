@@ -52,11 +52,9 @@ Feature: Consume auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
     And an "email.alerting.notification.requested" event is published
       """
@@ -78,10 +76,9 @@ Feature: Consume auth code
         }
       }
       """
-    Then the consume-auth-code response is
+    Then the consume-auth-code call succeeds with HTTP 200
       """
       {
-        "status": "ok",
         "access_token": "[ACCESS_TOKEN]",
         "token_type": "Bearer"
       }
@@ -127,11 +124,9 @@ Feature: Consume auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
     And an "email.alerting.notification.requested" event is published
       """
@@ -171,11 +166,9 @@ Feature: Consume auth code
         }
       }
       """
-    Then the request-auth-code response is
+    Then the request-auth-code call succeeds with HTTP 200
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
     And an "email.alerting.notification.requested" event is published
       """
@@ -197,10 +190,9 @@ Feature: Consume auth code
         }
       }
       """
-    Then the consume-auth-code response is
+    Then the consume-auth-code call succeeds with HTTP 200
       """
       {
-        "status": "ok",
         "access_token": "[ACCESS_TOKEN]",
         "token_type": "Bearer"
       }

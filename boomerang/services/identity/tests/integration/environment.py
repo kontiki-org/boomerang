@@ -3,7 +3,7 @@ import time
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
 from boomerang.services.identity.tests.integration.mocks import NotificationEventCatcher
-from boomerang.testing import safe_unlink
+from boomerang.testing import EmailNotifierServiceMock, safe_unlink
 
 
 def before_all(context):
@@ -15,9 +15,40 @@ def before_all(context):
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
     context.manager.add(NotificationEventCatcher, default_config)
+    context.manager.add(EmailNotifierServiceMock, default_config)
     context.runner = MockServiceRunner(context.manager)
     context.runner.start()
     context.runner.ready_event.wait(timeout=10)
+
+
+def before_tag(context, tag):
+    prefix = "email_notifier_rpc_ready_"
+    if not tag.startswith(prefix):
+        return
+
+    try:
+        count = int(tag[len(prefix) :])
+    except ValueError:
+        raise ValueError(
+            f"Invalid tag format: {tag}. Expected {prefix}<int>."
+        ) from None
+
+    for _ in range(count):
+        context.manager.add_remote_return_value(
+            "email-notifier-service",
+            {
+                "endpoint": {
+                    "user_id": "placeholder",
+                    "endpoint_key": "email_primary",
+                    "address": "placeholder@example.org",
+                }
+            },
+        )
+
+
+def before_scenario(context, scenario):
+    _ = (context, scenario)
+    return
 
 
 def after_scenario(context, scenario):
@@ -35,7 +66,9 @@ def after_scenario(context, scenario):
     context.identity_sqlite_path = None
 
     context.manager.clean_events("notification-event-catcher")
+    context.manager.clean_remote_calls("email-notifier-service")
 
 
 def after_all(context):
-    context.runner.stop()
+    if hasattr(context, "runner"):
+        context.runner.stop()

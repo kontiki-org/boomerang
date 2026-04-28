@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import rpc, rpc_error
+from kontiki.messaging import RpcProxy, rpc, rpc_error
 from pydantic import ValidationError as PydanticValidationError
 
 from boomerang.core.contracts.notification import (
@@ -16,6 +16,7 @@ from boomerang.core.contracts.notification import (
 from boomerang.services.identity.database import Database
 from boomerang.services.identity.exceptions import (
     AuthError,
+    DependencyError,
     RateLimitError,
     ValidationError,
 )
@@ -117,7 +118,20 @@ class IdentityDelegate(ServiceDelegate):
     def _generate_access_token() -> str:
         return secrets.token_urlsafe(32)
 
-    async def request_auth_code(self, request):
+    async def _ensure_auth_email_endpoint(
+        self, messenger, user_id: str, email: str
+    ) -> None:
+        rpc_client = RpcProxy(messenger, "email-notifier-service")
+        try:
+            await rpc_client.ensure_auth_email_endpoint(
+                user_id=user_id,
+                endpoint_key="email_primary",
+                address=email,
+            )
+        except Exception as exc:
+            raise DependencyError("Temporary service dependency failure.") from exc
+
+    async def request_auth_code(self, request, messenger):
         try:
             body = await request.json()
         except Exception as exc:
@@ -156,6 +170,8 @@ class IdentityDelegate(ServiceDelegate):
                 ),
             ),
         )
+
+        await self._ensure_auth_email_endpoint(messenger, message.recipient_id, email)
 
         return EntrypointOutcome(
             http_response={"status": "ok"},

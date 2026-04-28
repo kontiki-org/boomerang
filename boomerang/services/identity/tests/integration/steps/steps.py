@@ -195,6 +195,30 @@ def step_event_is_published(context, event_type):
     context.manager.clean_events(catcher_name)
 
 
+@then("the identity service calls email-notifier RPC ensure_auth_email_endpoint with")
+def step_identity_calls_email_notifier_ensure_auth_endpoint(context):
+    expected = json.loads(context.text.strip()) if context.text else []
+    assert isinstance(expected, list), (
+        "Expected step payload must be a JSON list of args, "
+        f"got {type(expected)}"
+    )
+    calls = context.manager.get_remote_calls("email-notifier-service") or []
+    assert calls, "Expected one call to email-notifier-service.ensure_auth_email_endpoint."
+
+    first_call = calls[0]
+    args = ()
+    if isinstance(first_call, (list, tuple)):
+        if len(first_call) >= 1:
+            args = first_call[0]
+
+    assert isinstance(args, (list, tuple)), f"Unexpected call args format: {first_call}"
+    actual = list(args)
+    normalized_actual = _normalize_actual_for_placeholders(expected, actual)
+    assert (
+        normalized_actual == expected
+    ), f"RPC call mismatch.\nExpected: {expected}\nActual:   {normalized_actual}\nRaw call: {first_call}"
+
+
 @given('the "{table_name}" table contains')
 def step_seed_table(context, table_name):
     sqlite_path = _sqlite_path_from_context(context)

@@ -27,3 +27,21 @@ class NotificationPublisherMock(MockService):
     @rpc
     async def publish_event(self, event_type: str, payload):
         await self.messenger.publish(event_type, payload)
+
+
+class EmailNotifierServiceMock(MockService):
+    name = "email-notifier-service"
+
+    @rpc
+    async def ensure_auth_email_endpoint(
+        self,
+        user_id: str,
+        endpoint_key: str,
+        address: str,
+    ):
+        self.remote_call_manager.store_call_args(
+            user_id,
+            endpoint_key,
+            address,
+        )
+        return self.remote_call_manager.get_return_value()

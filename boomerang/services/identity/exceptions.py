@@ -8,3 +8,7 @@ class AuthError(Exception):
 
 class RateLimitError(Exception):
     pass
+
+
+class DependencyError(Exception):
+    pass

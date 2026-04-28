@@ -3,6 +3,7 @@ Feature: Request auth code
   As a Boomerang user
   I want to request an auth code with my email
 
+  @email_notifier_rpc_ready_1
   Scenario: Request an auth code with a valid email
     Given the identity service is running with the following configuration
       """
@@ -55,14 +56,16 @@ Feature: Request auth code
         "status": "ok"
       }
       """
+    And the identity service calls email-notifier RPC ensure_auth_email_endpoint with
+      """
+      ["[USER_ID]", "email_primary", "user@example.org"]
+      """
     And an "email.alerting.notification.requested" event is published
       """
       {
         "channel": "email",
-        "destination": {
-          "kind": "email_address",
-          "value": "user@example.org"
-        },
+        "recipient_id": "[USER_ID]",
+        "endpoint_key": "email_primary",
         "message": {
           "title": "Boomerang sign in",
           "body": "Use this verification code to sign in.",
@@ -181,6 +184,7 @@ Feature: Request auth code
       }
       """
 
+  @email_notifier_rpc_ready_4
   Scenario: Reject request when rate limit is exceeded
     Given the identity service is running with the following configuration
       """
@@ -261,6 +265,7 @@ Feature: Request auth code
       }
       """
 
+  @email_notifier_rpc_ready_2
   Scenario: Reject request during cooldown window for same email
     Given the identity service is running with the following configuration
       """
@@ -323,6 +328,7 @@ Feature: Request auth code
       }
       """
 
+  @email_notifier_rpc_ready_2
   Scenario: Accept request once cooldown window has expired
     Given the identity service is running with the following configuration
       """
@@ -385,6 +391,7 @@ Feature: Request auth code
       }
       """
 
+  @email_notifier_rpc_ready_3
   Scenario: Accept request once rate limit window has expired
     Given the identity service is running with the following configuration
       """

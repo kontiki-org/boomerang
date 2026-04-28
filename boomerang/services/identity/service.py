@@ -7,6 +7,7 @@ from kontiki.web import http
 from boomerang.services.identity.delegate import IdentityDelegate
 from boomerang.services.identity.exceptions import (
     AuthError,
+    DependencyError,
     RateLimitError,
     ValidationError,
 )
@@ -21,6 +22,7 @@ class IdentityService:
         HTTPUnprocessableEntity: (422, "Invalid request payload."),
         AuthError: (401, "Authentication required or invalid."),
         RateLimitError: (429, "Too many requests. Please try again later."),
+        DependencyError: (503, "Temporary service dependency failure."),
     }
 
     async def _finalize_entrypoint(self, outcome):
@@ -41,7 +43,7 @@ class IdentityService:
     )
     async def request_auth_code(self, request):
         logging.info("request_auth_code called with request=%s", request)
-        outcome = await self.delegate.request_auth_code(request)
+        outcome = await self.delegate.request_auth_code(request, self.messenger)
         return await self._finalize_entrypoint(outcome)
 
     @http(

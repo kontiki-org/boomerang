@@ -42,6 +42,7 @@ Feature: Consume auth code
               window_seconds: 5
       """
 
+  @email_notifier_rpc_ready_1
   Scenario: Consume a valid auth code
     When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
@@ -116,6 +117,7 @@ Feature: Consume auth code
       }
       """
 
+  @email_notifier_rpc_ready_1
   Scenario: Reject consume request when token is expired
     When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """
@@ -159,6 +161,7 @@ Feature: Consume auth code
       }
       """
 
+  @email_notifier_rpc_ready_1
   Scenario: Reject consume request when token is already used
     When I call POST on the identity service on http://127.0.0.1:8000/auth/request-auth-code with the following request
       """

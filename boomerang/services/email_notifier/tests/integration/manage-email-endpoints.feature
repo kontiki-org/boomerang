@@ -66,7 +66,6 @@ Feature: Manage email endpoints via HTTP
     Then the list-email-endpoints response is
       """
       {
-        "status": "ok",
         "endpoints": [
           {
             "user_id": "[USER_ID]",
@@ -101,7 +100,6 @@ Feature: Manage email endpoints via HTTP
     Then the get-email-endpoint response is
       """
       {
-        "status": "ok",
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
@@ -133,9 +131,7 @@ Feature: Manage email endpoints via HTTP
       """
     Then the delete-email-endpoint response is
       """
-      {
-        "status": "ok"
-      }
+      {}
       """
     When I call GET on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
       """
@@ -146,7 +142,6 @@ Feature: Manage email endpoints via HTTP
     Then the list-email-endpoints response is
       """
       {
-        "status": "ok",
         "endpoints": []
       }
       """

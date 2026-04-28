@@ -11,7 +11,9 @@ from kontiki.delegate import ServiceDelegate
 
 
 def _http_get_json(url: str, timeout_seconds: float) -> dict[str, Any]:
-    req = urllib.request.Request(url, headers={"User-Agent": "boomerang-earthquake-feed/0.1"})
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "boomerang-earthquake-feed/0.1"}
+    )
     with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
         return json.loads(resp.read().decode())
 
@@ -36,15 +38,27 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             "app.earthquake.usgs.feed_url",
             "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson",
         )
-        self._min_magnitude = float(get_parameter(config, "app.earthquake.min_magnitude", 2.5))
-        self._dedupe_max = int(get_parameter(config, "app.earthquake.dedupe_max_ids", 5000))
-        self._ttl_hours = float(get_parameter(config, "app.earthquake.alert_ttl_hours", 6))
-        self._http_timeout = float(get_parameter(config, "app.earthquake.http_timeout_seconds", 30))
-        self._area_type = get_parameter(config, "app.earthquake.subscription_area.type", "region")
+        self._min_magnitude = float(
+            get_parameter(config, "app.earthquake.min_magnitude", 2.5)
+        )
+        self._dedupe_max = int(
+            get_parameter(config, "app.earthquake.dedupe_max_ids", 5000)
+        )
+        self._ttl_hours = float(
+            get_parameter(config, "app.earthquake.alert_ttl_hours", 6)
+        )
+        self._http_timeout = float(
+            get_parameter(config, "app.earthquake.http_timeout_seconds", 30)
+        )
+        self._area_type = get_parameter(
+            config, "app.earthquake.subscription_area.type", "region"
+        )
         self._area_value = get_parameter(
             config, "app.earthquake.subscription_area.value", "DEMO-EARTHQUAKE-1"
         )
-        self._category = get_parameter(config, "app.earthquake.category", "natural.earthquake")
+        self._category = get_parameter(
+            config, "app.earthquake.category", "natural.earthquake"
+        )
         self._seen_ids: set[str] = set()
         logging.info(
             "EarthquakeFeedDelegate configured feed_url=%s min_magnitude=%s category=%s "
@@ -103,8 +117,15 @@ class EarthquakeFeedDelegate(ServiceDelegate):
 
     async def build_normalized_alerts(self) -> list[dict[str, Any]]:
         try:
-            doc = await asyncio.to_thread(_http_get_json, self._feed_url, self._http_timeout)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
+            doc = await asyncio.to_thread(
+                _http_get_json, self._feed_url, self._http_timeout
+            )
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as exc:
             logging.warning(
                 "Earthquake feed HTTP/JSON fetch failed url=%s: %s",
                 self._feed_url,

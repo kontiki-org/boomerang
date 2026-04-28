@@ -4,4 +4,3 @@ class ValidationError(Exception):
 
 class NotFoundError(Exception):
     pass
-

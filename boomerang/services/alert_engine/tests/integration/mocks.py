@@ -9,7 +9,9 @@ class SubscriptionServiceMock(MockService):
     async def get_recipients_for_alert(
         self, area_type, area_value, severity, category, event_type
     ):
-        self.remote_call_manager.store_call_args(area_type, area_value, severity, category, event_type)
+        self.remote_call_manager.store_call_args(
+            area_type, area_value, severity, category, event_type
+        )
         return self.remote_call_manager.get_return_value()
 
 
@@ -33,4 +35,3 @@ class NotificationDispatchEventCatcher(MockService):
                 "payload": payload,
             }
         )
-

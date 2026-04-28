@@ -18,4 +18,3 @@ class CreateSmsEndpointRequest(BaseModel):
         self.endpoint_key = endpoint_key
         self.phone_number = phone_number
         return self
-

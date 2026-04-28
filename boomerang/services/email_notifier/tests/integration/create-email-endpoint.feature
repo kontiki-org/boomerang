@@ -59,7 +59,6 @@ Feature: Create or update email endpoints via HTTP
     Then the create-email-endpoint response is
       """
       {
-        "status": "ok",
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
@@ -68,7 +67,7 @@ Feature: Create or update email endpoints via HTTP
       }
       """
     Then the "email_endpoints" table should contain
-      | user_id  | endpoint_key | address               |
+      | user_id   | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
   Scenario: Second call with same user and key updates the endpoint
@@ -85,7 +84,6 @@ Feature: Create or update email endpoints via HTTP
     Then the create-email-endpoint response is
       """
       {
-        "status": "ok",
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
@@ -94,8 +92,8 @@ Feature: Create or update email endpoints via HTTP
       }
       """
     Then the "email_endpoints" table should contain
-      | user_id  | endpoint_key | address                    |
-      | [USER_ID] | work         | new.address@example.org    |
+      | user_id   | endpoint_key | address                 |
+      | [USER_ID] | work         | new.address@example.org |
 
   Scenario: Reject invalid payload when required fields are missing
     Given I am authenticated as "user@example.org"

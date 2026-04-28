@@ -1,2 +1,1 @@
 """Alert engine exceptions skeleton."""
-

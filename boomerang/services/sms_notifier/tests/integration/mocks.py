@@ -34,4 +34,3 @@ class SmsProviderMock(MockService):
             return self.http_manager.get_response()
         except RuntimeError:
             return {"status": "ok"}
-

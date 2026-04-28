@@ -8,4 +8,3 @@ def start_sms_notifier_subprocess(config):
 
 
 __all__ = ["http_request", "start_sms_notifier_subprocess"]
-

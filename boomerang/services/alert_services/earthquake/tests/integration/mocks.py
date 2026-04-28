@@ -1,7 +1,8 @@
+import logging
+
 from kontiki.messaging import on_event
 from kontiki.testing import MockService
 from kontiki.web import http
-import logging
 
 
 class AlertNormalizedEventCatcher(MockService):

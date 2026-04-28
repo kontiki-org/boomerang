@@ -1,5 +1,5 @@
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger, on_event
+from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.web import http
 
 from boomerang.core.auth import AuthError, requires_identity_auth
@@ -69,6 +69,24 @@ class EmailNotifierService:
     async def delete_email_endpoint(self, request, endpoint_key, user_id, email):
         _ = (request, email)
         return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
+
+    @rpc
+    async def ensure_auth_email_endpoint(
+        self,
+        user_id: str,
+        endpoint_key: str,
+        address: str,
+    ):
+        normalized_user_id = (user_id or "").strip()
+        normalized_endpoint_key = (endpoint_key or "").strip()
+        normalized_address = (address or "").strip().lower()
+        if not normalized_user_id or not normalized_endpoint_key or not normalized_address:
+            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+        return await self.delegate.ensure_auth_email_endpoint(
+            user_id=normalized_user_id,
+            endpoint_key=normalized_endpoint_key,
+            address=normalized_address,
+        )
 
     @on_event("email.alerting.notification.requested")
     async def on_notification_requested(self, payload):

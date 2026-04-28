@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import smtplib
 from email.message import EmailMessage
 
@@ -44,7 +45,40 @@ class EmailNotifierDelegate(ServiceDelegate):
             address=model.address,
         )
         return {
-            "status": "ok",
+            "endpoint": {
+                "user_id": record["user_id"],
+                "endpoint_key": record["endpoint_key"],
+                "address": record["address"],
+            },
+        }
+
+    async def ensure_auth_email_endpoint(
+        self,
+        user_id: str,
+        endpoint_key: str,
+        address: str,
+    ) -> dict:
+        endpoint = self._database.get_email_endpoint(user_id, endpoint_key)
+        if endpoint is not None:
+            logging.info(
+                "ensure_auth_email_endpoint: endpoint already exists for user_id=%s endpoint_key=%s",
+                user_id,
+                endpoint_key,
+            )
+            return {
+                "endpoint": {
+                    "user_id": endpoint["user_id"],
+                    "endpoint_key": endpoint["endpoint_key"],
+                    "address": endpoint["address"],
+                },
+            }
+
+        record = self._database.upsert_email_endpoint(
+            user_id=user_id,
+            endpoint_key=endpoint_key,
+            address=address,
+        )
+        return {
             "endpoint": {
                 "user_id": record["user_id"],
                 "endpoint_key": record["endpoint_key"],
@@ -55,7 +89,6 @@ class EmailNotifierDelegate(ServiceDelegate):
     async def list_email_endpoints(self, user_id: str) -> dict:
         endpoints = self._database.list_email_endpoints(user_id)
         return {
-            "status": "ok",
             "endpoints": [
                 {
                     "user_id": e["user_id"],
@@ -74,7 +107,6 @@ class EmailNotifierDelegate(ServiceDelegate):
         if endpoint is None:
             raise NotFoundError("Resource not found.")
         return {
-            "status": "ok",
             "endpoint": {
                 "user_id": endpoint["user_id"],
                 "endpoint_key": endpoint["endpoint_key"],
@@ -89,7 +121,7 @@ class EmailNotifierDelegate(ServiceDelegate):
         deleted = self._database.delete_email_endpoint(user_id, key)
         if not deleted:
             raise NotFoundError("Resource not found.")
-        return {"status": "ok"}
+        return {}
 
     async def send_notification_email(self, request: NotificationRequest) -> None:
         destination_value = self._resolve_destination_address(request)

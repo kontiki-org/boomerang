@@ -8,6 +8,7 @@ import yaml
 from behave import given, then, when
 
 from boomerang.core.contracts.notification import NotificationRequest
+from boomerang.services.identity.database.database import Database as IdentityDatabase
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,
@@ -20,6 +21,20 @@ from boomerang.services.subscription.tests.integration.utils import (
 
 def _last_response(context):
     return context.last_http_status, context.last_http_body
+
+
+def _resolve_placeholders(value, context):
+    if not isinstance(value, str):
+        return value
+
+    replacements = {
+        "[USER_ID]": getattr(context, "last_user_id", None),
+    }
+    resolved = value
+    for placeholder, actual in replacements.items():
+        if placeholder in resolved and isinstance(actual, str):
+            resolved = resolved.replace(placeholder, actual)
+    return resolved
 
 
 def _normalize_actual_for_placeholders(expected, actual):
@@ -160,6 +175,17 @@ def step_i_am_authenticated_as(context, email):
     register_identity_session(context, email, access_token)
 
 
+@given('I have resolved the identity user id for "{email}" as "{user_id}"')
+def step_resolve_identity_user_id(context, email, user_id):
+    resolved_user_id = IdentityDatabase.build_user_id(email.strip().lower())
+    context.last_user_id = resolved_user_id
+    expected_user_id = _resolve_placeholders(user_id, context)
+    assert resolved_user_id == expected_user_id, (
+        f"Resolved user_id mismatch. expected={expected_user_id} "
+        f"actual={resolved_user_id}"
+    )
+
+
 @given('the "email_endpoints" table contains')
 def step_given_email_endpoints_table_contains(context):
     sqlite_path = _sqlite_path_from_context(context)
@@ -200,6 +226,24 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
     context.last_http_body = resp_body
 
 
+@when(
+    "I call the RPC {method_name} on the email-notifier service with the following arguments"
+)
+def step_call_rpc_on_email_notifier_service(context, method_name):
+    payload_text = _resolve_placeholders(context.text.strip(), context)
+    payload = json.loads(payload_text) if payload_text else {}
+    context.last_rpc_error = None
+    try:
+        context.last_rpc_result = context.runner.call(
+            "email-notifier-service",
+            method_name,
+            **payload,
+        )
+    except Exception as exc:
+        context.last_rpc_result = None
+        context.last_rpc_error = exc
+
+
 @then("the create-email-endpoint response is")
 def step_create_email_endpoint_success_response(context):
     _assert_success_response(context)
@@ -218,6 +262,47 @@ def step_get_email_endpoint_success_response(context):
 @then("the delete-email-endpoint response is")
 def step_delete_email_endpoint_success_response(context):
     _assert_success_response(context)
+
+
+@then('the ensure_auth_email_endpoint RPC call succeeds with status "{status}"')
+def step_ensure_auth_email_endpoint_rpc_success(context, status):
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+    assert isinstance(context.last_rpc_result, dict), (
+        "Expected RPC result to be a dict, "
+        f"got {type(context.last_rpc_result)}"
+    )
+    actual_status = context.last_rpc_result.get("status")
+    assert (
+        actual_status == status
+    ), f"Expected status={status}, got status={actual_status} payload={context.last_rpc_result}"
+
+
+@then("the ensure_auth_email_endpoint RPC response is")
+def step_ensure_auth_email_endpoint_rpc_response(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+    actual = context.last_rpc_result
+    normalized_actual = _normalize_actual_for_placeholders(expected, actual)
+    assert (
+        normalized_actual == expected
+    ), f"RPC response mismatch.\nExpected: {expected}\nActual:   {normalized_actual}"
+
+
+@then("the ensure_auth_email_endpoint request is rejected due to validation error")
+def step_ensure_auth_email_endpoint_validation_error(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC validation error, but call succeeded."
+    actual = {"code": error.code, "message": error.message}
+    assert (
+        actual == expected
+    ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
 
 
 @then("MailHog should contain an email matching")

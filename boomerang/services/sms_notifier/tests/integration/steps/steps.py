@@ -321,4 +321,3 @@ def step_sms_endpoints_table_should_contain(context):
         assert (
             matched
         ), f"Expected row not found in sms_endpoints: {expected}\nActual rows: {actual_rows}"
-

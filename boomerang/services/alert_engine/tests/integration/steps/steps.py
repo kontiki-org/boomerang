@@ -1,5 +1,6 @@
 import json
 import time
+
 import yaml
 from behave import given, then, when
 
@@ -111,9 +112,12 @@ def _assert_dispatch_event_published(context, event_type):
     deadline = time.time() + 15
     last_events = []
     while time.time() < deadline:
-        last_events = context.manager.get_events(
-            DISPATCH_EVENT_CATCHER, wait_for_events=1, timeout=2
-        ) or []
+        last_events = (
+            context.manager.get_events(
+                DISPATCH_EVENT_CATCHER, wait_for_events=1, timeout=2
+            )
+            or []
+        )
         for event in last_events:
             if event.get("event_type") != event_type:
                 continue
@@ -155,4 +159,3 @@ def step_no_event_is_published(context, event_type):
     )
     matches = [event for event in events if event.get("event_type") == event_type]
     assert not matches, f"Unexpected event {event_type} found: {matches}"
-

@@ -134,4 +134,3 @@ class SmsNotifierDelegate(ServiceDelegate):
             raise RuntimeError(f"sms provider error: {exc.code}") from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"sms provider unreachable: {exc.reason}") from exc
-

@@ -1,4 +1,5 @@
 import logging
+
 from kontiki.messaging import Messenger
 from kontiki.task.task import task
 

@@ -82,4 +82,3 @@ class Database:
         connection = sqlite3.connect(self.sqlite_path)
         connection.execute("PRAGMA foreign_keys = ON;")
         return connection
-

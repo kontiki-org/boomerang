@@ -55,4 +55,3 @@ DELETE_SMS_ENDPOINT = """
 DELETE FROM sms_endpoints
 WHERE user_id = ? AND endpoint_key = ?;
 """
-

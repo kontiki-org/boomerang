@@ -8,4 +8,3 @@ def start_alert_engine_subprocess(config):
 
 
 __all__ = ["start_alert_engine_subprocess"]
-

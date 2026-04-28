@@ -98,4 +98,3 @@ class SmsNotifierService:
                 message=request.message,
             ),
         )
-

@@ -6,7 +6,11 @@ from boomerang.services.sms_notifier.tests.integration.mocks import (
     NotificationOutcomeCatcher,
     SmsProviderMock,
 )
-from boomerang.testing import IdentityServiceMock, NotificationPublisherMock, safe_unlink
+from boomerang.testing import (
+    IdentityServiceMock,
+    NotificationPublisherMock,
+    safe_unlink,
+)
 
 
 def before_all(context):
@@ -59,4 +63,3 @@ def before_tag(context, tag):
         except ValueError:
             return
         context.identity_session_repeats = repeats
-

@@ -65,4 +65,3 @@ def before_tag(context, tag):
     recipients = SUBSCRIPTION_RECIPIENT_PRESETS[tag]
     context.expected_subscription_recipients = recipients
     context.manager.add_remote_return_value("subscription-service", recipients)
-

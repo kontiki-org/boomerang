@@ -70,9 +70,9 @@ def step_an_event_published_with_payload(context, event_type):
     deadline = time.time() + 15
     last_events: list = []
     while time.time() < deadline:
-        last_events = context.manager.get_events(
-            CATCHER, wait_for_events=1, timeout=2
-        ) or []
+        last_events = (
+            context.manager.get_events(CATCHER, wait_for_events=1, timeout=2) or []
+        )
         for event in last_events:
             if event.get("event_type") != event_type:
                 continue

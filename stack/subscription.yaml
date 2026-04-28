@@ -1,0 +1,21 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8002
+
+app:
+  storage:
+    backend: sqlite
+    sqlite_path: /data/subscriptions.db
+
+  # Limit core stack to email channel (no SMS).
+  channels:
+    - email
+
+  # Allowlist of alert categories/event types shown by /alerts and accepted by subscriptions.
+  # Keep this aligned with the earthquake connector defaults.
+  alerts:
+    allowed:
+      - category: natural.earthquake
+        event_type: earthquake
+

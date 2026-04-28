@@ -1,7 +1,8 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog stack-up stack-down platform-up platform-down kontiki-tui
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
+STACK_COMPOSE_FILE ?= docker-compose.stack.yaml
 
 install:
 	$(PY) -m pip install -U pip setuptools wheel
@@ -59,6 +60,31 @@ run-mailhog:
 
 down-mailhog:
 	docker stop boomerang-mailhog || true
+
+# -----------------------------------------------------------------------------
+# Local stack (RabbitMQ + optional Mailhog)
+# Inspired by kontiki-tui: docker-compose.stack.yaml + make wrappers.
+# -----------------------------------------------------------------------------
+stack-up:
+	docker compose -f $(STACK_COMPOSE_FILE) up -d --wait --wait-timeout 180
+
+stack-down:
+	docker compose -f $(STACK_COMPOSE_FILE) down
+
+platform-up: stack-up
+
+platform-down: stack-down
+
+# -----------------------------------------------------------------------------
+# Monitoring (PyPI)
+# -----------------------------------------------------------------------------
+kontiki-tui:
+	@command -v pipx >/dev/null 2>&1 || ( \
+		echo "pipx is required to run kontiki-tui without using a local repo."; \
+		echo "Install pipx then run: pipx run kontiki-tui"; \
+		exit 1; \
+	)
+	pipx run kontiki-tui
 
 cov:
 	$(PY) -m pytest --cov=. --cov-report=term-missing

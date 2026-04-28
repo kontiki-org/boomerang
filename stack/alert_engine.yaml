@@ -1,0 +1,4 @@
+app:
+  rpc:
+    subscription_service_name: subscription-service
+

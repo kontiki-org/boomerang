@@ -1,0 +1,6 @@
+kontiki:
+  amqp:
+    url: amqp://guest:guest@rabbitmq/
+  registration:
+    delay: 3
+

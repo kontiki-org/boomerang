@@ -1,0 +1,158 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: boomerang-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kontiki-registry:
+    build:
+      context: .
+      dockerfile: Dockerfile.kontiki-registry
+    container_name: boomerang-kontiki-registry
+    command: >
+      kontiki_registry --config /stack/common.docker.yaml --config /stack/kontiki_registry.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./stack:/stack:ro
+      - ./logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import glob, os; ok=False\nfor p in glob.glob(\"/proc/[0-9]*/cmdline\"):\n    try:\n        s=open(p,\"rb\").read().decode(\"utf-8\",\"ignore\")\n    except Exception:\n        continue\n    if \"kontiki_registry\" in s:\n        ok=True\n        break\nraise SystemExit(0 if ok else 1)'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: boomerang-mailhog
+    ports:
+      - "1025:1025"     # SMTP
+      - "8025:8025"     # Web UI
+    restart: unless-stopped
+
+  subscription-service:
+    build:
+      context: .
+    container_name: boomerang-subscription-service
+    command: >
+      boomerang-subscription
+      --config /stack/common.services.yaml
+      --config /stack/subscription.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8002/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  identity-service:
+    build:
+      context: .
+    container_name: boomerang-identity-service
+    command: >
+      boomerang-identity
+      --config /stack/common.services.yaml
+      --config /stack/identity.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8001/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  email-notifier-service:
+    build:
+      context: .
+    container_name: boomerang-email-notifier-service
+    command: >
+      boomerang-email-notifier
+      --config /stack/common.services.yaml
+      --config /stack/email_notifier.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    ports:
+      - "8003:8003"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8003/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  alert-engine-service:
+    build:
+      context: .
+    container_name: boomerang-alert-engine-service
+    command: >
+      boomerang-alert-engine
+      --config /stack/common.services.yaml
+      --config /stack/alert_engine.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_started
+      subscription-service:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+    restart: unless-stopped
+
+  earthquake-feed-service:
+    build:
+      context: .
+    container_name: boomerang-earthquake-feed-service
+    command: >
+      boomerang-earthquake-feed
+      --config /stack/common.services.yaml
+      --config /stack/earthquake.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_started
+      alert-engine-service:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+    restart: unless-stopped

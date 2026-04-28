@@ -1,0 +1,16 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8001
+
+app:
+  storage:
+    backend: sqlite
+    sqlite_path: /data/identity.db
+
+  auth:
+    auth_code:
+      ttl_seconds: 600
+      cooldown_seconds: 5
+      notification_event_type: email.alerting.notification.requested
+

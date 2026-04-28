@@ -54,7 +54,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kontiki-registry:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
@@ -79,7 +79,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kontiki-registry:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
@@ -104,7 +104,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kontiki-registry:
-        condition: service_started
+        condition: service_healthy
       mailhog:
         condition: service_started
     volumes:
@@ -131,7 +131,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kontiki-registry:
-        condition: service_started
+        condition: service_healthy
       subscription-service:
         condition: service_started
     volumes:
@@ -150,7 +150,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kontiki-registry:
-        condition: service_started
+        condition: service_healthy
       alert-engine-service:
         condition: service_started
     volumes:

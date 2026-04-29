@@ -2,13 +2,7 @@ from functools import wraps
 
 from kontiki.messaging import RpcProxy
 
-
-class AuthError(Exception):
-    code = "AUTH_ERROR"
-    message = "Authentication required or invalid."
-
-    def __init__(self):
-        super().__init__(self.message)
+from boomerang.core.exceptions import AuthError
 
 IDENTITY_SERVICE_NAME = "identity-service"
 

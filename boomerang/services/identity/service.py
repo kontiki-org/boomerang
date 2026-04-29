@@ -5,13 +5,9 @@ from kontiki.messaging import Messenger, rpc, rpc_error
 from kontiki.web import http
 from pydantic import ValidationError as PydanticValidationError
 
-from boomerang.core.auth import AuthError
+from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.services.identity.delegate import IdentityDelegate
-from boomerang.services.identity.exceptions import (
-    DependencyError,
-    RateLimitError,
-    ValidationError,
-)
+from boomerang.services.identity.exceptions import RateLimitError, DependencyError
 from boomerang.services.identity.http_models import (
     ConsumeAuthCodeRequest,
     RequestAuthCodeRequest,

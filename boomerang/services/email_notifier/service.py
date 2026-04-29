@@ -2,13 +2,17 @@ from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.web import http
 
-from boomerang.core.auth import AuthError, requires_identity_auth, requires_identity_auth_rpc
+from boomerang.core.auth import (
+    AuthError,
+    requires_identity_auth,
+    requires_identity_auth_rpc,
+)
 from boomerang.core.contracts.notification import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,
 )
-from boomerang.core.exceptions import ValidationError, NotFoundError
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
 from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
 

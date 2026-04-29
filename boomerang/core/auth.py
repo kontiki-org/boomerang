@@ -1,16 +1,13 @@
-from functools import wraps
 import logging
+from functools import wraps
 
 from kontiki.messaging import rpc_error
 
-from boomerang.core.exceptions import AuthError
 from boomerang.core.contracts.identity.service import IdentityRpcProxy
+from boomerang.core.exceptions import AuthError
 
 
-async def require_authenticated_session(
-    auth_header,
-    messenger,
-):
+async def require_authenticated_session(auth_header, messenger):
     if not isinstance(auth_header, str):
         logging.warning(f"Invalid authentication header: {auth_header}")
         raise AuthError()

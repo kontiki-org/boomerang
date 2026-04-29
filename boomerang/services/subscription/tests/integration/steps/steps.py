@@ -295,10 +295,13 @@ def step_rpc_call_fails_with_error_code(context, error_code):
     expected = json.loads(context.text.strip()) if context.text else {}
     error = context.last_rpc_error
     assert error is not None, "Expected RPC error, but call succeeded."
-    actual = {"code": getattr(error, "code", None), "message": getattr(error, "message", None)}
-    assert actual.get("code") == error_code, (
-        f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual.get('code')}"
-    )
+    actual = {
+        "code": getattr(error, "code", None),
+        "message": getattr(error, "message", None),
+    }
+    assert (
+        actual.get("code") == error_code
+    ), f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual.get('code')}"
     if expected:
         assert (
             actual == expected

@@ -7,7 +7,7 @@ from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
-from boomerang.core.exceptions import ValidationError, NotFoundError
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.database import Database
 
 

@@ -7,7 +7,7 @@ from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
-from boomerang.core.exceptions import AuthError, ValidationError, NotFoundError
+from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.subscription.delegate import SubscriptionDelegate
 
 
@@ -68,9 +68,7 @@ class SubscriptionService:
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
-    async def delete_subscription(
-        self, subscription_id, user_id, email, _headers
-    ):
+    async def delete_subscription(self, subscription_id, user_id, email, _headers):
         try:
             return await self.delegate.delete_subscription(subscription_id, user_id)
         except NotFoundError as exc:
@@ -88,7 +86,6 @@ class SubscriptionService:
     @requires_identity_auth_rpc
     async def get_subscriptions(self, user_id, email, _headers):
         return await self.delegate.get_subscriptions(user_id)
-
 
     @rpc
     # --------------------------------------------------------------------------

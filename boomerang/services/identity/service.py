@@ -5,9 +5,9 @@ from kontiki.messaging import Messenger, rpc, rpc_error
 from kontiki.web import http
 from pydantic import ValidationError as PydanticValidationError
 
+from boomerang.core.auth import AuthError
 from boomerang.services.identity.delegate import IdentityDelegate
 from boomerang.services.identity.exceptions import (
-    AuthError,
     DependencyError,
     RateLimitError,
     ValidationError,
@@ -87,4 +87,7 @@ class IdentityService:
 
     @rpc
     async def verify_session(self, access_token: str):
-        return await self.delegate.verify_session(access_token)
+        try:
+            return await self.delegate.verify_session(access_token)
+        except AuthError as exc:
+            return rpc_error(exc.code, exc.message)

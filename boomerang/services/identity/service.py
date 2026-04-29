@@ -24,10 +24,10 @@ class IdentityService:
     messenger = Messenger()
     http_error_handlers = {
         ValidationError: (422, ValidationError.message),
-        HTTPUnprocessableEntity: (422, "Invalid request payload."),
+        HTTPUnprocessableEntity: (422, ValidationError.message),
         AuthError: (401, AuthError.message),
         RateLimitError: (429, RateLimitError.message),
-        DependencyError: (503, "Temporary service dependency failure."),
+        DependencyError: (503, DependencyError.message),
     }
 
     @http(

@@ -2,21 +2,29 @@ class ValidationError(Exception):
     code = "VALIDATION_ERROR"
     message = "Invalid request payload."
 
-    def __init__(self, message: str = None):
-        if message is None:
-            message = self.message
-        super().__init__(message)
+    def __init__(self):
+        super().__init__(self.message)
 
 
 class AuthError(Exception):
     code = "AUTH_ERROR"
     message = "Authentication required or invalid."
 
+    def __init__(self):
+        super().__init__(self.message)
+
 
 class RateLimitError(Exception):
     code = "RATE_LIMIT_ERROR"
     message = "Too many requests. Please try again later."
 
+    def __init__(self):
+        super().__init__(self.message)
+
 
 class DependencyError(Exception):
-    pass
+    code = "DEPENDENCY_ERROR"
+    message = "Temporary service dependency failure."
+
+    def __init__(self):
+        super().__init__(self.message)

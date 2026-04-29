@@ -41,7 +41,7 @@ Feature: Manage SMS endpoints via HTTP
             sender_id: BOOMERANG
       """
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: List endpoints for the authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the sms-notifier service on http://127.0.0.1:8000/sms/endpoints with the following request
@@ -76,7 +76,7 @@ Feature: Manage SMS endpoints via HTTP
       | user_id   | endpoint_key | phone_number  |
       | [USER_ID] | mobile       | +33612345678  |
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: Retrieve an endpoint by key
     Given I am authenticated as "user@example.org"
     When I call POST on the sms-notifier service on http://127.0.0.1:8000/sms/endpoints with the following request
@@ -109,7 +109,7 @@ Feature: Manage SMS endpoints via HTTP
       | user_id   | endpoint_key | phone_number  |
       | [USER_ID] | mobile       | +33612345678  |
 
-  @identity_sessions_3
+  @identity_sessions_1
   Scenario: Delete an endpoint
     Given I am authenticated as "user@example.org"
     When I call POST on the sms-notifier service on http://127.0.0.1:8000/sms/endpoints with the following request

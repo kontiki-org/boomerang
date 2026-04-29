@@ -2,7 +2,11 @@ from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, rpc, rpc_error
 from kontiki.web import http
 
-from boomerang.core.auth import requires_identity_auth, requires_identity_auth_rpc
+from boomerang.core.authentication import (
+    AuthSessionDelegate,
+    requires_identity_auth,
+    requires_identity_auth_rpc,
+)
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
@@ -16,6 +20,7 @@ class SubscriptionService:
     name = SUBSCRIPTION_SERVICE_NAME
     delegate = SubscriptionDelegate()
     messenger = Messenger()
+    auth_delegate = AuthSessionDelegate(messenger)
     http_error_handlers = {
         ValidationError: (422, ValidationError.message),
         HTTPUnprocessableEntity: (422, ValidationError.message),

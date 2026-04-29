@@ -45,7 +45,7 @@ Feature: Manage email endpoints via authenticated RPC
             address: no-reply@example.org
       """
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: List endpoints for the authenticated user
     Given I am authenticated as "user@example.org"
     When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
@@ -94,7 +94,7 @@ Feature: Manage email endpoints via authenticated RPC
       | user_id   | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: Retrieve an endpoint by key
     Given I am authenticated as "user@example.org"
     When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
@@ -142,7 +142,7 @@ Feature: Manage email endpoints via authenticated RPC
       | user_id   | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
-  @identity_sessions_3
+  @identity_sessions_1
   Scenario: Delete an endpoint
     Given I am authenticated as "user@example.org"
     When I call the RPC create_email_endpoint on the email-notifier service with the following arguments

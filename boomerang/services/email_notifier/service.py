@@ -2,8 +2,8 @@ from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.web import http
 
-from boomerang.core.auth import (
-    AuthError,
+from boomerang.core.authentication import (
+    AuthSessionDelegate,
     requires_identity_auth,
     requires_identity_auth_rpc,
 )
@@ -13,7 +13,7 @@ from boomerang.core.contracts.notification import (
     NotificationRequest,
 )
 from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
-from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
 from boomerang.core.contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
 
@@ -22,6 +22,7 @@ class EmailNotifierService:
     name = EMAIL_NOTIFIER_SERVICE_NAME
     delegate = EmailNotifierDelegate()
     messenger = Messenger()
+    auth_delegate = AuthSessionDelegate(messenger)
     http_error_handlers = {
         ValidationError: (422, ValidationError.message),
         HTTPUnprocessableEntity: (422, ValidationError.message),

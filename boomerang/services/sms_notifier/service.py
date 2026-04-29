@@ -2,7 +2,10 @@ from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event
 from kontiki.web import http
 
-from boomerang.core.auth import AuthError, requires_identity_auth
+from boomerang.core.authentication import (
+    AuthSessionDelegate,
+    requires_identity_auth,
+)
 from boomerang.core.contracts.notification import (
     NotificationError,
     NotificationOutcome,
@@ -10,6 +13,7 @@ from boomerang.core.contracts.notification import (
 )
 from boomerang.services.sms_notifier.delegate import SmsNotifierDelegate
 from boomerang.services.sms_notifier.exceptions import NotFoundError, ValidationError
+from boomerang.core.exceptions import AuthError
 from boomerang.services.sms_notifier.http_models import CreateSmsEndpointRequest
 
 
@@ -17,6 +21,7 @@ class SmsNotifierService:
     name = "sms-notifier-service"
     delegate = SmsNotifierDelegate()
     messenger = Messenger()
+    auth_delegate = AuthSessionDelegate(messenger)
     http_error_handlers = {
         ValidationError: (422, "Invalid request payload."),
         HTTPUnprocessableEntity: (422, "Invalid request payload."),

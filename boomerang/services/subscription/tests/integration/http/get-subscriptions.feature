@@ -81,7 +81,7 @@ Feature: Get subscriptions
       }
       """
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: Get persisted subscriptions for authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request

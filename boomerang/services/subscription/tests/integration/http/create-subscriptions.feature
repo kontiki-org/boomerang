@@ -101,7 +101,7 @@ Feature: Create subscriptions with database state assertions
       | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                                              | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"22:00","end":"07:00","timezone":"Europe/Paris"}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: Second identical request is skipped and table state stays stable
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request

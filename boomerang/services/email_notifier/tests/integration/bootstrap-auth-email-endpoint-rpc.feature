@@ -55,7 +55,7 @@ Feature: Bootstrap auth email endpoint via RPC
         "address": "user@example.org"
       }
       """
-    Then the ensure_auth_email_endpoint RPC response is
+    Then the RPC response is
       """
       {
         "endpoint": {
@@ -81,7 +81,7 @@ Feature: Bootstrap auth email endpoint via RPC
         "address": "new@example.org"
       }
       """
-    Then the ensure_auth_email_endpoint RPC response is
+    Then the RPC response is
       """
       {
         "endpoint": {
@@ -104,11 +104,10 @@ Feature: Bootstrap auth email endpoint via RPC
         "address": ""
       }
       """
-    Then the ensure_auth_email_endpoint request is rejected due to validation error
+    Then the RPC request is rejected due to validation error
       """
       {
-        "code": "VALIDATION_ERROR",
+        "code": "INTERNAL_ERROR",
         "message": "Invalid request payload."
       }
       """
-

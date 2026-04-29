@@ -1,4 +1,5 @@
 from functools import wraps
+import logging
 
 from kontiki.messaging import RpcProxy, rpc_error
 
@@ -7,14 +8,17 @@ from boomerang.core.exceptions import AuthError
 IDENTITY_SERVICE_NAME = "identity-service"
 
 
+
 async def require_authenticated_session(
     auth_header,
     messenger,
 ):
     if not isinstance(auth_header, str):
+        logging.warning(f"Invalid authentication header: {auth_header}")
         raise AuthError()
     scheme, _, token = auth_header.partition(" ")
     if scheme.lower() != "bearer" or not token.strip():
+        logging.warning(f"Invalid authentication header: {auth_header}")
         raise AuthError()
 
     access_token = token.strip()
@@ -22,6 +26,7 @@ async def require_authenticated_session(
     try:
         return await rpc_client.verify_session(access_token)
     except Exception as exc:
+        logging.warning(f"Failed to verify session: {exc}")
         raise AuthError() from exc
 
 

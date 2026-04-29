@@ -2,15 +2,14 @@ import logging
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import rpc_error
 
-from boomerang.core.exceptions import ValidationError
-from boomerang.services.subscription.database import Database
-from boomerang.services.subscription.exceptions import NotFoundError
-from boomerang.services.subscription.http_models import (
+from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.core.exceptions import ValidationError
+from boomerang.services.subscription.database import Database
+from boomerang.services.subscription.exceptions import NotFoundError
 
 
 class SubscriptionDelegate(ServiceDelegate):

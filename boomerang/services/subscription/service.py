@@ -1,15 +1,15 @@
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger, rpc, rpc_error
+from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
-from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.core.auth import requires_identity_auth, requires_identity_auth_rpc
-from boomerang.services.subscription.delegate import SubscriptionDelegate
-from boomerang.services.subscription.exceptions import NotFoundError
-from boomerang.services.subscription.http_models import (
+from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.core.exceptions import AuthError, ValidationError
+from boomerang.services.subscription.delegate import SubscriptionDelegate
+from boomerang.services.subscription.exceptions import NotFoundError
 
 
 class SubscriptionService:
@@ -54,7 +54,7 @@ class SubscriptionService:
             endpoint_key=endpoint_key,
             is_default=is_default,
         )
-    
+
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
     async def create_subscription(self, body, user_id, email, _headers):

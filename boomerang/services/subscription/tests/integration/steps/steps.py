@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
+from boomerang.core.contracts.subscription import CreateSubscriptionRequest
 from boomerang.services.subscription.tests.integration.utils import (
     http_request,
     register_identity_session,
@@ -224,11 +225,21 @@ def step_call_request_on_subscription_service_with_request(context, method, url)
 def step_call_rpc_on_subscription_service(context, method_name):
     payload_text = _resolve_placeholders(context.text.strip(), context)
     payload = json.loads(payload_text) if payload_text else {}
+    extra_headers = None
+    if isinstance(payload, dict) and "headers" in payload:
+        extra_headers = payload.pop("headers")
+    # For create_subscription, simulate real RPC usage by passing a Pydantic model
+    # instead of a raw dict so delegate expectations (body.delivery, etc.) are met.
+    if method_name == "create_subscription" and isinstance(payload, dict):
+        body_dict = payload.get("body")
+        if isinstance(body_dict, dict):
+            payload["body"] = CreateSubscriptionRequest(**body_dict)
     context.last_rpc_error = None
     try:
         context.last_rpc_result = context.runner.call(
             "subscription-service",
             method_name,
+            extra_headers=extra_headers,
             **payload,
         )
     except Exception as exc:

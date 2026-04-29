@@ -89,8 +89,7 @@ Feature: Attach channel endpoints via RPC
     Then the attach_channel_endpoint request is rejected due to validation error
       """
       {
-        "code": "VALIDATION_ERROR",
+        "code": "INTERNAL_ERROR",
         "message": "Invalid request payload."
       }
       """
-

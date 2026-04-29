@@ -80,7 +80,11 @@ class EmailNotifierService:
         normalized_user_id = (user_id or "").strip()
         normalized_endpoint_key = (endpoint_key or "").strip()
         normalized_address = (address or "").strip().lower()
-        if not normalized_user_id or not normalized_endpoint_key or not normalized_address:
+        if (
+            not normalized_user_id
+            or not normalized_endpoint_key
+            or not normalized_address
+        ):
             return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
         return await self.delegate.ensure_auth_email_endpoint(
             user_id=normalized_user_id,

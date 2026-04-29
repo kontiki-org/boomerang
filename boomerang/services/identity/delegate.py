@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import RpcProxy, rpc, rpc_error, Messenger
+from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
 
 from boomerang.core.contracts.notification import (
     NotificationContext,
@@ -157,7 +157,9 @@ class IdentityDelegate(ServiceDelegate):
         )
 
         await self._ensure_auth_email_endpoint(messenger, message.recipient_id, email)
-        logging.info("request_auth_code: published event type=%s", self._notification_event_type)
+        logging.info(
+            "request_auth_code: published event type=%s", self._notification_event_type
+        )
         await messenger.publish(self._notification_event_type, message)
         return {}
 

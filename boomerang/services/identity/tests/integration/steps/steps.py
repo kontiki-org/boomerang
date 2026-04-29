@@ -121,7 +121,9 @@ def step_call_request_on_identity_service_with_request(context, method, url):
     context.last_http_body = resp_body
 
 
-@when("I call the RPC {method_name} on the identity service with the following arguments")
+@when(
+    "I call the RPC {method_name} on the identity service with the following arguments"
+)
 def step_call_rpc_on_identity_service(context, method_name):
     payload_text = context.text.strip() if context.text else ""
     payload = json.loads(payload_text) if payload_text else {}
@@ -265,11 +267,12 @@ def step_event_is_published(context, event_type):
 def step_identity_calls_email_notifier_ensure_auth_endpoint(context):
     expected = json.loads(context.text.strip()) if context.text else []
     assert isinstance(expected, list), (
-        "Expected step payload must be a JSON list of args, "
-        f"got {type(expected)}"
+        "Expected step payload must be a JSON list of args, " f"got {type(expected)}"
     )
     calls = context.manager.get_remote_calls("email-notifier-service") or []
-    assert calls, "Expected one call to email-notifier-service.ensure_auth_email_endpoint."
+    assert (
+        calls
+    ), "Expected one call to email-notifier-service.ensure_auth_email_endpoint."
 
     first_call = calls[0]
     args = ()

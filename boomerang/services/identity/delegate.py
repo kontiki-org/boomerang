@@ -7,6 +7,7 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
 
+from boomerang.core.auth import AuthError
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
@@ -14,7 +15,6 @@ from boomerang.core.contracts.notification import (
 )
 from boomerang.services.identity.database import Database
 from boomerang.services.identity.exceptions import (
-    AuthError,
     DependencyError,
     RateLimitError,
     ValidationError,
@@ -201,10 +201,10 @@ class IdentityDelegate(ServiceDelegate):
     async def verify_session(self, access_token: str):
         self._database.cleanup_expired()
         if not isinstance(access_token, str) or not access_token.strip():
-            return rpc_error(AuthError.code, AuthError.message)
+            raise AuthError()
 
         session = self._database.get_session(access_token.strip())
         if not isinstance(session, dict):
-            return rpc_error(AuthError.code, AuthError.message)
+            raise AuthError()
 
         return {"user_id": session["user_id"], "email": session["email"]}

@@ -4,8 +4,11 @@ from kontiki.messaging import RpcProxy
 
 
 class AuthError(Exception):
-    pass
+    code = "AUTH_ERROR"
+    message = "Authentication required or invalid."
 
+    def __init__(self):
+        super().__init__(self.message)
 
 IDENTITY_SERVICE_NAME = "identity-service"
 
@@ -16,17 +19,17 @@ async def require_authenticated_session(
 ):
     auth_header = request.headers.get("Authorization", "")
     if not isinstance(auth_header, str):
-        raise AuthError("Authentication required or invalid.")
+        raise AuthError()
     scheme, _, token = auth_header.partition(" ")
     if scheme.lower() != "bearer" or not token.strip():
-        raise AuthError("Authentication required or invalid.")
+        raise AuthError()
 
     access_token = token.strip()
     rpc_client = RpcProxy(messenger, IDENTITY_SERVICE_NAME)
     try:
         return await rpc_client.verify_session(access_token)
     except Exception as exc:
-        raise AuthError("Authentication required or invalid.") from exc
+        raise AuthError() from exc
 
 
 def requires_identity_auth(handler):

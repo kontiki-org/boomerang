@@ -4,6 +4,7 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import rpc_error
 
+from boomerang.core.exceptions import ValidationError
 from boomerang.services.subscription.database import Database
 from boomerang.services.subscription.exceptions import NotFoundError
 from boomerang.services.subscription.http_models import (
@@ -92,9 +93,9 @@ class SubscriptionDelegate(ServiceDelegate):
             is_default,
         )
         if not user_id or not normalized_channel or not endpoint_key:
-            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+            raise ValidationError()
         if normalized_channel not in self._configured_channels:
-            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+            raise ValidationError()
 
         self._database.attach_channel_endpoint(
             user_id=user_id,
@@ -102,7 +103,6 @@ class SubscriptionDelegate(ServiceDelegate):
             endpoint_key=endpoint_key,
             is_default=is_default,
         )
-        return None
 
     async def create_subscription(self, body: CreateSubscriptionRequest, user_id: str):
         created, skipped, errors = self._database.create_subscriptions(user_id, body)
@@ -135,13 +135,13 @@ class SubscriptionDelegate(ServiceDelegate):
             status=body.status,
         )
         if updated is None:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {"status": "ok", "item": updated}
 
     async def delete_subscription(self, subscription_id, user_id: str):
         deleted = self._database.delete_subscription(user_id, subscription_id)
         if not deleted:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {"status": "deleted"}
 
     async def list_channels(self):

@@ -1,12 +1,10 @@
 from functools import wraps
 import logging
 
-from kontiki.messaging import RpcProxy, rpc_error
+from kontiki.messaging import rpc_error
 
 from boomerang.core.exceptions import AuthError
-
-IDENTITY_SERVICE_NAME = "identity-service"
-
+from boomerang.core.contracts.identity.service import IdentityRpcProxy
 
 
 async def require_authenticated_session(
@@ -22,7 +20,7 @@ async def require_authenticated_session(
         raise AuthError()
 
     access_token = token.strip()
-    rpc_client = RpcProxy(messenger, IDENTITY_SERVICE_NAME)
+    rpc_client = IdentityRpcProxy(messenger)
     try:
         return await rpc_client.verify_session(access_token)
     except Exception as exc:

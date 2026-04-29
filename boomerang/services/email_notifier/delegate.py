@@ -6,10 +6,10 @@ from email.message import EmailMessage
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
 from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.database import Database
-from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
 
 
 class EmailNotifierDelegate(ServiceDelegate):

@@ -12,13 +12,14 @@ from boomerang.core.contracts.notification import (
     NotificationOutcome,
     NotificationRequest,
 )
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
-from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
+from boomerang.core.contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
 
 
 class EmailNotifierService:
-    name = "email-notifier-service"
+    name = EMAIL_NOTIFIER_SERVICE_NAME
     delegate = EmailNotifierDelegate()
     messenger = Messenger()
     http_error_handlers = {

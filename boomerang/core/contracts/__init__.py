@@ -5,6 +5,7 @@ from boomerang.core.contracts.notification import (
     NotificationOutcome,
     NotificationRequest,
 )
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 
 __all__ = [
     "NotificationContext",
@@ -12,4 +13,5 @@ __all__ = [
     "NotificationMessage",
     "NotificationOutcome",
     "NotificationRequest",
+    "CreateEmailEndpointRequest",
 ]

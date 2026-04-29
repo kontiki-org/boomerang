@@ -6,16 +6,17 @@ from kontiki.web import http
 from pydantic import ValidationError as PydanticValidationError
 
 from boomerang.core.exceptions import AuthError, ValidationError
-from boomerang.services.identity.delegate import IdentityDelegate
-from boomerang.services.identity.exceptions import DependencyError, RateLimitError
-from boomerang.services.identity.http_models import (
+from boomerang.core.contracts.identity import (
     ConsumeAuthCodeRequest,
+    IDENTITY_SERVICE_NAME,
     RequestAuthCodeRequest,
 )
+from boomerang.services.identity.delegate import IdentityDelegate
+from boomerang.services.identity.exceptions import DependencyError, RateLimitError
 
 
 class IdentityService:
-    name = "identity-service"
+    name = IDENTITY_SERVICE_NAME
     delegate = IdentityDelegate()
     messenger = Messenger()
     http_error_handlers = {

@@ -7,8 +7,8 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
-from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,

@@ -1,8 +1,8 @@
 from kontiki.messaging import RpcProxy
 
 
-class IdentityRpcProxy(RpcProxy):
-    service_name = "identity-service"
+IDENTITY_SERVICE_NAME = "identity-service"
 
+class IdentityRpcProxy(RpcProxy):
     def __init__(self, messenger):
-        super().__init__(messenger, self.service_name)
+        super().__init__(messenger, IDENTITY_SERVICE_NAME)

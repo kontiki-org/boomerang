@@ -1,8 +1,8 @@
 from kontiki.messaging import RpcProxy
 
 
-class SubscriptionRpcProxy(RpcProxy):
-    service_name = "subscription-service"
+SUBSCRIPTION_SERVICE_NAME = "subscription-service"
 
+class SubscriptionRpcProxy(RpcProxy):
     def __init__(self, messenger):
-        super().__init__(messenger, self.service_name)
+        super().__init__(messenger, SUBSCRIPTION_SERVICE_NAME)

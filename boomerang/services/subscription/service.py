@@ -9,10 +9,11 @@ from boomerang.core.contracts.subscription import (
 )
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.subscription.delegate import SubscriptionDelegate
+from boomerang.core.contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
 
 
 class SubscriptionService:
-    name = "subscription-service"
+    name = SUBSCRIPTION_SERVICE_NAME
     delegate = SubscriptionDelegate()
     messenger = Messenger()
     http_error_handlers = {

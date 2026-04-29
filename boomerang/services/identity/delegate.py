@@ -5,8 +5,9 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
+from kontiki.messaging import Messenger
 
+from boomerang.core.contracts.email_notifier.service import EmailNotifierRpcProxy
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
@@ -111,7 +112,7 @@ class IdentityDelegate(ServiceDelegate):
     async def _ensure_auth_email_endpoint(
         self, messenger, user_id: str, email: str
     ) -> None:
-        rpc_client = RpcProxy(messenger, "email-notifier-service")
+        rpc_client = EmailNotifierRpcProxy(messenger)
         try:
             await rpc_client.ensure_auth_email_endpoint(
                 user_id=user_id,
@@ -193,7 +194,7 @@ class IdentityDelegate(ServiceDelegate):
             "token_type": "Bearer",
         }
 
-    @rpc
+
     async def verify_session(self, access_token: str):
         self._database.cleanup_expired()
         if not isinstance(access_token, str) or not access_token.strip():

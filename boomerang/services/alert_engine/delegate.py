@@ -1,15 +1,12 @@
-from kontiki.messaging import RpcProxy
-
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
+from boomerang.core.contracts.subscription.service import SubscriptionRpcProxy
 
 
 class AlertEngineDelegate:
-    subscription_service_name = "subscription-service"
-
     def _notification_requests_for_recipients(self, payload, recipients):
         message = NotificationMessage(
             title=payload["headline"],
@@ -54,7 +51,7 @@ class AlertEngineDelegate:
             "event_type": payload["event_type"],
         }
 
-        rpc_client = RpcProxy(messenger, self.subscription_service_name)
+        rpc_client = SubscriptionRpcProxy(messenger)
         recipients = await rpc_client.get_recipients_for_alert(**rpc_args)
         if not recipients:
             return []

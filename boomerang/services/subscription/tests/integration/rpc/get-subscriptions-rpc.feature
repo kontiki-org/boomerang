@@ -36,11 +36,15 @@ Feature: Get subscriptions via RPC
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
       """
 
+  @identity_sessions_1
   Scenario: Return empty list when user has no subscriptions via RPC
+    Given I am authenticated as "empty@example.org"
     When I call the RPC get_subscriptions on the subscription service with the following arguments
       """
       {
-        "user_id": "usr_empty"
+        "headers": {
+          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
+        }
       }
       """
     Then the RPC call succeeds
@@ -92,7 +96,9 @@ Feature: Get subscriptions via RPC
     When I call the RPC get_subscriptions on the subscription service with the following arguments
       """
       {
-        "user_id": "[USER_ID]"
+        "headers": {
+          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
+        }
       }
       """
     Then the RPC call succeeds

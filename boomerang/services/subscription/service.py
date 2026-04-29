@@ -85,8 +85,9 @@ class SubscriptionService:
     async def get_alerts(self):
         return await self.delegate.get_alerts()
 
-    @rpc
-    async def get_subscriptions(self, user_id):
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def get_subscriptions(self, user_id, email, _headers):
         return await self.delegate.get_subscriptions(user_id)
 
 

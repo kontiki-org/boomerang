@@ -1,14 +1,20 @@
 import logging
 
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger, rpc
+from kontiki.messaging import Messenger, rpc, rpc_error
 from kontiki.web import http
+from pydantic import ValidationError as PydanticValidationError
 
 from boomerang.services.identity.delegate import IdentityDelegate
 from boomerang.services.identity.exceptions import (
     AuthError,
+    DependencyError,
     RateLimitError,
     ValidationError,
+)
+from boomerang.services.identity.http_models import (
+    ConsumeAuthCodeRequest,
+    RequestAuthCodeRequest,
 )
 
 
@@ -17,21 +23,12 @@ class IdentityService:
     delegate = IdentityDelegate()
     messenger = Messenger()
     http_error_handlers = {
-        ValidationError: (422, "Invalid request payload."),
-        HTTPUnprocessableEntity: (422, "Invalid request payload."),
-        AuthError: (401, "Authentication required or invalid."),
-        RateLimitError: (429, "Too many requests. Please try again later."),
+        ValidationError: (422, ValidationError.message),
+        HTTPUnprocessableEntity: (422, ValidationError.message),
+        AuthError: (401, AuthError.message),
+        RateLimitError: (429, RateLimitError.message),
+        DependencyError: (503, DependencyError.message),
     }
-
-    async def _finalize_entrypoint(self, outcome):
-        events = outcome.events or []
-        logging.info("produced %s outbound event(s)", len(events))
-        for event in events:
-            await self.messenger.publish(event.event_type, event.payload)
-            logging.info("published event type=%s", event.event_type)
-        if outcome.http_status is not None:
-            return outcome.http_status, outcome.http_response
-        return outcome.http_response
 
     @http(
         "/auth/request-auth-code",
@@ -39,10 +36,19 @@ class IdentityService:
         version="v1",
         errors=[ValidationError, RateLimitError],
     )
-    async def request_auth_code(self, request):
+    async def request_auth_code_http(self, request):
         logging.info("request_auth_code called with request=%s", request)
-        outcome = await self.delegate.request_auth_code(request)
-        return await self._finalize_entrypoint(outcome)
+        try:
+            body = await request.json()
+        except Exception as exc:
+            raise ValidationError() from exc
+
+        try:
+            model = RequestAuthCodeRequest.model_validate(body)
+        except PydanticValidationError as exc:
+            raise ValidationError() from exc
+
+        return await self.delegate.request_auth_code(model.email, self.messenger)
 
     @http(
         "/auth/consume-auth-code",
@@ -50,10 +56,34 @@ class IdentityService:
         version="v1",
         errors=[ValidationError, AuthError, RateLimitError],
     )
-    async def consume_auth_code(self, request):
+    async def consume_auth_code_http(self, request):
+        try:
+            body = await request.json()
+        except Exception as exc:
+            raise ValidationError() from exc
+
+        try:
+            model = ConsumeAuthCodeRequest.model_validate(body)
+        except PydanticValidationError as exc:
+            raise ValidationError() from exc
         logging.info("consume_auth_code called with request=%s", request)
-        outcome = await self.delegate.consume_auth_code(request)
-        return await self._finalize_entrypoint(outcome)
+        return await self.delegate.consume_auth_code(model.code)
+
+    # RPC endpoints
+
+    @rpc
+    async def request_auth_code(self, email: str):
+        try:
+            return await self.delegate.request_auth_code(email, self.messenger)
+        except RateLimitError as exc:
+            return rpc_error(exc.code, exc.message)
+
+    @rpc
+    async def consume_auth_code(self, code: str):
+        try:
+            return await self.delegate.consume_auth_code(code)
+        except (AuthError, RateLimitError) as exc:
+            return rpc_error(exc.code, exc.message)
 
     @rpc
     async def verify_session(self, access_token: str):

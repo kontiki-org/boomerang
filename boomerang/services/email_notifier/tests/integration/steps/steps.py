@@ -8,12 +8,12 @@ import yaml
 from behave import given, then, when
 
 from boomerang.core.contracts.notification import NotificationRequest
-from boomerang.services.identity.database.database import Database as IdentityDatabase
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,
     start_email_notifier_subprocess,
 )
+from boomerang.services.identity.database.database import Database as IdentityDatabase
 from boomerang.services.subscription.tests.integration.utils import (
     register_identity_session,
 )
@@ -271,8 +271,7 @@ def step_ensure_auth_email_endpoint_rpc_success(context, status):
             f"Expected RPC success, got error: {context.last_rpc_error}"
         )
     assert isinstance(context.last_rpc_result, dict), (
-        "Expected RPC result to be a dict, "
-        f"got {type(context.last_rpc_result)}"
+        "Expected RPC result to be a dict, " f"got {type(context.last_rpc_result)}"
     )
     actual_status = context.last_rpc_result.get("status")
     assert (

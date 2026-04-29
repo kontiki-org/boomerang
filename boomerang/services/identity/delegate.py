@@ -5,8 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import rpc, rpc_error
-from pydantic import ValidationError as PydanticValidationError
+from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
 
 from boomerang.core.contracts.notification import (
     NotificationContext,
@@ -16,14 +15,10 @@ from boomerang.core.contracts.notification import (
 from boomerang.services.identity.database import Database
 from boomerang.services.identity.exceptions import (
     AuthError,
+    DependencyError,
     RateLimitError,
     ValidationError,
 )
-from boomerang.services.identity.http_models import (
-    ConsumeAuthCodeRequest,
-    RequestAuthCodeRequest,
-)
-from boomerang.services.identity.outcome import EntrypointOutcome, OutboundEvent
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 CODE_RE = re.compile(r"^\d{6}$")
@@ -96,14 +91,14 @@ class IdentityDelegate(ServiceDelegate):
             and last_request is not None
             and (now - last_request).total_seconds() < self._cooldown_seconds
         ):
-            raise RateLimitError("Too many requests. Please try again later.")
+            raise RateLimitError()
 
         window_start = now - timedelta(seconds=self._rate_limit_window_seconds)
         timestamps = self._request_timestamps.get(email, [])
         timestamps = [ts for ts in timestamps if ts >= window_start]
         if len(timestamps) >= self._rate_limit_max_requests:
             self._request_timestamps[email] = timestamps
-            raise RateLimitError("Too many requests. Please try again later.")
+            raise RateLimitError()
 
         timestamps.append(now)
         self._request_timestamps[email] = timestamps
@@ -117,19 +112,23 @@ class IdentityDelegate(ServiceDelegate):
     def _generate_access_token() -> str:
         return secrets.token_urlsafe(32)
 
-    async def request_auth_code(self, request):
+    async def _ensure_auth_email_endpoint(
+        self, messenger, user_id: str, email: str
+    ) -> None:
+        rpc_client = RpcProxy(messenger, "email-notifier-service")
         try:
-            body = await request.json()
+            await rpc_client.ensure_auth_email_endpoint(
+                user_id=user_id,
+                endpoint_key="email_primary",
+                address=email,
+            )
         except Exception as exc:
-            raise ValidationError("Invalid request payload.") from exc
+            raise DependencyError() from exc
 
-        try:
-            model = RequestAuthCodeRequest.model_validate(body)
-        except PydanticValidationError as exc:
-            raise ValidationError("Invalid request payload.") from exc
-        email = model.email.strip().lower()
+    async def request_auth_code(self, email: str, messenger: Messenger):
+        email = email.strip().lower()
         if not EMAIL_RE.match(email):
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
 
         now = datetime.now(timezone.utc)
         self._enforce_rate_limits(email, now)
@@ -157,43 +156,31 @@ class IdentityDelegate(ServiceDelegate):
             ),
         )
 
-        return EntrypointOutcome(
-            http_response={"status": "ok"},
-            events=[
-                OutboundEvent(
-                    event_type=self._notification_event_type,
-                    payload=message,
-                )
-            ],
+        await self._ensure_auth_email_endpoint(messenger, message.recipient_id, email)
+        logging.info(
+            "request_auth_code: published event type=%s", self._notification_event_type
         )
+        await messenger.publish(self._notification_event_type, message)
+        return {}
 
-    async def consume_auth_code(self, request):
-        try:
-            body = await request.json()
-        except Exception as exc:
-            raise ValidationError("Invalid request payload.") from exc
-
-        try:
-            model = ConsumeAuthCodeRequest.model_validate(body)
-        except PydanticValidationError as exc:
-            raise ValidationError("Invalid request payload.") from exc
-        auth_code = model.code.strip()
+    async def consume_auth_code(self, code: str):
+        auth_code = code.strip()
         if not CODE_RE.match(auth_code):
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
 
         self._database.cleanup_expired()
         record = self._database.get_auth_code(auth_code)
         if not isinstance(record, dict):
-            raise AuthError("Authentication required or invalid.")
+            raise AuthError()
         if record.get("used"):
-            raise AuthError("Authentication required or invalid.")
+            raise AuthError()
 
         expires_at = record.get("expires_at")
         if not isinstance(expires_at, str):
-            raise AuthError("Authentication required or invalid.")
+            raise AuthError()
         email = record.get("email")
         if not isinstance(email, str) or not email:
-            raise AuthError("Authentication required or invalid.")
+            raise AuthError()
 
         # mark used before issuing a token
         self._database.mark_auth_code_used(auth_code)
@@ -205,22 +192,19 @@ class IdentityDelegate(ServiceDelegate):
         session_expires_iso = session_expires_at.isoformat().replace("+00:00", "Z")
         self._database.insert_session(access_token, user_id, email, session_expires_iso)
 
-        return EntrypointOutcome(
-            http_response={
-                "status": "ok",
-                "access_token": access_token,
-                "token_type": "Bearer",
-            }
-        )
+        return {
+            "access_token": access_token,
+            "token_type": "Bearer",
+        }
 
     @rpc
     async def verify_session(self, access_token: str):
         self._database.cleanup_expired()
         if not isinstance(access_token, str) or not access_token.strip():
-            return rpc_error("AUTH_ERROR", "Authentication required or invalid.")
+            return rpc_error(AuthError.code, AuthError.message)
 
         session = self._database.get_session(access_token.strip())
         if not isinstance(session, dict):
-            return rpc_error("AUTH_ERROR", "Authentication required or invalid.")
+            return rpc_error(AuthError.code, AuthError.message)
 
         return {"user_id": session["user_id"], "email": session["email"]}

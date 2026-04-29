@@ -1,8 +1,8 @@
-@list-subscriptions
-Feature: List subscriptions
-  In order to manage my alert subscriptions
-  As a Boomerang subscription user
-  I want to list my subscriptions only when authenticated
+@get_subscriptions_rpc
+Feature: Get subscriptions via RPC
+  In order to manage user alert subscriptions from internal services
+  As a trusted Boomerang service
+  I want to get subscriptions for a given user id through RPC
 
   Background:
     Given the subscription service is running with the following configuration
@@ -36,45 +36,15 @@ Feature: List subscriptions
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
       """
 
-  Scenario: Reject list-subscriptions request without bearer token
-    When I call GET on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
-      """
-      {}
-      """
-    Then the list-subscriptions call is rejected with HTTP 401
+  Scenario: Return empty list when user has no subscriptions via RPC
+    When I call the RPC get_subscriptions on the subscription service with the following arguments
       """
       {
-        "message": "Authentication required or invalid."
+        "user_id": "usr_empty"
       }
       """
-
-  Scenario: Reject list-subscriptions request with invalid bearer token
-    When I call GET on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
-      """
-      {
-        "headers": {
-          "Authorization": "Bearer invalid-token"
-        }
-      }
-      """
-    Then the list-subscriptions call is rejected with HTTP 401
-      """
-      {
-        "message": "Authentication required or invalid."
-      }
-      """
-
-  Scenario: Accept list-subscriptions request with valid bearer token
-    Given I am authenticated as "user@example.org"
-    When I call GET on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
-      """
-      {
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
-      }
-      """
-    Then the list-subscriptions response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": []
@@ -82,7 +52,7 @@ Feature: List subscriptions
       """
 
   @identity_sessions_2
-  Scenario: List persisted subscriptions for authenticated user
+  Scenario: Get persisted subscriptions for a user via RPC
     Given I am authenticated as "user@example.org"
     When I call POST on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
       """
@@ -119,15 +89,14 @@ Feature: List subscriptions
         "errors": []
       }
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/subscriptions with the following request
+    When I call the RPC get_subscriptions on the subscription service with the following arguments
       """
       {
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
+        "user_id": "[USER_ID]"
       }
       """
-    Then the list-subscriptions response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": [
@@ -146,5 +115,5 @@ Feature: List subscriptions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                             | status | created_at    | updated_at    |
+      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at    | updated_at    |
       | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | [ISO8601_UTC] | [ISO8601_UTC] |

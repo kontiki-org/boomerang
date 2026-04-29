@@ -6,7 +6,10 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
-from boomerang.core.contracts.subscription import CreateSubscriptionRequest
+from boomerang.core.contracts.subscription import (
+    CreateSubscriptionRequest,
+    UpdateSubscriptionRequest,
+)
 from boomerang.services.subscription.tests.integration.utils import (
     http_request,
     register_identity_session,
@@ -228,12 +231,15 @@ def step_call_rpc_on_subscription_service(context, method_name):
     extra_headers = None
     if isinstance(payload, dict) and "headers" in payload:
         extra_headers = payload.pop("headers")
-    # For create_subscription, simulate real RPC usage by passing a Pydantic model
-    # instead of a raw dict so delegate expectations (body.delivery, etc.) are met.
-    if method_name == "create_subscription" and isinstance(payload, dict):
+    # For create_subscription / update_subscription, simulate real RPC usage by
+    # passing Pydantic models instead of raw dicts so delegate expectations are met.
+    if isinstance(payload, dict):
         body_dict = payload.get("body")
         if isinstance(body_dict, dict):
-            payload["body"] = CreateSubscriptionRequest(**body_dict)
+            if method_name == "create_subscription":
+                payload["body"] = CreateSubscriptionRequest(**body_dict)
+            elif method_name == "update_subscription":
+                payload["body"] = UpdateSubscriptionRequest(**body_dict)
     context.last_rpc_error = None
     try:
         context.last_rpc_result = context.runner.call(
@@ -282,6 +288,21 @@ def step_rpc_response_is(context):
     assert (
         normalized_actual == expected
     ), f"RPC response mismatch.\nExpected: {expected}\nActual:   {normalized_actual}"
+
+
+@then("the RPC call fails with a {error_code}")
+def step_rpc_call_fails_with_error_code(context, error_code):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC error, but call succeeded."
+    actual = {"code": getattr(error, "code", None), "message": getattr(error, "message", None)}
+    assert actual.get("code") == error_code, (
+        f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual.get('code')}"
+    )
+    if expected:
+        assert (
+            actual == expected
+        ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
 
 
 @then("the attach_channel_endpoint request is rejected due to validation error")
@@ -374,7 +395,7 @@ def step_event_is_published(context, event_type):
 
 @then("the request-auth-code call is rejected with HTTP {status_code:d}")
 @then("the consume-auth-code call is rejected with HTTP {status_code:d}")
-@then("the list-subscriptions call is rejected with HTTP {status_code:d}")
+@then("the get-subscriptions call is rejected with HTTP {status_code:d}")
 @then("the create-subscriptions call is rejected with HTTP {status_code:d}")
 @then("the update-subscription call is rejected with HTTP {status_code:d}")
 @then("the delete-subscription call is rejected with HTTP {status_code:d}")
@@ -391,10 +412,10 @@ def step_rejected_response(context, status_code):
         ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
 
 
-@then("the list-subscriptions response is")
-@then("the list-channels response is")
-@then("the list-alerts response is")
-def step_list_subscriptions_response(context):
+@then("the get-subscriptions response is")
+@then("the get-channels response is")
+@then("the get-alerts response is")
+def step_get_subscriptions_response(context):
     _assert_success_response(context)
 
 

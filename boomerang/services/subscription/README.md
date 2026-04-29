@@ -9,7 +9,7 @@ the rest of the platform.
 
 ## What it does
 
-- Manage authenticated user subscriptions (create, list, update, delete).
+- Manage authenticated user subscriptions (create, get, update, delete).
 - Expose allowed channel types from config (`GET /channels`).
 - Expose allowed alert types from config (`GET /alerts`).
 - Register user channel endpoints through RPC (`attach_channel_endpoint`).

@@ -1,5 +1,5 @@
 from aiohttp.web import HTTPUnprocessableEntity
-from kontiki.messaging import Messenger, rpc
+from kontiki.messaging import Messenger, rpc, rpc_error
 from kontiki.web import http
 
 from boomerang.core.auth import requires_identity_auth, requires_identity_auth_rpc
@@ -48,7 +48,7 @@ class SubscriptionService:
         endpoint_key: str,
         is_default: bool = False,
     ):
-            return await self.delegate.attach_channel_endpoint(
+        return await self.delegate.attach_channel_endpoint(
             user_id=user_id,
             channel=channel,
             endpoint_key=endpoint_key,
@@ -60,8 +60,37 @@ class SubscriptionService:
     async def create_subscription(self, body, user_id, email, _headers):
         return await self.delegate.create_subscription(body, user_id)
 
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def update_subscription(
+        self, subscription_id, body, user_id, email, _headers
+    ):
+        return await self.delegate.update_subscription(subscription_id, body, user_id)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def delete_subscription(
+        self, subscription_id, user_id, email, _headers
+    ):
+        try:
+            return await self.delegate.delete_subscription(subscription_id, user_id)
+        except NotFoundError as exc:
+            return rpc_error(exc.code, exc.message)
+
+    @rpc
+    async def get_channels(self):
+        return await self.delegate.get_channels()
+
+    @rpc
+    async def get_alerts(self):
+        return await self.delegate.get_alerts()
+
+    @rpc
+    async def get_subscriptions(self, user_id):
+        return await self.delegate.get_subscriptions(user_id)
 
 
+    @rpc
     # --------------------------------------------------------------------------
     # HTTP endpoints
     # --------------------------------------------------------------------------
@@ -80,9 +109,9 @@ class SubscriptionService:
 
     @http("/subscriptions", "GET", version="v1", errors=[AuthError])
     @requires_identity_auth
-    async def list_subscriptions(self, request, user_id, email):
+    async def get_subscriptions_http(self, request, user_id, email):
         _ = email
-        return await self.delegate.list_subscriptions(user_id)
+        return await self.delegate.get_subscriptions(user_id)
 
     @http(
         "/subscriptions/{subscription_id}",
@@ -93,7 +122,9 @@ class SubscriptionService:
         errors=[ValidationError, AuthError, NotFoundError],
     )
     @requires_identity_auth
-    async def update_subscription_http(self, request, subscription_id, body, user_id, email):
+    async def update_subscription_http(
+        self, request, subscription_id, body, user_id, email
+    ):
         _ = email
         return await self.delegate.update_subscription(subscription_id, body, user_id)
 
@@ -109,11 +140,11 @@ class SubscriptionService:
         return await self.delegate.delete_subscription(subscription_id, user_id)
 
     @http("/channels", "GET", version="v1")
-    async def list_channels_http(self, request):
+    async def get_channels_http(self, request):
         _ = request
-        return await self.delegate.list_channels()
+        return await self.delegate.get_channels()
 
     @http("/alerts", "GET", version="v1")
-    async def list_alerts_http(self, request):
+    async def get_alerts_http(self, request):
         _ = request
-        return await self.delegate.list_alerts()
+        return await self.delegate.get_alerts()

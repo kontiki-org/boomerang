@@ -24,6 +24,7 @@ async def require_authenticated_session(
     except Exception as exc:
         raise AuthError() from exc
 
+
 def requires_identity_auth_rpc(handler):
     @wraps(handler)
     async def wrapper(self, _headers, *args, **kwargs):

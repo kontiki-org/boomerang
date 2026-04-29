@@ -7,12 +7,12 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
 
-from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
+from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.services.identity.database import Database
 from boomerang.services.identity.exceptions import DependencyError, RateLimitError
 

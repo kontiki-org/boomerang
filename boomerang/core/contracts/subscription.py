@@ -141,4 +141,3 @@ class UpdateSubscriptionRequest(BaseModel):
             raise ValueError("Invalid request payload.")
 
         return self
-

@@ -116,7 +116,7 @@ class Database:
 
         return created, skipped, errors
 
-    def list_subscriptions(self, user_id: str) -> list[dict]:
+    def get_subscriptions(self, user_id: str) -> list[dict]:
         with self._connection() as connection:
             rows = connection.execute(
                 SELECT_SUBSCRIPTIONS_BY_USER, (user_id,)

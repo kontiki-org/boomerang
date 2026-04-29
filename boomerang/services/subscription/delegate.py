@@ -115,9 +115,9 @@ class SubscriptionDelegate(ServiceDelegate):
         )
         return {"created": created, "skipped": skipped, "errors": errors}
 
-    async def list_subscriptions(self, user_id: str):
-        logging.info("list_subscriptions for user_id=%s", user_id)
-        items = self._database.list_subscriptions(user_id)
+    async def get_subscriptions(self, user_id: str):
+        logging.info("get_subscriptions for user_id=%s", user_id)
+        items = self._database.get_subscriptions(user_id)
         return {"items": items}
 
     async def update_subscription(
@@ -143,7 +143,7 @@ class SubscriptionDelegate(ServiceDelegate):
             raise NotFoundError()
         return {"status": "deleted"}
 
-    async def list_channels(self):
+    async def get_channels(self):
         items = []
         for entry in self._configured_channels:
             if isinstance(entry, str):
@@ -156,7 +156,7 @@ class SubscriptionDelegate(ServiceDelegate):
 
         return {"items": items}
 
-    async def list_alerts(self):
+    async def get_alerts(self):
         items = []
         for entry in self._configured_alerts:
             if not isinstance(entry, dict):

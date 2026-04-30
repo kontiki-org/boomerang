@@ -1,8 +1,7 @@
-from textual.screen import Screen
 from textual.widgets import Static
 
 
-class SubscriptionsScreen(Screen[None]):
+class SubscriptionsScreen(Static):
     def compose(self):
-        yield Static("Subscriptions screen placeholder")
+        yield Static("Subscriptions screen coming soon.")
 

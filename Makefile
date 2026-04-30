@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down platform-up platform-down kontiki-tui
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -78,6 +78,13 @@ kontiki-tui:
 		exit 1; \
 	)
 	pipx run kontiki-tui
+
+textual-ui:
+	python -m pip install -e ./apps/textual
+	python -m boomerang_textual.app
+
+textual-ui-dev:
+	python -m boomerang_textual.app
 
 cov:
 	$(PY) -m pytest --cov=. --cov-report=term-missing

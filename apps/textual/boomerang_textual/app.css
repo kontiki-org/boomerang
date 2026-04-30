@@ -1,0 +1,131 @@
+Screen {
+    layout: vertical;
+}
+
+#content {
+    height: 1fr;
+    padding: 1 2;
+}
+
+#auth-root {
+    width: 70;
+    max-width: 100%;
+    height: auto;
+    margin: 1 0;
+}
+
+#auth-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#auth-step-help {
+    margin-bottom: 1;
+    color: $text-muted;
+}
+
+#email-step,
+#code-step {
+    layout: vertical;
+    height: auto;
+    margin-bottom: 1;
+}
+
+#code-step-actions {
+    height: auto;
+}
+
+#code-step-actions > Button {
+    margin-right: 1;
+}
+
+#email-input,
+#code-input {
+    margin-bottom: 1;
+}
+
+#home-view {
+    layout: vertical;
+    height: 1fr;
+}
+
+#welcome {
+    margin-bottom: 1;
+    color: $text-muted;
+}
+
+#main-tabs {
+    height: 1fr;
+}
+
+#endpoints-layout {
+    height: 1fr;
+    layout: vertical;
+}
+
+#endpoints-list-pane,
+#endpoints-form-pane {
+    padding: 1;
+}
+
+#endpoints-form-pane {
+    height: auto;
+}
+
+#endpoints-list-pane {
+    height: 1fr;
+}
+
+.section-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#endpoints-list {
+    border: round darkgrey;
+    height: 1fr;
+}
+
+#endpoint-key,
+#endpoint-address {
+    margin-bottom: 1;
+}
+
+#endpoint-kind {
+    margin-bottom: 1;
+}
+
+#endpoints-form-actions {
+    height: auto;
+}
+
+#endpoints-form-actions > Button {
+    width: 1fr;
+}
+
+#save-endpoint-btn {
+    margin-right: 1;
+}
+
+#prompt-area {
+    height: auto;
+    min-height: 0;
+    max-height: 3;
+}
+
+.prompt {
+    height: 1;
+    padding-left: 1;
+}
+
+.prompt.info {
+    color: $text;
+}
+
+.prompt.success {
+    color: green;
+}
+
+.prompt.error {
+    color: red;
+}

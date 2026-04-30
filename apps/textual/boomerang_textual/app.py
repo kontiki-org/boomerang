@@ -1,24 +1,68 @@
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Container
-from textual.widgets import Footer, Header, ListItem, ListView, Static
+from textual.widgets import Footer, Header, Static, TabbedContent, TabPane
+
+from boomerang_textual.screens.auth import AuthScreen
+from boomerang_textual.screens.endpoints import EndpointsScreen
+from boomerang_textual.screens.subscriptions import SubscriptionsScreen
+from boomerang_textual.state.session import SessionState
+
+
+class HomeView(Container):
+    def compose(self) -> ComposeResult:
+        yield Static("Welcome to Boomerang Textual.", id="welcome")
+        with TabbedContent(initial="subscriptions", id="main-tabs"):
+            with TabPane("Subscriptions", id="subscriptions"):
+                yield SubscriptionsScreen()
+            with TabPane("Endpoints", id="endpoints"):
+                yield EndpointsScreen()
 
 
 class BoomerangTextualApp(App[None]):
+    CSS_PATH = "app.css"
     TITLE = "Boomerang Textual"
     SUB_TITLE = "Auth, endpoints, subscriptions"
+    BINDINGS = [
+        Binding("q", "quit", "Quit"),
+    ]
+    session = SessionState()
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Container():
-            yield Static("Welcome to Boomerang Textual.", id="welcome")
-            yield ListView(
-                ListItem(Static("Auth flow")),
-                ListItem(Static("Endpoints")),
-                ListItem(Static("Subscriptions")),
-                id="main-menu",
-            )
+        with Container(id="content"):
+            yield AuthScreen()
+        yield Container(id="prompt-area")
         yield Footer()
 
+    def on_auth_screen_status_message(self, event: AuthScreen.StatusMessage) -> None:
+        self._show_prompt(event.text, event.level)
+
+    def on_auth_screen_auth_succeeded(self, event: AuthScreen.AuthSucceeded) -> None:
+        self.session.user_email = event.email
+        self.session.access_token = event.access_token
+        content = self.query_one("#content", Container)
+        content.remove_children()
+        content.mount(self._build_home_view())
+        self._show_prompt(f"Signed in as {event.email} (mock mode).", "success")
+
+    def on_endpoints_screen_status_message(
+        self, event: EndpointsScreen.StatusMessage
+    ) -> None:
+        self._show_prompt(event.text, event.level)
+
+    def _show_prompt(self, text: str, level: str = "info", timeout: float = 4.0) -> None:
+        prompt_area = self.query_one("#prompt-area", Container)
+        prompt_area.remove_children()
+        prompt = Static(text, classes=f"prompt {level}")
+        prompt_area.mount(prompt)
+        self.set_timer(timeout, prompt.remove)
+
+    def on_mount(self) -> None:
+        self._show_prompt("Please sign in.", "info", timeout=6.0)
+
+    def _build_home_view(self) -> Container:
+        return HomeView(id="home-view")
 
 def run() -> None:
     BoomerangTextualApp().run()

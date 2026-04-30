@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-amqp down-amqp run-mailhog down-mailhog stack-up stack-down platform-up platform-down kontiki-tui
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down platform-up platform-down kontiki-tui
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -11,7 +11,7 @@ install:
 test:
 	$(PY) -m pytest -q
 
-integration-test: run-amqp integration-test-identity integration-test-subscription
+integration-test: integration-test-identity integration-test-subscription
 
 integration-test-subscription:
 	poetry run behave boomerang/services/subscription/tests/integration --stop
@@ -49,21 +49,14 @@ integration-test-earthquake-feed:
 integration-test-earthquake-feed-tag:
 	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
 
-run-amqp:
-	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 60 rabbitmq
+run-dev-platform:
+	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog kontiki-registry
 
-down-amqp:
+down-dev-platform:
 	docker compose -f $(COMPOSE_FILE) down
-
-run-mailhog:
-	docker run -d --rm --name boomerang-mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
-
-down-mailhog:
-	docker stop boomerang-mailhog || true
 
 # -----------------------------------------------------------------------------
 # Local stack (RabbitMQ + optional Mailhog)
-# Inspired by kontiki-tui: docker-compose.stack.yaml + make wrappers.
 # -----------------------------------------------------------------------------
 stack-up:
 	docker compose -f $(STACK_COMPOSE_FILE) up -d --wait --wait-timeout 180
@@ -103,4 +96,3 @@ clean:
 
 run-service:
 	poetry run boomerang-subscription --config config.example.yaml
-

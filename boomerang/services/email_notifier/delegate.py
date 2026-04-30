@@ -32,6 +32,10 @@ class EmailNotifierDelegate(ServiceDelegate):
         self._from_address = get_parameter(
             config, "app.email.from.address", "no-reply@example.org"
         )
+        self._degraded_after_failures = int(
+            get_parameter(config, "app.email.degraded_after_failures", 3)
+        )
+        self._consecutive_smtp_failures = 0
 
     async def create_email_endpoint(
         self, user_id: str, model: CreateEmailEndpointRequest
@@ -129,13 +133,22 @@ class EmailNotifierDelegate(ServiceDelegate):
         body = request.message.body.strip()
         from_address = (self._from_address or "").strip()
 
-        await asyncio.to_thread(
-            self._send_via_smtp,
-            from_address=from_address,
-            to_address=destination_value,
-            subject=subject,
-            body=body,
-        )
+        try:
+            await asyncio.to_thread(
+                self._send_via_smtp,
+                from_address=from_address,
+                to_address=destination_value,
+                subject=subject,
+                body=body,
+            )
+        except Exception:
+            self._consecutive_smtp_failures += 1
+            raise
+        self._consecutive_smtp_failures = 0
+
+    def is_degraded_due_to_smtp_failures(self) -> bool:
+        threshold = max(1, self._degraded_after_failures)
+        return self._consecutive_smtp_failures >= threshold
 
     def _resolve_destination_address(self, request: NotificationRequest) -> str:
         user_id = (request.recipient_id or "").strip()

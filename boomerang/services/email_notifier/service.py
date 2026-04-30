@@ -1,5 +1,6 @@
 from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event, rpc, rpc_error
+from kontiki.registry import degraded_on
 from kontiki.web import http
 
 from boomerang.core.authentication import (
@@ -170,3 +171,7 @@ class EmailNotifierService:
                 message=request.message,
             ),
         )
+
+    @degraded_on
+    def is_degraded(self):
+        return self.delegate.is_degraded_due_to_smtp_failures()

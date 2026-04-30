@@ -3,7 +3,7 @@ import secrets
 
 from textual.containers import Container, Horizontal, Vertical
 from textual.message import Message
-from textual.widgets import Button, Input, Static
+from textual.widgets import Button, Input, Label, Static
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 CODE_RE = re.compile(r"^\d{6}$")
@@ -34,6 +34,7 @@ class AuthScreen(Static):
                 id="auth-step-help",
             )
             with Container(id="email-step"):
+                yield Label("Email", classes="field-label")
                 yield Input(
                     placeholder="user@example.org",
                     id="email-input",
@@ -41,6 +42,7 @@ class AuthScreen(Static):
                 yield Button("Send code", id="send-code-btn", variant="primary")
             with Container(id="code-step"):
                 yield Static("Step 2: enter the 6-digit code.", id="code-step-help")
+                yield Label("Verification code", classes="field-label")
                 yield Input(
                     placeholder="123456",
                     id="code-input",

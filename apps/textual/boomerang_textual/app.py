@@ -51,6 +51,11 @@ class BoomerangTextualApp(App[None]):
     ) -> None:
         self._show_prompt(event.text, event.level)
 
+    def on_subscriptions_screen_status_message(
+        self, event: SubscriptionsScreen.StatusMessage
+    ) -> None:
+        self._show_prompt(event.text, event.level)
+
     def _show_prompt(self, text: str, level: str = "info", timeout: float = 4.0) -> None:
         prompt_area = self.query_one("#prompt-area", Container)
         prompt_area.remove_children()

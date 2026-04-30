@@ -2,7 +2,7 @@ import re
 
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
-from textual.widgets import Button, DataTable, Input, Select, Static
+from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -14,6 +14,11 @@ class EndpointsScreen(Static):
             self.text = text
             self.level = level
 
+    class EndpointKeysChanged(Message):
+        def __init__(self, endpoint_keys: list[str]) -> None:
+            super().__init__()
+            self.endpoint_keys = endpoint_keys
+
     def __init__(self) -> None:
         super().__init__()
         self._endpoints: list[dict[str, str]] = []
@@ -22,12 +27,15 @@ class EndpointsScreen(Static):
         with Vertical(id="endpoints-layout"):
             with Vertical(id="endpoints-form-pane"):
                 yield Static("Create or update endpoint", classes="section-title")
+                yield Label("Endpoint type", classes="field-label")
                 yield Select(
                     options=[("Email", "email")],
                     value="email",
                     id="endpoint-kind",
                 )
+                yield Label("Endpoint key", classes="field-label")
                 yield Input(placeholder="endpoint key (example: primary)", id="endpoint-key")
+                yield Label("Destination", classes="field-label")
                 yield Input(
                     placeholder="email address (example: user@example.org)",
                     id="endpoint-address",
@@ -42,6 +50,7 @@ class EndpointsScreen(Static):
 
     def on_mount(self) -> None:
         self._refresh_list()
+        self._publish_endpoint_keys()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "save-endpoint-btn":
@@ -49,6 +58,18 @@ class EndpointsScreen(Static):
             return
         if event.button.id == "delete-endpoint-btn":
             self._handle_delete_selected()
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        if event.data_table.id != "endpoints-list":
+            return
+        if event.cursor_row is None or event.cursor_row < 0:
+            return
+        if event.cursor_row >= len(self._endpoints):
+            return
+        selected = self._endpoints[event.cursor_row]
+        self.query_one("#endpoint-kind", Select).value = selected["kind"]
+        self.query_one("#endpoint-key", Input).value = selected["endpoint_key"]
+        self.query_one("#endpoint-address", Input).value = selected["address"]
 
     def _handle_save_endpoint(self) -> None:
         kind_select = self.query_one("#endpoint-kind", Select)
@@ -93,6 +114,7 @@ class EndpointsScreen(Static):
         key_input.value = ""
         address_input.value = ""
         self._refresh_list()
+        self._publish_endpoint_keys()
         self.post_message(self.StatusMessage(message, "success"))
 
     def _handle_delete_selected(self) -> None:
@@ -106,6 +128,7 @@ class EndpointsScreen(Static):
 
         deleted = self._endpoints.pop(endpoints_list.cursor_row)
         self._refresh_list()
+        self._publish_endpoint_keys()
         self.post_message(
             self.StatusMessage(
                 f"Endpoint '{deleted['endpoint_key']}' deleted.",
@@ -121,4 +144,14 @@ class EndpointsScreen(Static):
             return
         for item in self._endpoints:
             endpoints_list.add_row(item["kind"], item["endpoint_key"], item["address"])
+
+    def _publish_endpoint_keys(self) -> None:
+        keys = sorted(
+            {
+                item["endpoint_key"]
+                for item in self._endpoints
+                if item.get("kind") == "email"
+            }
+        )
+        self.post_message(self.EndpointKeysChanged(keys))
 

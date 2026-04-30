@@ -81,6 +81,14 @@ Screen {
     margin-bottom: 1;
 }
 
+.field-group {
+    height: auto;
+}
+
+.field-label {
+    color: $text-muted;
+}
+
 #endpoints-list {
     border: round darkgrey;
     height: 1fr;
@@ -105,6 +113,64 @@ Screen {
 
 #save-endpoint-btn {
     margin-right: 1;
+}
+
+#subscriptions-layout {
+    height: 1fr;
+    layout: vertical;
+}
+
+#subscriptions-form-pane,
+#subscriptions-list-pane {
+    padding: 1;
+}
+
+#subscriptions-form-pane {
+    height: auto;
+}
+
+#subscriptions-list-pane {
+    height: 1fr;
+}
+
+#subscriptions-form-line-1,
+#subscriptions-form-line-2,
+#subscriptions-form-line-3,
+#subscriptions-form-actions {
+    height: auto;
+    margin-bottom: 1;
+}
+
+#subscriptions-form-line-1 > *,
+#subscriptions-form-line-2 > *,
+#subscriptions-form-line-3 > * {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#subscriptions-form-line-1 > *:last-child,
+#subscriptions-form-line-2 > *:last-child,
+#subscriptions-form-line-3 > *:last-child {
+    margin-right: 0;
+}
+
+#subscriptions-list {
+    border: round darkgrey;
+    height: 1fr;
+}
+
+#subscriptions-mapping-help {
+    margin-bottom: 1;
+    color: $text-muted;
+}
+
+#subscriptions-form-actions > Button {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#subscriptions-form-actions > Button:last-child {
+    margin-right: 0;
 }
 
 #prompt-area {

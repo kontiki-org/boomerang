@@ -45,7 +45,7 @@ Feature: Manage email endpoints via HTTP
             address: no-reply@example.org
       """
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: List endpoints for the authenticated user
     Given I am authenticated as "user@example.org"
     When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
@@ -79,7 +79,7 @@ Feature: Manage email endpoints via HTTP
       | user_id  | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
-  @identity_sessions_2
+  @identity_sessions_1
   Scenario: Retrieve an endpoint by key
     Given I am authenticated as "user@example.org"
     When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
@@ -111,7 +111,7 @@ Feature: Manage email endpoints via HTTP
       | user_id  | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
-  @identity_sessions_3
+  @identity_sessions_1
   Scenario: Delete an endpoint
     Given I am authenticated as "user@example.org"
     When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request

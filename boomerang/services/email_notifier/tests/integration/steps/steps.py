@@ -1,12 +1,16 @@
 import json
 import sqlite3
 import time
+import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 from behave import given, then, when
+from kontiki.messaging import Messenger
+from kontiki.registry.client.proxy import ServiceRegistryProxy
 
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
@@ -29,6 +33,7 @@ def _resolve_placeholders(value, context):
 
     replacements = {
         "[USER_ID]": getattr(context, "last_user_id", None),
+        "[LAST_ACCESS_TOKEN]": getattr(context, "last_access_token", None),
     }
     resolved = value
     for placeholder, actual in replacements.items():
@@ -115,6 +120,23 @@ def _insert_rows(sqlite_path: str, table_name: str, rows: list[dict]) -> None:
             values = [row.get(col) for col in columns]
             connection.execute(sql, values)
         connection.commit()
+
+
+def _registry_amqp_url(context) -> str:
+    config = getattr(context, "email_notifier_config", {}) or {}
+    return (
+        config.get("kontiki", {}).get("amqp", {}).get("url")
+        or "amqp://guest:guest@localhost/"
+    )
+
+
+def _fetch_registry_services(amqp_url: str) -> dict:
+    async def _fetch():
+        async with Messenger(amqp_url=amqp_url, standalone=True) as messenger:
+            proxy = ServiceRegistryProxy(messenger)
+            return await proxy.get_services()
+
+    return asyncio.run(_fetch())
 
 
 def _assert_event_published(context, event_type: str):
@@ -232,11 +254,19 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
 def step_call_rpc_on_email_notifier_service(context, method_name):
     payload_text = _resolve_placeholders(context.text.strip(), context)
     payload = json.loads(payload_text) if payload_text else {}
+    if isinstance(payload, dict) and method_name == "create_email_endpoint":
+        body_dict = payload.get("body")
+        if isinstance(body_dict, dict):
+            payload["body"] = CreateEmailEndpointRequest(**body_dict)
+    extra_headers = None
+    if isinstance(payload, dict) and "headers" in payload:
+        extra_headers = payload.pop("headers")
     context.last_rpc_error = None
     try:
         context.last_rpc_result = context.runner.call(
             "email-notifier-service",
             method_name,
+            extra_headers=extra_headers,
             **payload,
         )
     except Exception as exc:
@@ -264,6 +294,7 @@ def step_delete_email_endpoint_success_response(context):
     _assert_success_response(context)
 
 
+@then('the RPC call succeeds with status "{status}"')
 @then('the ensure_auth_email_endpoint RPC call succeeds with status "{status}"')
 def step_ensure_auth_email_endpoint_rpc_success(context, status):
     if context.last_rpc_error is not None:
@@ -279,6 +310,7 @@ def step_ensure_auth_email_endpoint_rpc_success(context, status):
     ), f"Expected status={status}, got status={actual_status} payload={context.last_rpc_result}"
 
 
+@then("the RPC response is")
 @then("the ensure_auth_email_endpoint RPC response is")
 def step_ensure_auth_email_endpoint_rpc_response(context):
     expected = json.loads(context.text.strip()) if context.text else {}
@@ -293,6 +325,7 @@ def step_ensure_auth_email_endpoint_rpc_response(context):
     ), f"RPC response mismatch.\nExpected: {expected}\nActual:   {normalized_actual}"
 
 
+@then("the RPC request is rejected due to validation error")
 @then("the ensure_auth_email_endpoint request is rejected due to validation error")
 def step_ensure_auth_email_endpoint_validation_error(context):
     expected = json.loads(context.text.strip()) if context.text else {}
@@ -302,6 +335,24 @@ def step_ensure_auth_email_endpoint_validation_error(context):
     assert (
         actual == expected
     ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
+
+
+@then("the RPC call fails with a {error_code}")
+def step_rpc_call_fails_with_error_code(context, error_code):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    error = context.last_rpc_error
+    assert error is not None, "Expected RPC error, but call succeeded."
+    actual = {
+        "code": getattr(error, "code", None),
+        "message": getattr(error, "message", None),
+    }
+    assert (
+        actual.get("code") == error_code
+    ), f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual.get('code')}"
+    if expected:
+        assert (
+            actual == expected
+        ), f"RPC error mismatch.\nExpected: {expected}\nActual:   {actual}"
 
 
 @then("MailHog should contain an email matching")
@@ -358,6 +409,28 @@ def step_email_notifier_rejects_invalid_payload(context):
     _ = getattr(context, "last_published_event_payload", None)
     messages = mailhog.list_messages()
     assert not messages, f"Expected no email in MailHog, got {messages}"
+
+
+@then("the service registry eventually receives a heartbeat with degraded flag true")
+def step_registry_eventually_reports_degraded(context):
+    amqp_url = _registry_amqp_url(context)
+    deadline = time.time() + 20
+    last_services = {}
+    while time.time() < deadline:
+        services = _fetch_registry_services(amqp_url)
+        last_services = services
+        email_service = services.get("email-notifier-service", {})
+        if any(
+            isinstance(instance_data, dict)
+            and instance_data.get("status") == "degraded"
+            for instance_data in email_service.values()
+        ):
+            return
+        time.sleep(1)
+    raise AssertionError(
+        "Expected email-notifier-service to become degraded in service registry. "
+        f"Last registry payload: {last_services}"
+    )
 
 
 @then("the create-email-endpoint call is rejected with HTTP {status_code:d}")

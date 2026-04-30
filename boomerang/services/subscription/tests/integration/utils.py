@@ -10,14 +10,23 @@ def start_subscription_subprocess(config):
 def register_identity_session(context, email: str, access_token: str) -> None:
     # Queue the session object as the next return values for identity-service RPC
     # calls (verify_session). The number of queued values can be controlled by a
-    # scenario tag (e.g. @identity_sessions_2).
+    # scenario tag (e.g. @identity_sessions_1).
+    from datetime import datetime, timedelta, timezone
     from hashlib import sha256
 
     digest = sha256(email.encode("utf-8")).hexdigest()
     user_id = f"usr_{digest[:20]}"
     context.last_user_id = user_id
     repeats = getattr(context, "identity_session_repeats", 1)
-    session = {"user_id": user_id, "email": email}
+    now = datetime.now(timezone.utc)
+    session_expires_at = now + timedelta(minutes=10)
+    cache_valid_until = session_expires_at - timedelta(seconds=10)
+    session = {
+        "user_id": user_id,
+        "email": email,
+        "session_expires_at": session_expires_at.isoformat().replace("+00:00", "Z"),
+        "cache_valid_until": cache_valid_until.isoformat().replace("+00:00", "Z"),
+    }
     for _ in range(repeats):
         context.manager.add_remote_return_value("identity-service", session)
 

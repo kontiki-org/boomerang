@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-EMAIL_RE = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
-
 
 class RequestAuthCodeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")

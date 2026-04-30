@@ -1,29 +1,73 @@
 from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event, rpc, rpc_error
+from kontiki.registry import degraded_on
 from kontiki.web import http
 
-from boomerang.core.auth import AuthError, requires_identity_auth
+from boomerang.core.authentication import (
+    AuthSessionDelegate,
+    requires_identity_auth,
+    requires_identity_auth_rpc,
+)
 from boomerang.core.contracts.notification import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,
 )
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
+from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
-from boomerang.services.email_notifier.exceptions import NotFoundError, ValidationError
-from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
+from boomerang.core.contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
 
 
 class EmailNotifierService:
-    name = "email-notifier-service"
+    name = EMAIL_NOTIFIER_SERVICE_NAME
     delegate = EmailNotifierDelegate()
     messenger = Messenger()
+    auth_delegate = AuthSessionDelegate(messenger)
     http_error_handlers = {
-        ValidationError: (422, "Invalid request payload."),
-        HTTPUnprocessableEntity: (422, "Invalid request payload."),
-        AuthError: (401, "Authentication required or invalid."),
-        NotFoundError: (404, "Resource not found."),
+        ValidationError: (422, ValidationError.message),
+        HTTPUnprocessableEntity: (422, ValidationError.message),
+        AuthError: (401, AuthError.message),
+        NotFoundError: (404, NotFoundError.message),
     }
 
+    # --------------------------------------------------------------------------
+    # RPC endpoints
+    # --------------------------------------------------------------------------
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def create_email_endpoint(self, body, user_id, email, _headers):
+        _ = (email, _headers)
+        return await self.delegate.create_email_endpoint(user_id, body)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def list_email_endpoints(self, user_id, email, _headers):
+        _ = (email, _headers)
+        return await self.delegate.list_email_endpoints(user_id)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def get_email_endpoint(self, endpoint_key, user_id, email, _headers):
+        _ = (email, _headers)
+        try:
+            return await self.delegate.get_email_endpoint(user_id, endpoint_key)
+        except NotFoundError as exc:
+            return rpc_error(exc.code, exc.message)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def delete_email_endpoint(self, endpoint_key, user_id, email, _headers):
+        _ = (email, _headers)
+        try:
+            return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
+        except NotFoundError as exc:
+            return rpc_error(exc.code, exc.message)
+
+    # --------------------------------------------------------------------------
+    # HTTP endpoints
+    # --------------------------------------------------------------------------
     @http(
         "/email/endpoints",
         "POST",
@@ -33,7 +77,7 @@ class EmailNotifierService:
         errors=[ValidationError, AuthError],
     )
     @requires_identity_auth
-    async def create_email_endpoint(self, request, body, user_id, email):
+    async def create_email_endpoint_http(self, request, body, user_id, email):
         _ = (request, email)
         return await self.delegate.create_email_endpoint(user_id, body)
 
@@ -44,7 +88,7 @@ class EmailNotifierService:
         errors=[AuthError],
     )
     @requires_identity_auth
-    async def list_email_endpoints(self, request, user_id, email):
+    async def list_email_endpoints_http(self, request, user_id, email):
         _ = (request, email)
         return await self.delegate.list_email_endpoints(user_id)
 
@@ -55,7 +99,7 @@ class EmailNotifierService:
         errors=[AuthError, ValidationError, NotFoundError],
     )
     @requires_identity_auth
-    async def get_email_endpoint(self, request, endpoint_key, user_id, email):
+    async def get_email_endpoint_http(self, request, endpoint_key, user_id, email):
         _ = (request, email)
         return await self.delegate.get_email_endpoint(user_id, endpoint_key)
 
@@ -66,9 +110,13 @@ class EmailNotifierService:
         errors=[AuthError, ValidationError, NotFoundError],
     )
     @requires_identity_auth
-    async def delete_email_endpoint(self, request, endpoint_key, user_id, email):
+    async def delete_email_endpoint_http(self, request, endpoint_key, user_id, email):
         _ = (request, email)
         return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
+
+    # --------------------------------------------------------------------------
+    # Internal system endpoints
+    # --------------------------------------------------------------------------
 
     @rpc
     async def ensure_auth_email_endpoint(
@@ -85,7 +133,7 @@ class EmailNotifierService:
             or not normalized_endpoint_key
             or not normalized_address
         ):
-            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+            raise ValidationError()
         return await self.delegate.ensure_auth_email_endpoint(
             user_id=normalized_user_id,
             endpoint_key=normalized_endpoint_key,
@@ -123,3 +171,7 @@ class EmailNotifierService:
                 message=request.message,
             ),
         )
+
+    @degraded_on
+    def is_degraded(self):
+        return self.delegate.is_degraded_due_to_smtp_failures()

@@ -1,10 +1,10 @@
-@alerts
-Feature: List allowed alerts from configuration
+@alerts_rpc
+Feature: Get allowed alerts via RPC
   In order to create subscriptions consistently
-  As a Boomerang subscription user
-  I want to list only alerts allowed by service configuration
+  As another Boomerang service
+  I want to get only alerts allowed by service configuration through RPC
 
-  Scenario: List configured alerts
+  Scenario: Get configured alerts via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -43,11 +43,12 @@ Feature: List allowed alerts from configuration
             - category: transport
               event_type: road
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
+    When I call the RPC get_alerts on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-alerts response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": [
@@ -58,7 +59,7 @@ Feature: List allowed alerts from configuration
       }
       """
 
-  Scenario: Return empty list when no alert is configured
+  Scenario: Return empty list when no alert is configured via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -91,18 +92,19 @@ Feature: List allowed alerts from configuration
         alerts:
           allowed: []
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
+    When I call the RPC get_alerts on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-alerts response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": []
       }
       """
 
-  Scenario: Normalize configured alerts and ignore invalid entries
+  Scenario: Normalize configured alerts and ignore invalid entries via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -146,11 +148,12 @@ Feature: List allowed alerts from configuration
             - category: "transport"
               event_type: "road"
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/alerts with the following request
+    When I call the RPC get_alerts on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-alerts response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": [

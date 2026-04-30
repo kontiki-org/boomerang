@@ -6,10 +6,10 @@ from email.message import EmailMessage
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.email_notifier.database import Database
-from boomerang.services.email_notifier.exceptions import NotFoundError, ValidationError
-from boomerang.services.email_notifier.http_models import CreateEmailEndpointRequest
 
 
 class EmailNotifierDelegate(ServiceDelegate):
@@ -32,12 +32,16 @@ class EmailNotifierDelegate(ServiceDelegate):
         self._from_address = get_parameter(
             config, "app.email.from.address", "no-reply@example.org"
         )
+        self._degraded_after_failures = int(
+            get_parameter(config, "app.email.degraded_after_failures", 3)
+        )
+        self._consecutive_smtp_failures = 0
 
     async def create_email_endpoint(
         self, user_id: str, model: CreateEmailEndpointRequest
     ) -> dict:
         if not isinstance(model, CreateEmailEndpointRequest):
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
 
         record = self._database.upsert_email_endpoint(
             user_id=user_id,
@@ -102,10 +106,10 @@ class EmailNotifierDelegate(ServiceDelegate):
     async def get_email_endpoint(self, user_id: str, endpoint_key: str) -> dict:
         key = (endpoint_key or "").strip()
         if not key:
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
         endpoint = self._database.get_email_endpoint(user_id, key)
         if endpoint is None:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {
             "endpoint": {
                 "user_id": endpoint["user_id"],
@@ -117,10 +121,10 @@ class EmailNotifierDelegate(ServiceDelegate):
     async def delete_email_endpoint(self, user_id: str, endpoint_key: str) -> dict:
         key = (endpoint_key or "").strip()
         if not key:
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
         deleted = self._database.delete_email_endpoint(user_id, key)
         if not deleted:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {}
 
     async def send_notification_email(self, request: NotificationRequest) -> None:
@@ -129,27 +133,36 @@ class EmailNotifierDelegate(ServiceDelegate):
         body = request.message.body.strip()
         from_address = (self._from_address or "").strip()
 
-        await asyncio.to_thread(
-            self._send_via_smtp,
-            from_address=from_address,
-            to_address=destination_value,
-            subject=subject,
-            body=body,
-        )
+        try:
+            await asyncio.to_thread(
+                self._send_via_smtp,
+                from_address=from_address,
+                to_address=destination_value,
+                subject=subject,
+                body=body,
+            )
+        except Exception:
+            self._consecutive_smtp_failures += 1
+            raise
+        self._consecutive_smtp_failures = 0
+
+    def is_degraded_due_to_smtp_failures(self) -> bool:
+        threshold = max(1, self._degraded_after_failures)
+        return self._consecutive_smtp_failures >= threshold
 
     def _resolve_destination_address(self, request: NotificationRequest) -> str:
         user_id = (request.recipient_id or "").strip()
         endpoint_key = (request.endpoint_key or "").strip()
         if not user_id or not endpoint_key:
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
 
         endpoint = self._database.get_email_endpoint(user_id, endpoint_key)
         if endpoint is None:
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
 
         address = (endpoint.get("address") or "").strip().lower()
         if not address:
-            raise ValidationError("Invalid request payload.")
+            raise ValidationError()
         return address
 
     def _send_via_smtp(

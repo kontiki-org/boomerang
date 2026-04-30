@@ -5,20 +5,17 @@ from datetime import datetime, timedelta, timezone
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import Messenger, RpcProxy, rpc, rpc_error
+from kontiki.messaging import Messenger
 
-from boomerang.core.auth import AuthError
+from boomerang.core.contracts.email_notifier.service import EmailNotifierRpcProxy
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
+from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.services.identity.database import Database
-from boomerang.services.identity.exceptions import (
-    DependencyError,
-    RateLimitError,
-    ValidationError,
-)
+from boomerang.services.identity.exceptions import DependencyError, RateLimitError
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 CODE_RE = re.compile(r"^\d{6}$")
@@ -53,6 +50,13 @@ class IdentityDelegate(ServiceDelegate):
                 600,
             )
         )
+        self._session_cache_safety_margin_seconds = int(
+            get_parameter(
+                self.container.config,
+                "app.auth.session_cache.safety_margin_seconds",
+                10,
+            )
+        )
         self._notification_event_type = get_parameter(
             self.container.config,
             "app.auth.auth_code.notification_event_type",
@@ -74,15 +78,20 @@ class IdentityDelegate(ServiceDelegate):
         self._database = Database(self._sqlite_path)
         self._database.setup()
         logging.info(
-            "IdentityDelegate configured (ttl=%ss cooldown=%ss max_requests=%s window=%ss event=%s backend=%s path=%s)",
+            "IdentityDelegate configured (ttl=%ss cooldown=%ss max_requests=%s window=%ss session_cache_margin=%ss event=%s backend=%s path=%s)",
             self._ttl_seconds,
             self._cooldown_seconds,
             self._rate_limit_max_requests,
             self._rate_limit_window_seconds,
+            self._session_cache_safety_margin_seconds,
             self._notification_event_type,
             self._storage_backend,
             self._sqlite_path,
         )
+
+    @staticmethod
+    def _parse_utc_timestamp(value: str) -> datetime:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     def _enforce_rate_limits(self, email: str, now: datetime) -> None:
         last_request = self._last_request_at.get(email)
@@ -115,7 +124,7 @@ class IdentityDelegate(ServiceDelegate):
     async def _ensure_auth_email_endpoint(
         self, messenger, user_id: str, email: str
     ) -> None:
-        rpc_client = RpcProxy(messenger, "email-notifier-service")
+        rpc_client = EmailNotifierRpcProxy(messenger)
         try:
             await rpc_client.ensure_auth_email_endpoint(
                 user_id=user_id,
@@ -197,7 +206,7 @@ class IdentityDelegate(ServiceDelegate):
             "token_type": "Bearer",
         }
 
-    @rpc
+
     async def verify_session(self, access_token: str):
         self._database.cleanup_expired()
         if not isinstance(access_token, str) or not access_token.strip():
@@ -206,5 +215,17 @@ class IdentityDelegate(ServiceDelegate):
         session = self._database.get_session(access_token.strip())
         if not isinstance(session, dict):
             raise AuthError()
+        session_expires_at = session.get("expires_at")
+        if not isinstance(session_expires_at, str):
+            raise AuthError()
+        expires_at_dt = self._parse_utc_timestamp(session_expires_at)
+        cache_valid_until = expires_at_dt - timedelta(
+            seconds=max(0, self._session_cache_safety_margin_seconds)
+        )
 
-        return {"user_id": session["user_id"], "email": session["email"]}
+        return {
+            "user_id": session["user_id"],
+            "email": session["email"],
+            "session_expires_at": session_expires_at,
+            "cache_valid_until": cache_valid_until.isoformat().replace("+00:00", "Z"),
+        }

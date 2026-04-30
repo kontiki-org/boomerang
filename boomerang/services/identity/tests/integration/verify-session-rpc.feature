@@ -93,7 +93,9 @@ Feature: Verify session via RPC
       """
       {
         "user_id": "[USER_ID]",
-        "email": "user@example.org"
+        "email": "user@example.org",
+        "session_expires_at": "[ISO8601_UTC]",
+        "cache_valid_until": "[ISO8601_UTC]"
       }
       """
 

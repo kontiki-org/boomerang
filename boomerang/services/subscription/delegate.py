@@ -2,14 +2,13 @@ import logging
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import rpc_error
 
-from boomerang.services.subscription.database import Database
-from boomerang.services.subscription.exceptions import NotFoundError
-from boomerang.services.subscription.http_models import (
+from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang.services.subscription.database import Database
 
 
 class SubscriptionDelegate(ServiceDelegate):
@@ -92,9 +91,9 @@ class SubscriptionDelegate(ServiceDelegate):
             is_default,
         )
         if not user_id or not normalized_channel or not endpoint_key:
-            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+            raise ValidationError()
         if normalized_channel not in self._configured_channels:
-            return rpc_error("VALIDATION_ERROR", "Invalid request payload.")
+            raise ValidationError()
 
         self._database.attach_channel_endpoint(
             user_id=user_id,
@@ -102,7 +101,6 @@ class SubscriptionDelegate(ServiceDelegate):
             endpoint_key=endpoint_key,
             is_default=is_default,
         )
-        return None
 
     async def create_subscription(self, body: CreateSubscriptionRequest, user_id: str):
         created, skipped, errors = self._database.create_subscriptions(user_id, body)
@@ -116,9 +114,9 @@ class SubscriptionDelegate(ServiceDelegate):
         )
         return {"created": created, "skipped": skipped, "errors": errors}
 
-    async def list_subscriptions(self, user_id: str):
-        logging.info("list_subscriptions for user_id=%s", user_id)
-        items = self._database.list_subscriptions(user_id)
+    async def get_subscriptions(self, user_id: str):
+        logging.info("get_subscriptions for user_id=%s", user_id)
+        items = self._database.get_subscriptions(user_id)
         return {"items": items}
 
     async def update_subscription(
@@ -135,16 +133,16 @@ class SubscriptionDelegate(ServiceDelegate):
             status=body.status,
         )
         if updated is None:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {"status": "ok", "item": updated}
 
     async def delete_subscription(self, subscription_id, user_id: str):
         deleted = self._database.delete_subscription(user_id, subscription_id)
         if not deleted:
-            raise NotFoundError("Resource not found.")
+            raise NotFoundError()
         return {"status": "deleted"}
 
-    async def list_channels(self):
+    async def get_channels(self):
         items = []
         for entry in self._configured_channels:
             if isinstance(entry, str):
@@ -157,7 +155,7 @@ class SubscriptionDelegate(ServiceDelegate):
 
         return {"items": items}
 
-    async def list_alerts(self):
+    async def get_alerts(self):
         items = []
         for entry in self._configured_alerts:
             if not isinstance(entry, dict):

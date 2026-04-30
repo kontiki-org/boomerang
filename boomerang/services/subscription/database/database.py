@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 
+from boomerang.core.contracts.subscription import CreateSubscriptionRequest
 from boomerang.services.subscription.database.queries import (
     CREATE_CHANNEL_ENDPOINTS_TABLE,
     CREATE_CHANNEL_ENDPOINTS_UNIQUE_KEY,
@@ -22,7 +23,6 @@ from boomerang.services.subscription.database.queries import (
     SELECT_SUBSCRIPTIONS_BY_USER,
     UPDATE_SUBSCRIPTION,
 )
-from boomerang.services.subscription.http_models import CreateSubscriptionRequest
 
 
 class Database:
@@ -116,7 +116,7 @@ class Database:
 
         return created, skipped, errors
 
-    def list_subscriptions(self, user_id: str) -> list[dict]:
+    def get_subscriptions(self, user_id: str) -> list[dict]:
         with self._connection() as connection:
             rows = connection.execute(
                 SELECT_SUBSCRIPTIONS_BY_USER, (user_id,)

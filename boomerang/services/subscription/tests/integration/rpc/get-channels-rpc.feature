@@ -1,10 +1,10 @@
-@channels
-Feature: List allowed channels from configuration
+@channels_rpc
+Feature: Get allowed channels via RPC
   In order to configure notification destinations consistently
-  As a Boomerang subscription user
-  I want to list only channels allowed by service configuration
+  As another Boomerang service
+  I want to get only channels allowed by service configuration through RPC
 
-  Scenario: List configured channels
+  Scenario: Get configured channels via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -39,11 +39,12 @@ Feature: List allowed channels from configuration
           - sms
           - slack
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_channels on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": [
@@ -54,7 +55,7 @@ Feature: List allowed channels from configuration
       }
       """
 
-  Scenario: Return empty list when no channel is configured
+  Scenario: Return empty list when no channel is configured via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -86,18 +87,19 @@ Feature: List allowed channels from configuration
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         channels: []
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_channels on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": []
       }
       """
 
-  Scenario: Normalize configured channels and ignore invalid entries
+  Scenario: Normalize configured channels and ignore invalid entries via RPC
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -135,11 +137,12 @@ Feature: List allowed channels from configuration
           - SMS
           - "slack"
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_channels on the subscription service with the following arguments
       """
       {}
       """
-    Then the list-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
         "items": [

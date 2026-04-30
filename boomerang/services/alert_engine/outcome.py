@@ -1,1 +1,0 @@
-"""Alert engine outcome skeleton."""

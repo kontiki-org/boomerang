@@ -5,6 +5,7 @@
 > **Canonical docs**:
 > - `docs/boomerang/EXISTING.md` (what exists today)
 > - `docs/boomerang/ROADMAP.md` (enhancements / roadmap)
+> - `boomerang/core/contracts/alert_normalized.py` (canonical normalized alert contract, phase 1)
 
 ## Goal
 

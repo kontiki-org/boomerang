@@ -1,3 +1,4 @@
+from boomerang.core.contracts.alert_normalized import AlertArea, NormalizedAlert
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationError,
@@ -14,4 +15,6 @@ __all__ = [
     "NotificationOutcome",
     "NotificationRequest",
     "CreateEmailEndpointRequest",
+    "AlertArea",
+    "NormalizedAlert",
 ]

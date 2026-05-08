@@ -1,8 +1,8 @@
 @channel_endpoints_rpc
 Feature: Attach channel endpoints via RPC
-  In order to register delivery endpoints for a user
+  In order to keep subscription API coherent
   As a provider service
-  I want to attach channel endpoints via a dedicated RPC
+  I want attach_channel_endpoint to be rejected (routing now lives in subscription endpoints)
 
   Background:
     Given the subscription service is running with the following configuration
@@ -39,42 +39,7 @@ Feature: Attach channel endpoints via RPC
           - sms
       """
 
-  Scenario: Attach a new endpoint for a known user and channel
-    Given I am authenticated as "user@example.org"
-    And I have resolved the subscription user id as "[USER_ID]"
-    When I call the RPC attach_channel_endpoint on the subscription service with the following arguments
-      """
-      {
-        "user_id": "[USER_ID]",
-        "channel": "email",
-        "endpoint_key": "email_personal",
-        "is_default": true
-      }
-      """
-    Then the attach_channel_endpoint RPC call succeeds
-    And the "channel_endpoints" table should contain
-      | endpoint_id | user_id   | channel | endpoint_key    | status | is_default | created_at    | updated_at    |
-      | [ANY]       | [USER_ID] | email   | email_personal  | active | 1          | [ISO8601_UTC] | [ISO8601_UTC] |
-
-  Scenario: Second attach call with same key is idempotent
-    Given the "channel_endpoints" table contains
-      | endpoint_id | user_id   | channel | endpoint_key | status | is_default | created_at          | updated_at          |
-      | ep_1        | usr_123   | sms     | sms_primary  | active | 0          | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-    When I call the RPC attach_channel_endpoint on the subscription service with the following arguments
-      """
-      {
-        "user_id": "usr_123",
-        "channel": "sms",
-        "endpoint_key": "sms_primary",
-        "is_default": false
-      }
-      """
-    Then the attach_channel_endpoint RPC call succeeds
-    And the "channel_endpoints" table should contain
-      | endpoint_id | user_id   | channel | endpoint_key | status | is_default | created_at          | updated_at          |
-      | ep_1        | usr_123   | sms     | sms_primary  | active | 0          | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-
-  Scenario: Reject attach when channel type is not allowed
+  Scenario: Reject attach endpoint operation
     Given I am authenticated as "user@example.org"
     And I have resolved the subscription user id as "[USER_ID]"
     When I call the RPC attach_channel_endpoint on the subscription service with the following arguments

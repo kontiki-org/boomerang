@@ -11,11 +11,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     user_id TEXT NOT NULL,
     category TEXT NOT NULL,
     event_type TEXT NOT NULL,
-    area_type TEXT NOT NULL,
-    area_value TEXT NOT NULL,
-    min_severity TEXT NOT NULL DEFAULT 'moderate',
-    delivery_json TEXT NOT NULL,
-    policy_json TEXT NOT NULL,
+    criteria_json TEXT NOT NULL,
+    endpoints_json TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'active',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -29,12 +26,12 @@ ON subscriptions(user_id);
 
 CREATE_SUBSCRIPTIONS_LOOKUP_INDEX = """
 CREATE INDEX IF NOT EXISTS idx_subscriptions_lookup
-ON subscriptions(category, area_type, area_value, status);
+ON subscriptions(category, event_type, status);
 """
 
 CREATE_SUBSCRIPTIONS_IDENTITY_INDEX = """
 CREATE UNIQUE INDEX IF NOT EXISTS uq_subscriptions_identity
-ON subscriptions(user_id, category, event_type, area_type, area_value, min_severity);
+ON subscriptions(user_id, category, event_type, criteria_json, endpoints_json);
 """
 
 INSERT_OR_IGNORE_SUBSCRIPTION = """
@@ -43,15 +40,12 @@ INSERT OR IGNORE INTO subscriptions (
     user_id,
     category,
     event_type,
-    area_type,
-    area_value,
-    min_severity,
-    delivery_json,
-    policy_json,
+    criteria_json,
+    endpoints_json,
     status,
     created_at,
     updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?);
 """
 
 SELECT_SUBSCRIPTIONS_BY_USER = """
@@ -60,11 +54,8 @@ SELECT
     user_id,
     category,
     event_type,
-    area_type,
-    area_value,
-    min_severity,
-    delivery_json,
-    policy_json,
+    criteria_json,
+    endpoints_json,
     status,
     created_at,
     updated_at
@@ -79,11 +70,8 @@ SELECT
     user_id,
     category,
     event_type,
-    area_type,
-    area_value,
-    min_severity,
-    delivery_json,
-    policy_json,
+    criteria_json,
+    endpoints_json,
     status,
     created_at,
     updated_at
@@ -95,8 +83,10 @@ LIMIT 1;
 UPDATE_SUBSCRIPTION = """
 UPDATE subscriptions
 SET
-    min_severity = ?,
-    policy_json = ?,
+    category = ?,
+    event_type = ?,
+    criteria_json = ?,
+    endpoints_json = ?,
     status = ?,
     updated_at = ?
 WHERE subscription_id = ? AND user_id = ?;
@@ -107,71 +97,14 @@ DELETE FROM subscriptions
 WHERE subscription_id = ? AND user_id = ?;
 """
 
-CREATE_CHANNEL_ENDPOINTS_TABLE = """
-CREATE TABLE IF NOT EXISTS channel_endpoints (
-    endpoint_id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    channel TEXT NOT NULL,
-    endpoint_key TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active',
-    is_default INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-"""
-
-CREATE_CHANNEL_ENDPOINTS_USER_INDEX = """
-CREATE INDEX IF NOT EXISTS idx_channel_endpoints_user
-ON channel_endpoints(user_id);
-"""
-
-CREATE_CHANNEL_ENDPOINTS_UNIQUE_KEY = """
-CREATE UNIQUE INDEX IF NOT EXISTS uq_channel_endpoints_user_channel_key
-ON channel_endpoints(user_id, channel, endpoint_key);
-"""
-
-INSERT_OR_IGNORE_CHANNEL_ENDPOINT = """
-INSERT OR IGNORE INTO channel_endpoints (
-    endpoint_id,
-    user_id,
-    channel,
-    endpoint_key,
-    status,
-    is_default,
-    created_at,
-    updated_at
-) VALUES (?, ?, ?, ?, 'active', ?, ?, ?);
-"""
-
-SELECT_CHANNEL_ENDPOINT_BY_KEY = """
-SELECT
-    endpoint_id,
-    user_id,
-    channel,
-    endpoint_key,
-    status,
-    is_default,
-    created_at,
-    updated_at
-FROM channel_endpoints
-WHERE user_id = ? AND channel = ? AND endpoint_key = ?
-LIMIT 1;
-"""
-
 SELECT_RECIPIENT_CANDIDATES_FOR_ALERT = """
 SELECT
     s.user_id,
-    s.min_severity,
-    s.delivery_json,
-    ce.channel,
-    ce.endpoint_key
+    s.criteria_json,
+    s.endpoints_json
 FROM subscriptions AS s
-JOIN channel_endpoints AS ce
-    ON ce.user_id = s.user_id
 WHERE s.status = 'active'
-  AND ce.status = 'active'
   AND s.category = ?
   AND (s.event_type = ? OR s.event_type = '*')
-  AND s.area_type = ?
-  AND s.area_value = ?;
+;
 """

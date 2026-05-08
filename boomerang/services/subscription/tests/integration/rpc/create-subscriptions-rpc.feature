@@ -36,29 +36,26 @@ Feature: Create subscriptions via RPC
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
       """
 
-  Scenario: Persist created subscriptions through authenticated RPC
+  Scenario: Persist created subscription with rule and endpoints through authenticated RPC
     Given I am authenticated as "user@example.org"
     When I call the RPC create_subscription on the subscription service with the following arguments
       """
       {
         "body": {
-          "selectors": {
-            "categories": ["weather.vigilance"],
-            "event_types": ["thunderstorm"],
-            "areas": [{"type": "zone_code", "value": "FR-69"}],
-            "min_severity": "moderate"
-          },
-          "delivery": {
-            "channels": ["email"],
-            "fallback_to_default_channels": true
-          },
-          "policy": {
-            "quiet_hours": {
-              "enabled": true,
-              "start": "22:00",
-              "end": "07:00",
-              "timezone": "Europe/Paris"
-            }
+          "subscription": {
+            "rule": {
+              "category": "weather.vigilance",
+              "event_type": "thunderstorm",
+              "criteria": {
+                "all_of": [
+                  {"key": "area.zone", "operator": "eq", "value": "FR-69"}
+                ]
+              }
+            },
+            "endpoints": [
+              {"kind": "email", "endpoint_key": "email_primary"},
+              {"kind": "sms", "endpoint_key": "phone_work"}
+            ]
           }
         },
         "headers": {
@@ -74,21 +71,20 @@ Feature: Create subscriptions via RPC
           {
             "subscription_id": "[SUB_ID]",
             "user_id": "[USER_ID]",
-            "category": "weather.vigilance",
-            "event_type": "thunderstorm",
-            "area": {"type": "zone_code", "value": "FR-69"},
-            "min_severity": "moderate",
-            "delivery": {
-              "channels": ["email"],
-              "fallback_to_default_channels": true
-            },
-            "policy": {
-              "quiet_hours": {
-                "enabled": true,
-                "start": "22:00",
-                "end": "07:00",
-                "timezone": "Europe/Paris"
-              }
+            "subscription": {
+              "rule": {
+                "category": "weather.vigilance",
+                "event_type": "thunderstorm",
+                "criteria": {
+                  "all_of": [
+                    {"key": "area.zone", "operator": "eq", "value": "FR-69"}
+                  ]
+                }
+              },
+              "endpoints": [
+                {"kind": "email", "endpoint_key": "email_primary"},
+                {"kind": "sms", "endpoint_key": "phone_work"}
+              ]
             },
             "status": "active",
             "created_at": "[ISO8601_UTC]",
@@ -100,5 +96,6 @@ Feature: Create subscriptions via RPC
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                                              | status | created_at    | updated_at    |
-      | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"22:00","end":"07:00","timezone":"Europe/Paris"}} | active | [ISO8601_UTC] | [ISO8601_UTC] |
+      | subscription_id | user_id   | category          | event_type   | criteria_json                                                          | endpoints_json                                                                      | status | created_at    | updated_at    |
+      | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | {"all_of":[{"key":"area.zone","operator":"eq","value":"FR-69"}]} | [{"kind":"email","endpoint_key":"email_primary"},{"kind":"sms","endpoint_key":"phone_work"}] | active | [ISO8601_UTC] | [ISO8601_UTC] |
+

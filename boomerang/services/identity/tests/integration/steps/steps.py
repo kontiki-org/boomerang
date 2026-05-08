@@ -1,4 +1,5 @@
 import json
+import re
 import sqlite3
 import time
 from pathlib import Path
@@ -34,10 +35,16 @@ def _normalize_actual_for_placeholders(expected, actual):
     if isinstance(expected, str) and isinstance(actual, str):
         if expected.startswith("[") and expected.endswith("]"):
             return expected
-        if "[CODE]" in expected and actual:
-            return "[CODE]"
-        if "[ISO8601_UTC]" in expected and actual:
-            return "[ISO8601_UTC]"
+        normalized_actual = actual
+        if "[CODE]" in expected:
+            normalized_actual = re.sub(r"\b\d{6}\b", "[CODE]", normalized_actual)
+        if "[ISO8601_UTC]" in expected:
+            normalized_actual = re.sub(
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z",
+                "[ISO8601_UTC]",
+                normalized_actual,
+            )
+        return normalized_actual
     return actual
 
 

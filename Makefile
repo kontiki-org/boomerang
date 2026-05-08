@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down platform-up platform-down kontiki-tui textual-ui textual-ui-dev
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -58,8 +58,14 @@ down-dev-platform:
 # -----------------------------------------------------------------------------
 # Local stack (RabbitMQ + optional Mailhog)
 # -----------------------------------------------------------------------------
+stack-build:
+	docker compose -f $(STACK_COMPOSE_FILE) build
+
+stack-rebuild:
+	docker compose -f $(STACK_COMPOSE_FILE) build --no-cache
+
 stack-up:
-	docker compose -f $(STACK_COMPOSE_FILE) up -d --wait --wait-timeout 180
+	docker compose -f $(STACK_COMPOSE_FILE) up -d --build --wait --wait-timeout 180
 
 stack-down:
 	docker compose -f $(STACK_COMPOSE_FILE) down
@@ -80,11 +86,11 @@ kontiki-tui:
 	pipx run kontiki-tui
 
 textual-ui:
-	python -m pip install -e ./apps/textual
-	python -m boomerang_textual.app
+	$(PY) -m pip install -e ./apps/textual
+	$(PY) -m boomerang_textual.app
 
 textual-ui-dev:
-	python -m boomerang_textual.app
+	$(PY) -m boomerang_textual.app
 
 cov:
 	$(PY) -m pytest --cov=. --cov-report=term-missing

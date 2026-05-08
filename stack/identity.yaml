@@ -3,6 +3,11 @@ kontiki:
     address: "0.0.0.0"
     port: 8001
 
+logging:
+  handlers:
+    file:
+      filename: /data/identity_service.log
+
 app:
   storage:
     backend: sqlite
@@ -13,4 +18,3 @@ app:
       ttl_seconds: 600
       cooldown_seconds: 5
       notification_event_type: email.alerting.notification.requested
-

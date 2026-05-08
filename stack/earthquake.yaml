@@ -1,3 +1,8 @@
+logging:
+  handlers:
+    file:
+      filename: /data/earthquake_feed_service.log
+
 app:
   earthquake:
     # Default uses real USGS feed. For fully offline/local testing, point this to a mock.

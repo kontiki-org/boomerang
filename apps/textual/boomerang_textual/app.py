@@ -1,8 +1,12 @@
+import os
+
+from kontiki.messaging import Messenger
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer, Header, Static, TabbedContent, TabPane
 
+from boomerang.core.contracts.identity.service import IdentityRpcProxy
 from boomerang_textual.screens.auth import AuthScreen
 from boomerang_textual.screens.endpoints import EndpointsScreen
 from boomerang_textual.screens.subscriptions import SubscriptionsScreen
@@ -27,6 +31,8 @@ class BoomerangTextualApp(App[None]):
         Binding("q", "quit", "Quit", priority=True),
     ]
     session = SessionState()
+    messenger: Messenger | None = None
+    identity_rpc: IdentityRpcProxy | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -44,7 +50,7 @@ class BoomerangTextualApp(App[None]):
         content = self.query_one("#content", Container)
         content.remove_children()
         content.mount(self._build_home_view())
-        self._show_prompt(f"Signed in as {event.email} (mock mode).", "success")
+        self._show_prompt(f"Signed in as {event.email}.", "success")
 
     def on_endpoints_screen_status_message(self, event: EndpointsScreen.StatusMessage) -> None:
         self._show_prompt(event.text, event.level)
@@ -70,8 +76,19 @@ class BoomerangTextualApp(App[None]):
         prompt_area.mount(prompt)
         self.set_timer(timeout, prompt.remove)
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
+        amqp_url = os.getenv("BOOMERANG_AMQP_URL", "amqp://guest:guest@localhost/")
+        self.messenger = Messenger(amqp_url=amqp_url, standalone=True)
+        await self.messenger.setup()
+        await self.messenger.start()
+        self.identity_rpc = IdentityRpcProxy(self.messenger)
         self._show_prompt("Please sign in.", "info", timeout=6.0)
+
+    async def on_unmount(self) -> None:
+        if self.identity_messenger is not None:
+            await self.messenger.stop()
+            self.identity_messenger = None
+            self.identity_rpc = None
 
     def _build_home_view(self) -> Container:
         return HomeView(id="home-view")
@@ -82,4 +99,3 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
-

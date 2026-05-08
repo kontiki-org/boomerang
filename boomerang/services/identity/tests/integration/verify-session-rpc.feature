@@ -57,7 +57,7 @@ Feature: Verify session via RPC
         "endpoint_key": "email_primary",
         "message": {
           "title": "Boomerang sign in",
-          "body": "Use this verification code to sign in.",
+          "body": "Use this verification code to sign in: [CODE].",
           "context": {
             "kind": "auth.code",
             "data": {

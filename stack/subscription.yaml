@@ -3,6 +3,11 @@ kontiki:
     address: "0.0.0.0"
     port: 8002
 
+logging:
+  handlers:
+    file:
+      filename: /data/subscription_service.log
+
 app:
   storage:
     backend: sqlite
@@ -18,4 +23,3 @@ app:
     allowed:
       - category: natural.earthquake
         event_type: earthquake
-

@@ -154,7 +154,7 @@ class IdentityDelegate(ServiceDelegate):
             endpoint_key="email_primary",
             message=NotificationMessage(
                 title="Boomerang sign in",
-                body="Use this verification code to sign in.",
+                body=f"Use this verification code to sign in: {auth_code}.",
                 context=NotificationContext(
                     kind="auth.code",
                     data={

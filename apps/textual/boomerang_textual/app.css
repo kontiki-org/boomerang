@@ -7,41 +7,58 @@ Screen {
     padding: 1 2;
 }
 
+AuthScreen {
+    layout: vertical;
+    width: 1fr;
+    height: 1fr;
+}
+
+#auth-shell {
+    width: 1fr;
+    height: 1fr;
+    align: center middle;
+}
+
 #auth-root {
     width: 70;
     max-width: 100%;
     height: auto;
-    margin: 1 0;
+    border: round darkgrey;
+    padding: 1;
 }
 
-#auth-title {
-    text-style: bold;
-    margin-bottom: 1;
-}
-
-#auth-step-help {
-    margin-bottom: 1;
-    color: $text-muted;
-}
-
-#email-step,
-#code-step {
-    layout: vertical;
-    height: auto;
-    margin-bottom: 1;
-}
 
 #code-step-actions {
     height: auto;
+    margin-top: 1;
 }
 
 #code-step-actions > Button {
+    width: 1fr;
     margin-right: 1;
 }
 
 #email-input,
 #code-input {
     margin-bottom: 1;
+}
+
+#send-code-btn {
+    width: 1fr;
+    margin-top: 0;
+}
+
+#email-step,
+#code-step {
+    height: auto;
+}
+
+#code-step {
+    margin-top: 1;
+}
+
+#code-step-actions > Button:last-child {
+    margin-right: 0;
 }
 
 #home-view {
@@ -60,7 +77,7 @@ Screen {
 
 #endpoints-layout {
     height: 1fr;
-    layout: vertical;
+    layout: horizontal;
 }
 
 #endpoints-list-pane,
@@ -69,11 +86,15 @@ Screen {
 }
 
 #endpoints-form-pane {
-    height: auto;
+    width: 3fr;
+    height: 1fr;
 }
 
 #endpoints-list-pane {
+    width: 2fr;
     height: 1fr;
+    min-width: 45;
+    min-height: 12;
 }
 
 .section-title {
@@ -117,7 +138,7 @@ Screen {
 
 #subscriptions-layout {
     height: 1fr;
-    layout: vertical;
+    layout: horizontal;
 }
 
 #subscriptions-form-pane,
@@ -126,11 +147,15 @@ Screen {
 }
 
 #subscriptions-form-pane {
-    height: auto;
+    width: 3fr;
+    height: 1fr;
 }
 
 #subscriptions-list-pane {
+    width: 2fr;
     height: 1fr;
+    min-width: 45;
+    min-height: 12;
 }
 
 #subscriptions-form-line-1,
@@ -159,6 +184,28 @@ Screen {
     height: 1fr;
 }
 
+#subscriptions-selected-endpoints-pane {
+    margin-bottom: 1;
+}
+
+#subscription-selected-endpoints {
+    border: round darkgrey;
+    height: 6;
+}
+
+#subscriptions-endpoint-actions {
+    height: auto;
+}
+
+#subscriptions-endpoint-actions > Button {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#subscriptions-endpoint-actions > Button:last-child {
+    margin-right: 0;
+}
+
 #subscriptions-mapping-help {
     margin-bottom: 1;
     color: $text-muted;
@@ -171,6 +218,10 @@ Screen {
 
 #subscriptions-form-actions > Button:last-child {
     margin-right: 0;
+}
+
+#subscriptions-form-actions {
+    margin-top: 0;
 }
 
 #prompt-area {

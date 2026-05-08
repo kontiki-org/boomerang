@@ -14,17 +14,17 @@ class EndpointsScreen(Static):
             self.text = text
             self.level = level
 
-    class EndpointKeysChanged(Message):
-        def __init__(self, endpoint_keys: list[str]) -> None:
+    class EndpointCatalogChanged(Message):
+        def __init__(self, endpoints: list[dict[str, str]]) -> None:
             super().__init__()
-            self.endpoint_keys = endpoint_keys
+            self.endpoints = endpoints
 
     def __init__(self) -> None:
         super().__init__()
         self._endpoints: list[dict[str, str]] = []
 
     def compose(self):
-        with Vertical(id="endpoints-layout"):
+        with Horizontal(id="endpoints-layout"):
             with Vertical(id="endpoints-form-pane"):
                 yield Static("Create or update endpoint", classes="section-title")
                 yield Label("Endpoint type", classes="field-label")
@@ -34,7 +34,10 @@ class EndpointsScreen(Static):
                     id="endpoint-kind",
                 )
                 yield Label("Endpoint key", classes="field-label")
-                yield Input(placeholder="endpoint key (example: primary)", id="endpoint-key")
+                yield Input(
+                    placeholder="endpoint key (example: primary)",
+                    id="endpoint-key",
+                )
                 yield Label("Destination", classes="field-label")
                 yield Input(
                     placeholder="email address (example: user@example.org)",
@@ -44,13 +47,14 @@ class EndpointsScreen(Static):
                     yield Button("Save endpoint", id="save-endpoint-btn", variant="primary")
                     yield Button("Delete selected", id="delete-endpoint-btn", variant="error")
             with Vertical(id="endpoints-list-pane"):
+                yield Static("Registered endpoints", classes="section-title")
                 table = DataTable(id="endpoints-list", cursor_type="row")
                 table.add_columns("Type", "Endpoint key", "Destination")
                 yield table
 
     def on_mount(self) -> None:
         self._refresh_list()
-        self._publish_endpoint_keys()
+        self._publish_endpoint_catalog()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "save-endpoint-btn":
@@ -75,7 +79,7 @@ class EndpointsScreen(Static):
         kind_select = self.query_one("#endpoint-kind", Select)
         key_input = self.query_one("#endpoint-key", Input)
         address_input = self.query_one("#endpoint-address", Input)
-        endpoint_kind = kind_select.value or "email"
+        endpoint_kind = str(kind_select.value or "email")
         endpoint_key = (key_input.value or "").strip()
         address = (address_input.value or "").strip().lower()
 
@@ -114,7 +118,7 @@ class EndpointsScreen(Static):
         key_input.value = ""
         address_input.value = ""
         self._refresh_list()
-        self._publish_endpoint_keys()
+        self._publish_endpoint_catalog()
         self.post_message(self.StatusMessage(message, "success"))
 
     def _handle_delete_selected(self) -> None:
@@ -128,7 +132,7 @@ class EndpointsScreen(Static):
 
         deleted = self._endpoints.pop(endpoints_list.cursor_row)
         self._refresh_list()
-        self._publish_endpoint_keys()
+        self._publish_endpoint_catalog()
         self.post_message(
             self.StatusMessage(
                 f"Endpoint '{deleted['endpoint_key']}' deleted.",
@@ -145,13 +149,17 @@ class EndpointsScreen(Static):
         for item in self._endpoints:
             endpoints_list.add_row(item["kind"], item["endpoint_key"], item["address"])
 
-    def _publish_endpoint_keys(self) -> None:
-        keys = sorted(
-            {
-                item["endpoint_key"]
+    def _publish_endpoint_catalog(self) -> None:
+        endpoints = sorted(
+            [
+                {
+                    "kind": item["kind"],
+                    "endpoint_key": item["endpoint_key"],
+                    "address": item["address"],
+                }
                 for item in self._endpoints
-                if item.get("kind") == "email"
-            }
+            ],
+            key=lambda item: (item["kind"], item["endpoint_key"]),
         )
-        self.post_message(self.EndpointKeysChanged(keys))
+        self.post_message(self.EndpointCatalogChanged(endpoints))
 

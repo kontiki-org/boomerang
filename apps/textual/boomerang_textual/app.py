@@ -24,7 +24,7 @@ class BoomerangTextualApp(App[None]):
     TITLE = "Boomerang Textual"
     SUB_TITLE = "Auth, endpoints, subscriptions"
     BINDINGS = [
-        Binding("q", "quit", "Quit"),
+        Binding("q", "quit", "Quit", priority=True),
     ]
     session = SessionState()
 
@@ -46,10 +46,17 @@ class BoomerangTextualApp(App[None]):
         content.mount(self._build_home_view())
         self._show_prompt(f"Signed in as {event.email} (mock mode).", "success")
 
-    def on_endpoints_screen_status_message(
-        self, event: EndpointsScreen.StatusMessage
-    ) -> None:
+    def on_endpoints_screen_status_message(self, event: EndpointsScreen.StatusMessage) -> None:
         self._show_prompt(event.text, event.level)
+
+    def on_endpoints_screen_endpoint_catalog_changed(
+        self, event: EndpointsScreen.EndpointCatalogChanged
+    ) -> None:
+        try:
+            subscriptions = self.query_one(SubscriptionsScreen)
+        except Exception:
+            return
+        subscriptions.set_available_endpoints(event.endpoints)
 
     def on_subscriptions_screen_status_message(
         self, event: SubscriptionsScreen.StatusMessage

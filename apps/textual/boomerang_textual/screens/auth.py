@@ -27,33 +27,26 @@ class AuthScreen(Static):
         self._email_for_code: str | None = None
 
     def compose(self):
-        with Vertical(id="auth-root"):
-            yield Static("Sign in to Boomerang", id="auth-title")
-            yield Static(
-                "Step 1: enter your email to request a login code.",
-                id="auth-step-help",
-            )
-            with Container(id="email-step"):
-                yield Label("Email", classes="field-label")
-                yield Input(
-                    placeholder="user@example.org",
-                    id="email-input",
-                )
-                yield Button("Send code", id="send-code-btn", variant="primary")
-            with Container(id="code-step"):
-                yield Static("Step 2: enter the 6-digit code.", id="code-step-help")
-                yield Label("Verification code", classes="field-label")
-                yield Input(
-                    placeholder="123456",
-                    id="code-input",
-                )
-                with Horizontal(id="code-step-actions"):
-                    yield Button("Sign in", id="sign-in-btn", variant="success")
-                    yield Button("Change email", id="change-email-btn")
+        with Container(id="auth-shell"):
+            with Vertical(id="auth-root"):
+                with Container(id="email-step"):
+                    yield Input(
+                        placeholder="user@example.org",
+                        id="email-input",
+                    )
+                    yield Button("Send code", id="send-code-btn", variant="primary")
+                with Container(id="code-step"):
+                    yield Input(
+                        placeholder="Enter the 6-digit code.",
+                        id="code-input",
+                    )
+                    with Horizontal(id="code-step-actions"):
+                        yield Button("Sign in", id="sign-in-btn", variant="success")
+                        yield Button("Change email", id="change-email-btn")
 
     def on_mount(self) -> None:
-        code_step = self.query_one("#code-step", Container)
-        code_step.display = False
+        self.query_one("#auth-root", Vertical).border_title = "Sign in to Boomerang"
+        self._set_code_step_enabled(False)
         self.query_one("#email-input", Input).focus()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -85,7 +78,7 @@ class AuthScreen(Static):
             return
 
         self._email_for_code = raw_email
-        self.query_one("#code-step", Container).display = True
+        self._set_code_step_enabled(True)
         self.post_message(
             self.StatusMessage(
                 "Verification code requested (mock mode). Check your inbox.",
@@ -113,8 +106,12 @@ class AuthScreen(Static):
 
     def _handle_change_email(self) -> None:
         self._email_for_code = None
-        self.query_one("#code-step", Container).display = False
+        self._set_code_step_enabled(False)
         self.query_one("#code-input", Input).value = ""
         self.query_one("#email-input", Input).focus()
         self.post_message(self.StatusMessage("Email reset.", "info"))
 
+    def _set_code_step_enabled(self, enabled: bool) -> None:
+        self.query_one("#code-input", Input).disabled = not enabled
+        self.query_one("#sign-in-btn", Button).disabled = not enabled
+        self.query_one("#change-email-btn", Button).disabled = not enabled

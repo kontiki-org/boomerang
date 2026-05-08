@@ -181,12 +181,30 @@ class Database:
 
     def get_recipients_for_alert(
         self,
-        area_type: str,
-        area_value: str,
-        severity: str,
-        category: str,
-        event_type: str,
+        alert: dict | None = None,
+        area_type: str | None = None,
+        area_value: str | None = None,
+        severity: str | None = None,
+        category: str | None = None,
+        event_type: str | None = None,
     ) -> list[dict]:
+        if alert is None:
+            alert = {
+                "area_type": area_type,
+                "area_value": area_value,
+                "severity": severity,
+                "category": category,
+                "event_type": event_type,
+                "areas": (
+                    [{"type": area_type, "value": area_value}]
+                    if area_type and area_value
+                    else []
+                ),
+            }
+        category = str(alert.get("category", "")).strip().lower()
+        event_type = str(alert.get("event_type", "")).strip().lower()
+        if not category or not event_type:
+            return []
         with self._connection() as connection:
             rows = connection.execute(
                 SELECT_RECIPIENT_CANDIDATES_FOR_ALERT,
@@ -194,14 +212,35 @@ class Database:
             ).fetchall()
 
         targets: list[dict] = []
-        facts = {
-            "category": category,
-            "event_type": event_type,
-            "severity": severity,
-            "area_type": area_type,
-            "area_value": area_value,
-            f"area.{area_type}": area_value,
+        areas = alert.get("areas", [])
+        first_area = areas[0] if isinstance(areas, list) and areas else {}
+        area_type = str(first_area.get("type", "")).strip().lower()
+        area_value = str(first_area.get("value", "")).strip()
+        severity = str(alert.get("severity", "")).strip().lower()
+        attributes = alert.get("attributes", {})
+        attributes = attributes if isinstance(attributes, dict) else {}
+        facts: dict[str, list[str]] = {
+            "category": [category] if category else [],
+            "event_type": [event_type] if event_type else [],
+            "severity": [severity] if severity else [],
+            "area_type": [area_type] if area_type else [],
+            "area_value": [area_value] if area_value else [],
         }
+        for area in areas if isinstance(areas, list) else []:
+            if not isinstance(area, dict):
+                continue
+            item_type = str(area.get("type", "")).strip().lower()
+            item_value = str(area.get("value", "")).strip()
+            if not item_type or not item_value:
+                continue
+            facts.setdefault(f"area.{item_type}", []).append(item_value)
+        for key, value in attributes.items():
+            if not isinstance(key, str):
+                continue
+            normalized_key = key.strip().lower()
+            if not normalized_key:
+                continue
+            facts.setdefault(normalized_key, []).append(str(value))
         for row in rows:
             criteria = json.loads(row["criteria_json"])
             if not self._criteria_matches(criteria, facts):
@@ -249,7 +288,7 @@ class Database:
         return f"sub_{digest[:20]}"
 
     @staticmethod
-    def _criteria_matches(criteria: dict, facts: dict[str, str]) -> bool:
+    def _criteria_matches(criteria: dict, facts: dict[str, list[str]]) -> bool:
         all_of = criteria.get("all_of", [])
         if not isinstance(all_of, list):
             return False
@@ -261,10 +300,13 @@ class Database:
             expected = item.get("value")
             if not key or operator not in {"eq", "gte", "lte", "contains"}:
                 return False
-            actual = facts.get(key)
-            if actual is None:
+            candidates = facts.get(key) or []
+            if not candidates:
                 return False
-            if not Database._matches_operator(actual, expected, operator):
+            if not any(
+                Database._matches_operator(actual, expected, operator)
+                for actual in candidates
+            ):
                 return False
         return True
 

@@ -49,13 +49,14 @@ Feature: Process normalized alerts
       """
     Then the alert-engine calls subscription RPC get_recipients_for_alert with
       """
-      [
-        "region",
-        "REGION-1",
-        "severe",
-        "safety.fire",
-        "wildfire"
-      ]
+      {
+        "category": "safety.fire",
+        "event_type": "wildfire",
+        "severity": "severe",
+        "areas": [
+          {"type": "region", "value": "REGION-1"}
+        ]
+      }
       """
     When the alert-engine receives recipients from subscription RPC
       """
@@ -161,13 +162,14 @@ Feature: Process normalized alerts
       """
     Then the alert-engine calls subscription RPC get_recipients_for_alert with
       """
-      [
-        "region",
-        "REGION-2",
-        "moderate",
-        "infrastructure.outage",
-        "power_grid"
-      ]
+      {
+        "category": "infrastructure.outage",
+        "event_type": "power_grid",
+        "severity": "moderate",
+        "areas": [
+          {"type": "region", "value": "REGION-2"}
+        ]
+      }
       """
     When the alert-engine receives recipients from subscription RPC
       """

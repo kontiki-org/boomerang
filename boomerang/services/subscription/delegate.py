@@ -43,34 +43,10 @@ class SubscriptionDelegate(ServiceDelegate):
             self._sqlite_path,
         )
 
-    async def get_recipients_for_alert(
-        self,
-        area_type,
-        area_value,
-        severity,
-        category,
-        event_type,
-    ):
-        normalized_area_type = area_type.strip().lower()
-        normalized_area_value = area_value.strip()
-        normalized_severity = severity.strip().lower()
-        normalized_category = category.strip().lower()
-        normalized_event_type = event_type.strip().lower()
-        if (
-            not normalized_area_type
-            or not normalized_area_value
-            or not normalized_severity
-            or not normalized_category
-            or not normalized_event_type
-        ):
+    async def get_recipients_for_alert(self, alert: dict):
+        if not isinstance(alert, dict):
             return []
-        return self._database.get_recipients_for_alert(
-            area_type=normalized_area_type,
-            area_value=normalized_area_value,
-            severity=normalized_severity,
-            category=normalized_category,
-            event_type=normalized_event_type,
-        )
+        return self._database.get_recipients_for_alert(alert)
 
     async def attach_channel_endpoint(
         self,

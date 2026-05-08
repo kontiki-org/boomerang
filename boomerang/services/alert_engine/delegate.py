@@ -47,16 +47,7 @@ class AlertEngineDelegate:
         return out
 
     async def process_normalized_alert(self, messenger, payload):
-        # Current MVP handles a single-area alert; if multiple areas are provided,
-        # only the first one is used for recipient resolution.
-        area = payload["areas"][0]
-        rpc_args = {
-            "area_type": area["type"],
-            "area_value": area["value"],
-            "severity": payload["severity"],
-            "category": payload["category"],
-            "event_type": payload["event_type"],
-        }
+        rpc_args = {"alert": payload}
 
         rpc_client = SubscriptionRpcProxy(messenger)
         recipients = await rpc_client.get_recipients_for_alert(**rpc_args)

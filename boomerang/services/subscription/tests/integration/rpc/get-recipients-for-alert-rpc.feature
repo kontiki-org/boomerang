@@ -59,8 +59,8 @@ Feature: Get recipients for alert via RPC
       [
         {
           "recipient_id": "usr_1",
-          "channels": ["email"],
-          "endpoint_keys": ["email_primary"]
+          "channel": "email",
+          "endpoint_key": "email_primary"
         }
       ]
       """

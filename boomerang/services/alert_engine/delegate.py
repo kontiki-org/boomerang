@@ -23,20 +23,27 @@ class AlertEngineDelegate:
         )
         out = []
         for row in recipients:
-            channels = row.get("channels") or []
-            endpoint_keys = row.get("endpoint_keys") or []
-            if len(channels) != len(endpoint_keys):
+            recipient_id = row.get("recipient_id")
+            channel = row.get("channel")
+            endpoint_key = row.get("endpoint_key")
+            if (
+                not isinstance(recipient_id, str)
+                or not recipient_id
+                or not isinstance(channel, str)
+                or not channel
+                or not isinstance(endpoint_key, str)
+                or not endpoint_key
+            ):
                 continue
-            recipient_id = row["recipient_id"]
-            for channel, endpoint_key in zip(channels, endpoint_keys):
-                out.append(
-                    NotificationRequest(
-                        channel=channel,
-                        recipient_id=recipient_id,
-                        endpoint_key=endpoint_key,
-                        message=message,
-                    )
+
+            out.append(
+                NotificationRequest(
+                    channel=channel,
+                    recipient_id=recipient_id,
+                    endpoint_key=endpoint_key,
+                    message=message,
                 )
+            )
         return out
 
     async def process_normalized_alert(self, messenger, payload):

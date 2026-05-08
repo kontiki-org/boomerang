@@ -193,7 +193,7 @@ class Database:
                 (category, event_type),
             ).fetchall()
 
-        recipients: dict[str, dict] = {}
+        targets: list[dict] = []
         facts = {
             "category": category,
             "event_type": event_type,
@@ -209,33 +209,26 @@ class Database:
 
             user_id = row["user_id"]
             endpoints = json.loads(row["endpoints_json"])
-
-            entry = recipients.setdefault(
-                user_id,
-                {
-                    "recipient_id": user_id,
-                    "channels": set(),
-                    "endpoint_keys": set(),
-                },
-            )
             for endpoint in endpoints:
                 kind = str(endpoint.get("kind", "")).strip().lower()
                 endpoint_key = str(endpoint.get("endpoint_key", "")).strip()
                 if not kind or not endpoint_key:
                     continue
-                entry["channels"].add(kind)
-                entry["endpoint_keys"].add(endpoint_key)
-
-        result = []
-        for entry in recipients.values():
-            result.append(
-                {
-                    "recipient_id": entry["recipient_id"],
-                    "channels": sorted(entry["channels"]),
-                    "endpoint_keys": sorted(entry["endpoint_keys"]),
-                }
-            )
-        return sorted(result, key=lambda item: item["recipient_id"])
+                targets.append(
+                    {
+                        "recipient_id": user_id,
+                        "channel": kind,
+                        "endpoint_key": endpoint_key,
+                    }
+                )
+        return sorted(
+            targets,
+            key=lambda item: (
+                item["recipient_id"],
+                item["channel"],
+                item["endpoint_key"],
+            ),
+        )
 
     def _connection(self):
         connection = sqlite3.connect(self.sqlite_path)

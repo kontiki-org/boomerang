@@ -67,7 +67,7 @@ def step_publish_event_with_payload(context, event_type):
 
 @then("the alert-engine calls subscription RPC get_recipients_for_alert with")
 def step_alert_engine_calls_subscription_rpc(context):
-    expected_args = json.loads(context.text.strip()) if context.text else []
+    expected_args = json.loads(context.text.strip()) if context.text else {}
     calls = context.manager.get_remote_calls("subscription-service") or []
     assert calls, "Expected one call to subscription-service.get_recipients_for_alert."
     first_call = calls[0]
@@ -75,12 +75,14 @@ def step_alert_engine_calls_subscription_rpc(context):
     if isinstance(first_call, (list, tuple)):
         args = first_call[0] if first_call else ()
     assert isinstance(args, (list, tuple)), f"Unexpected call format: {first_call}"
-    assert len(args) >= 5, f"Unexpected RPC args payload: {args}"
-    actual_args = list(args[:5])
-    assert actual_args == expected_args, (
+    assert len(args) >= 1, f"Unexpected RPC args payload: {args}"
+    actual_args = args[0]
+    normalized = _normalize_actual_for_placeholders(expected_args, actual_args)
+    assert isinstance(normalized, dict), f"Unexpected alert args payload: {actual_args}"
+    assert normalized == expected_args, (
         "RPC call arguments mismatch.\n"
         f"Expected: {expected_args}\n"
-        f"Actual:   {actual_args}"
+        f"Actual:   {normalized}"
     )
 
 

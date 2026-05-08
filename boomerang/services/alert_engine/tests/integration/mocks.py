@@ -6,12 +6,8 @@ class SubscriptionServiceMock(MockService):
     name = "subscription-service"
 
     @rpc
-    async def get_recipients_for_alert(
-        self, area_type, area_value, severity, category, event_type
-    ):
-        self.remote_call_manager.store_call_args(
-            area_type, area_value, severity, category, event_type
-        )
+    async def get_recipients_for_alert(self, alert):
+        self.remote_call_manager.store_call_args(alert)
         return self.remote_call_manager.get_return_value()
 
 

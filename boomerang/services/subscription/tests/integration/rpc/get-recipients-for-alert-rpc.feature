@@ -41,19 +41,19 @@ Feature: Get recipients for alert via RPC
 
   Scenario: Return matching recipient for exact area and category
     Given the "subscriptions" table contains
-      | subscription_id | user_id | category     | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
-      | sub_1           | usr_1   | weather.wind | *          | zone      | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-    And the "channel_endpoints" table contains
-      | endpoint_id | user_id | channel | endpoint_key  | status | is_default | created_at           | updated_at           |
-      | ep_1        | usr_1   | email   | email_primary | active | 1          | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
+      | subscription_id | user_id | category     | event_type | criteria_json                                                       | endpoints_json                                  | status | created_at           | updated_at           |
+      | sub_1           | usr_1   | weather.wind | *          | {"all_of":[{"key":"area.zone","operator":"eq","value":"FR-69"}]} | [{"kind":"email","endpoint_key":"email_primary"}] | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
       {
-        "area_type": "zone",
-        "area_value": "FR-69",
-        "severity": "moderate",
-        "category": "weather.wind",
-        "event_type": "hail"
+        "alert": {
+          "severity": "moderate",
+          "category": "weather.wind",
+          "event_type": "hail",
+          "areas": [
+            {"type": "zone", "value": "FR-69"}
+          ]
+        }
       }
       """
     Then the RPC call succeeds
@@ -62,29 +62,28 @@ Feature: Get recipients for alert via RPC
       [
         {
           "recipient_id": "usr_1",
-          "channels": ["email"],
-          "endpoint_keys": ["email_primary"]
+          "channel": "email",
+          "endpoint_key": "email_primary"
         }
       ]
       """
 
   Scenario: Ignore paused subscriptions and non-matching category
     Given the "subscriptions" table contains
-      | subscription_id | user_id | category     | event_type | area_type | area_value | min_severity | delivery_json                                              | policy_json                                                               | status | created_at           | updated_at           |
-      | sub_1           | usr_1   | weather.wind | *          | zone      | FR-69      | moderate     | {"channels":["email"],"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | paused | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-      | sub_2           | usr_2   | weather.rain | *          | zone      | FR-69      | moderate     | {"channels":["sms"],"fallback_to_default_channels":true}   | {"quiet_hours":{"enabled":false,"start":null,"end":null,"timezone":null}} | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-    And the "channel_endpoints" table contains
-      | endpoint_id | user_id | channel | endpoint_key | status | is_default | created_at           | updated_at           |
-      | ep_1        | usr_1   | email   | email_1      | active | 1          | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
-      | ep_2        | usr_2   | sms     | sms_1        | active | 1          | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
+      | subscription_id | user_id | category     | event_type | criteria_json                                                       | endpoints_json                               | status | created_at           | updated_at           |
+      | sub_1           | usr_1   | weather.wind | *          | {"all_of":[{"key":"area.zone","operator":"eq","value":"FR-69"}]} | [{"kind":"email","endpoint_key":"email_1"}] | paused | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
+      | sub_2           | usr_2   | weather.rain | *          | {"all_of":[{"key":"area.zone","operator":"eq","value":"FR-69"}]} | [{"kind":"sms","endpoint_key":"sms_1"}]     | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
       {
-        "area_type": "zone",
-        "area_value": "FR-69",
-        "severity": "severe",
-        "category": "weather.wind",
-        "event_type": "hail"
+        "alert": {
+          "severity": "severe",
+          "category": "weather.wind",
+          "event_type": "hail",
+          "areas": [
+            {"type": "zone", "value": "FR-69"}
+          ]
+        }
       }
       """
     Then the RPC call succeeds
@@ -97,15 +96,48 @@ Feature: Get recipients for alert via RPC
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
       {
-        "area_type": "zone",
-        "area_value": "FR-69",
-        "severity": "moderate",
-        "category": "weather.wind",
-        "event_type": "hail"
+        "alert": {
+          "severity": "moderate",
+          "category": "weather.wind",
+          "event_type": "hail",
+          "areas": [
+            {"type": "zone", "value": "FR-69"}
+          ]
+        }
       }
       """
     Then the RPC call succeeds
     And the RPC response is
       """
       []
+      """
+
+  Scenario: Match when criterion value exists in any area
+    Given the "subscriptions" table contains
+      | subscription_id | user_id | category     | event_type | criteria_json                                                       | endpoints_json                                  | status | created_at           | updated_at           |
+      | sub_3           | usr_3   | weather.wind | *          | {"all_of":[{"key":"area.zone","operator":"eq","value":"FR-75"}]} | [{"kind":"email","endpoint_key":"email_backup"}] | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
+    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
+      """
+      {
+        "alert": {
+          "severity": "moderate",
+          "category": "weather.wind",
+          "event_type": "hail",
+          "areas": [
+            {"type": "zone", "value": "FR-69"},
+            {"type": "zone", "value": "FR-75"}
+          ]
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      [
+        {
+          "recipient_id": "usr_3",
+          "channel": "email",
+          "endpoint_key": "email_backup"
+        }
+      ]
       """

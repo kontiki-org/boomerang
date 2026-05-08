@@ -45,10 +45,19 @@ Feature: Update and delete subscriptions
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
         },
         "payload": {
-          "selectors": {
-            "categories": ["weather.vigilance"],
-            "event_types": ["thunderstorm"],
-            "areas": [{"type": "zone_code", "value": "FR-69"}]
+          "subscription": {
+            "rule": {
+              "category": "weather.vigilance",
+              "event_type": "thunderstorm",
+              "criteria": {
+                "all_of": [
+                  {"key": "area.zone", "operator": "eq", "value": "FR-69"}
+                ]
+              }
+            },
+            "endpoints": [
+              {"kind": "email", "endpoint_key": "email_primary"}
+            ]
           }
         }
       }
@@ -70,15 +79,19 @@ Feature: Update and delete subscriptions
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
         },
         "payload": {
-          "min_severity": "severe",
-          "policy": {
-            "quiet_hours": {
-              "enabled": true,
-              "start": "23:00",
-              "end": "07:00",
-              "timezone": "Europe/Paris"
+          "rule": {
+            "category": "weather.vigilance",
+            "event_type": "thunderstorm",
+            "criteria": {
+              "all_of": [
+                {"key": "severity", "operator": "eq", "value": "severe"}
+              ]
             }
           },
+          "endpoints": [
+            {"kind": "email", "endpoint_key": "email_primary"},
+            {"kind": "sms", "endpoint_key": "phone_work"}
+          ],
           "status": "paused"
         }
       }
@@ -89,22 +102,28 @@ Feature: Update and delete subscriptions
         "status": "ok",
         "item": {
           "subscription_id": "[SUB_ID]",
-          "min_severity": "severe",
-          "status": "paused",
-          "policy": {
-            "quiet_hours": {
-              "enabled": true,
-              "start": "23:00",
-              "end": "07:00",
-              "timezone": "Europe/Paris"
-            }
-          }
+          "subscription": {
+            "rule": {
+              "category": "weather.vigilance",
+              "event_type": "thunderstorm",
+              "criteria": {
+                "all_of": [
+                  {"key": "severity", "operator": "eq", "value": "severe"}
+                ]
+              }
+            },
+            "endpoints": [
+              {"kind": "email", "endpoint_key": "email_primary"},
+              {"kind": "sms", "endpoint_key": "phone_work"}
+            ]
+          },
+          "status": "paused"
         }
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id   | category          | event_type   | area_type | area_value | min_severity | delivery_json                                   | policy_json                                                                                                  | status | created_at    | updated_at    |
-      | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | zone_code | FR-69      | severe       | {"channels":null,"fallback_to_default_channels":true} | {"quiet_hours":{"enabled":true,"start":"23:00","end":"07:00","timezone":"Europe/Paris"}} | paused | [ISO8601_UTC] | [ISO8601_UTC] |
+      | subscription_id | user_id   | category          | event_type   | criteria_json                                                           | endpoints_json                                                                      | status | created_at    | updated_at    |
+      | [SUB_ID]        | [USER_ID] | weather.vigilance | thunderstorm | {"all_of":[{"key":"severity","operator":"eq","value":"severe"}]} | [{"kind":"email","endpoint_key":"email_primary"},{"kind":"sms","endpoint_key":"phone_work"}] | paused | [ISO8601_UTC] | [ISO8601_UTC] |
 
   @identity_sessions_1
   Scenario: Delete one subscription for authenticated user
@@ -116,10 +135,19 @@ Feature: Update and delete subscriptions
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
         },
         "payload": {
-          "selectors": {
-            "categories": ["weather.vigilance"],
-            "event_types": ["thunderstorm"],
-            "areas": [{"type": "zone_code", "value": "FR-69"}]
+          "subscription": {
+            "rule": {
+              "category": "weather.vigilance",
+              "event_type": "thunderstorm",
+              "criteria": {
+                "all_of": [
+                  {"key": "area.zone", "operator": "eq", "value": "FR-69"}
+                ]
+              }
+            },
+            "endpoints": [
+              {"kind": "email", "endpoint_key": "email_primary"}
+            ]
           }
         }
       }
@@ -149,7 +177,7 @@ Feature: Update and delete subscriptions
       }
       """
     And the "subscriptions" table should contain
-      | subscription_id | user_id | category | event_type | area_type | area_value | min_severity | delivery_json | policy_json | status | created_at | updated_at |
+      | subscription_id | user_id | category | event_type | criteria_json | endpoints_json | status | created_at | updated_at |
 
   Scenario: Reject update for unknown subscription id
     Given I am authenticated as "user@example.org"

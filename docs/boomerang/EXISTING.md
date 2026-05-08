@@ -71,12 +71,22 @@ Minimum fields expected by the engine include:
 `effective_at`, `expires_at` (exact shape may evolve; see service README(s) for
 the canonical contract used by the engine).
 
+Phase 1 contract clarification introduces a canonical model for normalized alerts:
+`boomerang.core.contracts.alert_normalized.NormalizedAlert` (`schema_version=1.0`),
+with an extensible `attributes` map for producer-specific data.
+
 ### Notification request (per channel)
 
 - **Topic pattern**: `{channel}.alerting.notification.requested`
   - examples: `email.alerting.notification.requested`, `sms.alerting.notification.requested`
 - **Payload model (implementation)**: `boomerang.core.contracts.notification.NotificationRequest`
   - includes `channel`, `recipient_id`, `endpoint_key`, and a `message` object
+
+Phase 1 contract clarification also defines target subscription contracts:
+- generic criteria (`key`, `operator`, `value`) through
+  `boomerang.core.contracts.subscription.CriteriaExpression`
+- direct destination binding at subscription level through
+  `boomerang.core.contracts.subscription.EndpointRef`
 
 ### Delivery outcomes
 

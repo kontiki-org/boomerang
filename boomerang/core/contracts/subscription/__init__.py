@@ -1,21 +1,21 @@
 from .models import (
-    AreaSelector,
     CreateSubscriptionRequest,
-    DeliveryConfig,
-    PolicyConfig,
-    QuietHours,
-    Selectors,
+    CriteriaExpression,
+    Criterion,
+    EndpointRef,
+    RuleDefinition,
+    SubscriptionDefinition,
     UpdateSubscriptionRequest,
 )
 from .service import SubscriptionRpcProxy
 
 __all__ = [
-    "AreaSelector",
-    "Selectors",
-    "DeliveryConfig",
-    "QuietHours",
-    "PolicyConfig",
     "CreateSubscriptionRequest",
     "UpdateSubscriptionRequest",
+    "EndpointRef",
+    "Criterion",
+    "CriteriaExpression",
+    "RuleDefinition",
+    "SubscriptionDefinition",
     "SubscriptionRpcProxy",
 ]

@@ -85,9 +85,9 @@ class BoomerangTextualApp(App[None]):
         self._show_prompt("Please sign in.", "info", timeout=6.0)
 
     async def on_unmount(self) -> None:
-        if self.identity_messenger is not None:
+        if self.messenger is not None:
             await self.messenger.stop()
-            self.identity_messenger = None
+            self.messenger = None
             self.identity_rpc = None
 
     def _build_home_view(self) -> Container:

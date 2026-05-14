@@ -7,11 +7,10 @@ app:
   earthquake:
     # Default uses real USGS feed. For fully offline/local testing, point this to a mock.
     usgs:
-      feed_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson"
-    min_magnitude: 4.5
+      feed_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.geojson"
+    min_magnitude: 2
     alert_ttl_hours: 6
     subscription_area:
       type: "region"
       value: "DEMO-EARTHQUAKE-1"
     category: "natural.earthquake"
-

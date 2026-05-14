@@ -29,10 +29,11 @@ services:
       - ./logs:/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "python -c 'import glob, os; ok=False\nfor p in glob.glob(\"/proc/[0-9]*/cmdline\"):\n    try:\n        s=open(p,\"rb\").read().decode(\"utf-8\",\"ignore\")\n    except Exception:\n        continue\n    if \"kontiki_registry\" in s:\n        ok=True\n        break\nraise SystemExit(0 if ok else 1)'"]
+      test: ["CMD", "python", "-c", "import glob; raise SystemExit(0 if any('kontiki_registry' in open(p,'rb').read().decode('utf-8','ignore') for p in glob.glob('/proc/[0-9]*/cmdline')) else 1)"]
       interval: 5s
-      timeout: 3s
-      retries: 20
+      timeout: 5s
+      retries: 40
+      start_period: 20s
 
   mailhog:
     image: mailhog/mailhog
@@ -136,6 +137,7 @@ services:
         condition: service_started
     volumes:
       - ./stack:/stack:ro
+      - ./data:/data
     restart: unless-stopped
 
   earthquake-feed-service:
@@ -155,4 +157,5 @@ services:
         condition: service_started
     volumes:
       - ./stack:/stack:ro
+      - ./data:/data
     restart: unless-stopped

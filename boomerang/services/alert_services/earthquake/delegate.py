@@ -78,7 +78,7 @@ class EarthquakeFeedDelegate(ServiceDelegate):
 
     def _feature_to_alert(self, feature: dict[str, Any]) -> dict[str, Any] | None:
         props = feature.get("properties") or {}
-        usgs_id = props.get("id")
+        usgs_id = feature.get("id") or props.get("id")
         if not usgs_id:
             return None
         mag = props.get("mag")
@@ -89,6 +89,12 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         except (TypeError, ValueError):
             return None
         if mag_f < self._min_magnitude:
+            logging.info(
+                "Earthquake feed skipping feature %s with magnitude %s below minimum %s",
+                usgs_id,
+                mag_f,
+                self._min_magnitude,
+            )
             return None
 
         place = props.get("place") or "Unknown location"
@@ -120,6 +126,11 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             doc = await asyncio.to_thread(
                 _http_get_json, self._feed_url, self._http_timeout
             )
+            logging.debug(
+                "Earthquake feed HTTP/JSON fetch succeeded url=%s doc=%s",
+                self._feed_url,
+                doc,
+            )
         except (
             urllib.error.URLError,
             TimeoutError,
@@ -144,7 +155,7 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             if not isinstance(feature, dict):
                 continue
             props = feature.get("properties") or {}
-            usgs_id = props.get("id")
+            usgs_id = feature.get("id") or props.get("id")
             if not usgs_id:
                 continue
             sid = str(usgs_id)

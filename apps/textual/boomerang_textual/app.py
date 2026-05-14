@@ -6,6 +6,7 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer, Header, Static, TabbedContent, TabPane
 
+from boomerang.core.contracts.email_notifier.service import EmailNotifierRpcProxy
 from boomerang.core.contracts.identity.service import IdentityRpcProxy
 from boomerang_textual.screens.auth import AuthScreen
 from boomerang_textual.screens.endpoints import EndpointsScreen
@@ -33,6 +34,7 @@ class BoomerangTextualApp(App[None]):
     session = SessionState()
     messenger: Messenger | None = None
     identity_rpc: IdentityRpcProxy | None = None
+    email_notifier_rpc: EmailNotifierRpcProxy | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -82,6 +84,7 @@ class BoomerangTextualApp(App[None]):
         await self.messenger.setup()
         await self.messenger.start()
         self.identity_rpc = IdentityRpcProxy(self.messenger)
+        self.email_notifier_rpc = EmailNotifierRpcProxy(self.messenger)
         self._show_prompt("Please sign in.", "info", timeout=6.0)
 
     async def on_unmount(self) -> None:
@@ -89,6 +92,7 @@ class BoomerangTextualApp(App[None]):
             await self.messenger.stop()
             self.messenger = None
             self.identity_rpc = None
+            self.email_notifier_rpc = None
 
     def _build_home_view(self) -> Container:
         return HomeView(id="home-view")

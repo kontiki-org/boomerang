@@ -1,10 +1,20 @@
 import re
 
+from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
+from kontiki.messaging import RpcClientError, RpcTimeoutError
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _rpc_error_message(exc: Exception) -> str:
+    if isinstance(exc, (RpcClientError, RpcTimeoutError)):
+        if exc.code == "AUTH_ERROR":
+            return "Session expired or invalid. Please sign in again."
+        return exc.message or "Request rejected."
+    return str(exc)
 
 
 class EndpointsScreen(Static):
@@ -52,16 +62,15 @@ class EndpointsScreen(Static):
                 table.add_columns("Type", "Endpoint key", "Destination")
                 yield table
 
-    def on_mount(self) -> None:
-        self._refresh_list()
-        self._publish_endpoint_catalog()
+    async def on_mount(self) -> None:
+        await self._reload_endpoints()
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "save-endpoint-btn":
-            self._handle_save_endpoint()
+            await self._handle_save_endpoint()
             return
         if event.button.id == "delete-endpoint-btn":
-            self._handle_delete_selected()
+            await self._handle_delete_selected()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         if event.data_table.id != "endpoints-list":
@@ -75,7 +84,44 @@ class EndpointsScreen(Static):
         self.query_one("#endpoint-key", Input).value = selected["endpoint_key"]
         self.query_one("#endpoint-address", Input).value = selected["address"]
 
-    def _handle_save_endpoint(self) -> None:
+    def _auth_headers(self) -> dict[str, str] | None:
+        token = self.app.session.access_token  # type: ignore[attr-defined]
+        if not token:
+            return None
+        return {"Authorization": f"Bearer {token}"}
+
+    def _sync_table(self) -> None:
+        self._refresh_list()
+        self._publish_endpoint_catalog()
+
+    async def _reload_endpoints(self) -> None:
+        headers = self._auth_headers()
+        if headers is None:
+            self._endpoints = []
+            self._sync_table()
+            return
+
+        try:
+            result = await self.app.email_notifier_rpc.list_email_endpoints(  # type: ignore[attr-defined]
+                extra_headers=headers
+            )
+        except Exception as exc:
+            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            self._endpoints = []
+            self._sync_table()
+            return
+
+        self._endpoints = [
+            {
+                "kind": "email",
+                "endpoint_key": e["endpoint_key"],
+                "address": e["address"],
+            }
+            for e in result["endpoints"]
+        ]
+        self._sync_table()
+
+    async def _handle_save_endpoint(self) -> None:
         kind_select = self.query_one("#endpoint-kind", Select)
         key_input = self.query_one("#endpoint-key", Input)
         address_input = self.query_one("#endpoint-address", Input)
@@ -98,30 +144,31 @@ class EndpointsScreen(Static):
             )
             return
 
-        existing = next(
-            (
-                item
-                for item in self._endpoints
-                if item["endpoint_key"] == endpoint_key and item["kind"] == endpoint_kind
-            ),
-            None,
-        )
-        if existing is None:
-            self._endpoints.append(
-                {"kind": endpoint_kind, "endpoint_key": endpoint_key, "address": address}
+        headers = self._auth_headers()
+        if headers is None:
+            self.post_message(self.StatusMessage("Not signed in.", "error"))
+            return
+
+        try:
+            body = CreateEmailEndpointRequest(
+                endpoint_key=endpoint_key, address=address
             )
-            message = f"{endpoint_kind} endpoint '{endpoint_key}' created."
-        else:
-            existing["address"] = address
-            message = f"{endpoint_kind} endpoint '{endpoint_key}' updated."
+            await self.app.email_notifier_rpc.create_email_endpoint(  # type: ignore[attr-defined]
+                body=body,
+                extra_headers=headers,
+            )
+        except Exception as exc:
+            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            return
 
         key_input.value = ""
         address_input.value = ""
-        self._refresh_list()
-        self._publish_endpoint_catalog()
-        self.post_message(self.StatusMessage(message, "success"))
+        await self._reload_endpoints()
+        self.post_message(
+            self.StatusMessage(f"Email endpoint '{endpoint_key}' saved.", "success")
+        )
 
-    def _handle_delete_selected(self) -> None:
+    async def _handle_delete_selected(self) -> None:
         endpoints_list = self.query_one("#endpoints-list", DataTable)
         if endpoints_list.cursor_row is None or endpoints_list.cursor_row < 0:
             self.post_message(self.StatusMessage("No endpoint selected.", "error"))
@@ -130,14 +177,24 @@ class EndpointsScreen(Static):
             self.post_message(self.StatusMessage("Invalid selection.", "error"))
             return
 
-        deleted = self._endpoints.pop(endpoints_list.cursor_row)
-        self._refresh_list()
-        self._publish_endpoint_catalog()
-        self.post_message(
-            self.StatusMessage(
-                f"Endpoint '{deleted['endpoint_key']}' deleted.",
-                "success",
+        endpoint_key = self._endpoints[endpoints_list.cursor_row]["endpoint_key"]
+        headers = self._auth_headers()
+        if headers is None:
+            self.post_message(self.StatusMessage("Not signed in.", "error"))
+            return
+
+        try:
+            await self.app.email_notifier_rpc.delete_email_endpoint(  # type: ignore[attr-defined]
+                endpoint_key=endpoint_key,
+                extra_headers=headers,
             )
+        except Exception as exc:
+            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            return
+
+        await self._reload_endpoints()
+        self.post_message(
+            self.StatusMessage(f"Endpoint '{endpoint_key}' deleted.", "success")
         )
 
     def _refresh_list(self) -> None:
@@ -162,4 +219,3 @@ class EndpointsScreen(Static):
             key=lambda item: (item["kind"], item["endpoint_key"]),
         )
         self.post_message(self.EndpointCatalogChanged(endpoints))
-

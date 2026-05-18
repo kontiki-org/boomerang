@@ -2,13 +2,25 @@ import logging
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
+from kontiki.messaging import RpcProxy
 
+from boomerang.core.contracts.alert_catalog import (
+    AlertConnectorCatalog,
+    AlertSubscriptionCatalog,
+)
+from boomerang.core.contracts.alert_normalized import NormalizedAlert
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
 from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.database import Database
+
+
+def _connector_catalog_from_rpc_result(raw) -> AlertConnectorCatalog:
+    if isinstance(raw, AlertConnectorCatalog):
+        return raw
+    return AlertConnectorCatalog.model_validate(raw)
 
 
 class SubscriptionDelegate(ServiceDelegate):
@@ -27,26 +39,39 @@ class SubscriptionDelegate(ServiceDelegate):
         self._configured_channels = (
             configured_channels if isinstance(configured_channels, list) else []
         )
-        configured_alerts = get_parameter(
-            self.container.config, "app.alerts.allowed", []
+        configured_connectors = get_parameter(
+            self.container.config, "app.alert_connectors", []
         )
-        self._configured_alerts = (
-            configured_alerts if isinstance(configured_alerts, list) else []
-        )
+        self._alert_connectors = []
+        if isinstance(configured_connectors, list):
+            for entry in configured_connectors:
+                if isinstance(entry, str):
+                    name = entry.strip()
+                    if name:
+                        self._alert_connectors.append(name)
         if self._storage_backend != "sqlite":
             raise RuntimeError("Unsupported storage backend for MVP.")
         self._database = Database(self._sqlite_path)
         self._database.setup()
         logging.info(
-            "SubscriptionDelegate configured (backend=%s path=%s)",
+            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s)",
             self._storage_backend,
             self._sqlite_path,
+            self._alert_connectors,
         )
 
-    async def get_recipients_for_alert(self, alert: dict):
-        if not isinstance(alert, dict):
-            return []
-        return self._database.get_recipients_for_alert(alert)
+    async def get_alert_subscription_catalog(self, messenger) -> AlertSubscriptionCatalog:
+        sources: list[AlertConnectorCatalog] = []
+        for service_name in self._alert_connectors:
+            proxy = RpcProxy(messenger, service_name)
+            raw = await proxy.get_alert_subscription_catalog()
+            sources.append(_connector_catalog_from_rpc_result(raw))
+        return AlertSubscriptionCatalog(sources=sources)
+
+    async def get_recipients_for_alert(self, alert):
+        if not isinstance(alert, NormalizedAlert):
+            alert = NormalizedAlert.model_validate(alert)
+        return self._database.get_recipients_for_alert(alert.model_dump(mode="json"))
 
     async def attach_channel_endpoint(
         self,
@@ -106,21 +131,5 @@ class SubscriptionDelegate(ServiceDelegate):
 
             if channel:
                 items.append(channel)
-
-        return {"items": items}
-
-    async def get_alerts(self):
-        items = []
-        for entry in self._configured_alerts:
-            if not isinstance(entry, dict):
-                continue
-            raw_category = entry.get("category")
-            raw_event_type = entry.get("event_type")
-            if not isinstance(raw_category, str) or not isinstance(raw_event_type, str):
-                continue
-            category = raw_category.strip().lower()
-            event_type = raw_event_type.strip().lower()
-            if category and event_type:
-                items.append({"category": category, "event_type": event_type})
 
         return {"items": items}

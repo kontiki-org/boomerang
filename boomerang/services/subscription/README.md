@@ -11,7 +11,8 @@ the rest of the platform.
 
 - Manage authenticated user subscriptions (create, get, update, delete).
 - Expose allowed channel types from config (`GET /channels`).
-- Expose allowed alert types from config (`GET /alerts`).
+- Aggregate alert subscription catalogs from configured connectors
+  (`GET /alert-catalog`, RPC `get_alert_subscription_catalog`).
 - Register user channel endpoints through RPC (`attach_channel_endpoint`).
 - Provide recipient targeting through RPC (`get_recipients_for_alert`).
 
@@ -20,8 +21,9 @@ the rest of the platform.
 - Authentication is delegated to `identity-service`.
   - This service validates bearer tokens via identity RPC.
 - Storage is SQLite for MVP.
-- Allowed channels and alerts are config-driven (`app.channels`,
-  `app.alerts.allowed`).
+- Allowed channels are config-driven (`app.channels`).
+- Alert connectors are listed in `app.alert_connectors` (RPC fan-out to each
+  connector’s `get_alert_subscription_catalog`).
 - Channel endpoint credentials are not stored here; provider services own
   provider-side auth flows and secrets.
 

@@ -34,28 +34,39 @@ Feature: Process normalized alerts
     When a "alert.normalized" event is published with payload
       """
       {
+        "schema_version": "1.0",
         "alert_id": "al_123",
+        "source": "test-source",
         "category": "safety.fire",
         "event_type": "wildfire",
         "severity": "severe",
+        "occurred_at": "2026-04-01T18:00:00Z",
+        "title": "Wildfire emergency warning",
+        "body": "Evacuate affected areas immediately.",
         "areas": [
           {"type": "region", "value": "REGION-1"}
         ],
-        "headline": "Wildfire emergency warning",
-        "message": "Evacuate affected areas immediately.",
-        "effective_at": "2026-04-01T18:00:00Z",
+        "attributes": {},
         "expires_at": "2026-04-02T04:00:00Z"
       }
       """
     Then the alert-engine calls subscription RPC get_recipients_for_alert with
       """
       {
+        "schema_version": "1.0",
+        "alert_id": "al_123",
+        "source": "test-source",
         "category": "safety.fire",
         "event_type": "wildfire",
         "severity": "severe",
+        "occurred_at": "2026-04-01T18:00:00Z",
+        "title": "Wildfire emergency warning",
+        "body": "Evacuate affected areas immediately.",
         "areas": [
           {"type": "region", "value": "REGION-1"}
-        ]
+        ],
+        "attributes": {},
+        "expires_at": "2026-04-02T04:00:00Z"
       }
       """
     When the alert-engine receives recipients from subscription RPC
@@ -147,28 +158,39 @@ Feature: Process normalized alerts
     When a "alert.normalized" event is published with payload
       """
       {
+        "schema_version": "1.0",
         "alert_id": "al_456",
+        "source": "test-source",
         "category": "infrastructure.outage",
         "event_type": "power_grid",
         "severity": "moderate",
+        "occurred_at": "2026-04-01T18:00:00Z",
+        "title": "Power outage warning",
+        "body": "Widespread outage expected in your area.",
         "areas": [
           {"type": "region", "value": "REGION-2"}
         ],
-        "headline": "Power outage warning",
-        "message": "Widespread outage expected in your area.",
-        "effective_at": "2026-04-01T18:00:00Z",
+        "attributes": {},
         "expires_at": "2026-04-02T04:00:00Z"
       }
       """
     Then the alert-engine calls subscription RPC get_recipients_for_alert with
       """
       {
+        "schema_version": "1.0",
+        "alert_id": "al_456",
+        "source": "test-source",
         "category": "infrastructure.outage",
         "event_type": "power_grid",
         "severity": "moderate",
+        "occurred_at": "2026-04-01T18:00:00Z",
+        "title": "Power outage warning",
+        "body": "Widespread outage expected in your area.",
         "areas": [
           {"type": "region", "value": "REGION-2"}
-        ]
+        ],
+        "attributes": {},
+        "expires_at": "2026-04-02T04:00:00Z"
       }
       """
     When the alert-engine receives recipients from subscription RPC

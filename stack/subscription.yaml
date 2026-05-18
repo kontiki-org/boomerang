@@ -17,9 +17,5 @@ app:
   channels:
     - email
 
-  # Allowlist of alert categories/event types shown by /alerts and accepted by subscriptions.
-  # Keep this aligned with the earthquake connector defaults.
-  alerts:
-    allowed:
-      - category: natural.earthquake
-        event_type: earthquake
+  alert_connectors:
+    - earthquake-feed-service

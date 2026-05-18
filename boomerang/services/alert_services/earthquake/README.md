@@ -1,7 +1,11 @@
 # Earthquake feed service
 
 `earthquake-feed-service` polls the **USGS** public GeoJSON earthquake feed and
-publishes **`alert.normalized`** events for the rest of the Boomerang pipeline.
+publishes **`alert.normalized`** events (`NormalizedAlert`) for the rest of the
+Boomerang pipeline.
+
+It also exposes RPC **`get_alert_subscription_catalog`**, returning
+`AlertConnectorCatalog` for subscription UI and aggregation by `subscription-service`.
 
 See **`docs/boomerang/EARTHQUAKE_SERVICE_ARCHITECTURE.md`** for architecture,
 configuration, and USGS usage notes.

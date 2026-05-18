@@ -47,12 +47,19 @@ Feature: Get recipients for alert via RPC
       """
       {
         "alert": {
-          "severity": "moderate",
+          "schema_version": "1.0",
+          "alert_id": "wx_wind_fr69",
+          "source": "test",
           "category": "weather.wind",
           "event_type": "hail",
+          "severity": "moderate",
+          "occurred_at": "2026-01-15T12:00:00Z",
+          "title": "Wind warning",
+          "body": "Strong winds expected in FR-69.",
           "areas": [
             {"type": "zone", "value": "FR-69"}
-          ]
+          ],
+          "attributes": {}
         }
       }
       """
@@ -77,12 +84,19 @@ Feature: Get recipients for alert via RPC
       """
       {
         "alert": {
-          "severity": "severe",
+          "schema_version": "1.0",
+          "alert_id": "wx_wind_fr69_severe",
+          "source": "test",
           "category": "weather.wind",
           "event_type": "hail",
+          "severity": "severe",
+          "occurred_at": "2026-01-15T12:00:00Z",
+          "title": "Severe wind warning",
+          "body": "Severe winds expected in FR-69.",
           "areas": [
             {"type": "zone", "value": "FR-69"}
-          ]
+          ],
+          "attributes": {}
         }
       }
       """
@@ -97,12 +111,19 @@ Feature: Get recipients for alert via RPC
       """
       {
         "alert": {
-          "severity": "moderate",
+          "schema_version": "1.0",
+          "alert_id": "wx_wind_fr69",
+          "source": "test",
           "category": "weather.wind",
           "event_type": "hail",
+          "severity": "moderate",
+          "occurred_at": "2026-01-15T12:00:00Z",
+          "title": "Wind warning",
+          "body": "Strong winds expected in FR-69.",
           "areas": [
             {"type": "zone", "value": "FR-69"}
-          ]
+          ],
+          "attributes": {}
         }
       }
       """
@@ -120,13 +141,20 @@ Feature: Get recipients for alert via RPC
       """
       {
         "alert": {
-          "severity": "moderate",
+          "schema_version": "1.0",
+          "alert_id": "wx_wind_multi_zone",
+          "source": "test",
           "category": "weather.wind",
           "event_type": "hail",
+          "severity": "moderate",
+          "occurred_at": "2026-01-15T12:00:00Z",
+          "title": "Wind warning",
+          "body": "Strong winds across multiple zones.",
           "areas": [
             {"type": "zone", "value": "FR-69"},
             {"type": "zone", "value": "FR-75"}
-          ]
+          ],
+          "attributes": {}
         }
       }
       """

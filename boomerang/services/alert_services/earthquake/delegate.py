@@ -9,6 +9,17 @@ from typing import Any
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
+from boomerang.core.contracts.alert_catalog import (
+    AlertCategoryCatalog,
+    AlertConnectorCatalog,
+    AlertCriterionDescriptor,
+    AlertEventTypeCatalog,
+)
+from boomerang.core.contracts.alert_normalized import AlertArea, NormalizedAlert
+from boomerang.core.contracts.alert_services.earthquake import EARTHQUAKE_FEED_SERVICE_NAME
+
+EARTHQUAKE_EVENT_TYPE = "earthquake"
+
 
 def _http_get_json(url: str, timeout_seconds: float) -> dict[str, Any]:
     req = urllib.request.Request(
@@ -29,7 +40,7 @@ def _magnitude_to_severity(mag: float) -> str:
 
 
 class EarthquakeFeedDelegate(ServiceDelegate):
-    """Fetch USGS GeoJSON and map new events to ``alert.normalized`` dicts."""
+    """Fetch USGS GeoJSON and map new events to ``NormalizedAlert`` payloads."""
 
     async def setup(self) -> None:
         config = self.container.config
@@ -72,11 +83,42 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             self._dedupe_max,
         )
 
+    def get_alert_subscription_catalog(self) -> AlertConnectorCatalog:
+        return AlertConnectorCatalog(
+            source_id=EARTHQUAKE_FEED_SERVICE_NAME,
+            categories=[
+                AlertCategoryCatalog(
+                    category=self._category,
+                    label="Earthquake",
+                    event_types=[
+                        AlertEventTypeCatalog(
+                            event_type=EARTHQUAKE_EVENT_TYPE,
+                            label="Earthquake",
+                            criteria=[
+                                AlertCriterionDescriptor(
+                                    key="magnitude",
+                                    label="Minimum magnitude",
+                                    operators=["gte"],
+                                    value_kind="number",
+                                ),
+                                AlertCriterionDescriptor(
+                                    key="area.region",
+                                    label="Region",
+                                    operators=["eq", "contains"],
+                                    value_kind="string",
+                                ),
+                            ],
+                        )
+                    ],
+                )
+            ],
+        )
+
     def _trim_dedupe(self) -> None:
         if len(self._seen_ids) > self._dedupe_max:
             self._seen_ids = set(list(self._seen_ids)[-self._dedupe_max :])
 
-    def _feature_to_alert(self, feature: dict[str, Any]) -> dict[str, Any] | None:
+    def _feature_to_alert(self, feature: dict[str, Any]) -> NormalizedAlert | None:
         props = feature.get("properties") or {}
         usgs_id = feature.get("id") or props.get("id")
         if not usgs_id:
@@ -104,24 +146,35 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         if time_ms is None:
             return None
         try:
-            effective = datetime.fromtimestamp(float(time_ms) / 1000.0, tz=timezone.utc)
+            occurred_at = datetime.fromtimestamp(
+                float(time_ms) / 1000.0, tz=timezone.utc
+            )
         except (TypeError, ValueError, OSError):
             return None
-        expires = effective + timedelta(hours=self._ttl_hours)
+        expires_at = occurred_at + timedelta(hours=self._ttl_hours)
+        body = f"{title}. Detail: {url}".strip() if url else title
 
-        return {
-            "alert_id": f"usgs_{usgs_id}",
-            "category": self._category,
-            "event_type": "earthquake",
-            "severity": _magnitude_to_severity(mag_f),
-            "areas": [{"type": self._area_type, "value": self._area_value}],
-            "headline": title,
-            "message": f"{title}. Detail: {url}".strip(),
-            "effective_at": effective.isoformat().replace("+00:00", "Z"),
-            "expires_at": expires.isoformat().replace("+00:00", "Z"),
-        }
+        return NormalizedAlert(
+            alert_id=f"usgs_{usgs_id}",
+            source=EARTHQUAKE_FEED_SERVICE_NAME,
+            category=self._category,
+            event_type=EARTHQUAKE_EVENT_TYPE,
+            severity=_magnitude_to_severity(mag_f),
+            occurred_at=occurred_at,
+            title=title,
+            body=body,
+            areas=[
+                AlertArea(type=self._area_type, value=self._area_value),
+            ],
+            attributes={
+                "magnitude": mag_f,
+                "place": place,
+                "url": url,
+            },
+            expires_at=expires_at,
+        )
 
-    async def build_normalized_alerts(self) -> list[dict[str, Any]]:
+    async def build_normalized_alerts(self) -> list[NormalizedAlert]:
         try:
             doc = await asyncio.to_thread(
                 _http_get_json, self._feed_url, self._http_timeout
@@ -150,7 +203,7 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             len(features),
             self._feed_url,
         )
-        out: list[dict[str, Any]] = []
+        out: list[NormalizedAlert] = []
         for feature in features:
             if not isinstance(feature, dict):
                 continue
@@ -161,11 +214,11 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             sid = str(usgs_id)
             if sid in self._seen_ids:
                 continue
-            payload = self._feature_to_alert(feature)
-            if payload is None:
+            alert = self._feature_to_alert(feature)
+            if alert is None:
                 continue
             self._seen_ids.add(sid)
-            out.append(payload)
+            out.append(alert)
         self._trim_dedupe()
         if out:
             logging.info(

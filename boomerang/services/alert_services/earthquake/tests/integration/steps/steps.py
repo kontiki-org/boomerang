@@ -2,7 +2,7 @@ import json
 import time
 
 import yaml
-from behave import given, then
+from behave import given, then, when
 
 from boomerang.services.alert_services.earthquake.tests.integration.utils import (
     start_earthquake_feed_subprocess,
@@ -78,7 +78,7 @@ def step_an_event_published_with_payload(context, event_type):
                 continue
             actual_payload = event.get("payload", {})
             if hasattr(actual_payload, "model_dump"):
-                actual_payload = actual_payload.model_dump()
+                actual_payload = actual_payload.model_dump(mode="json")
             normalized = _normalize_actual_for_placeholders(
                 expected_payload, actual_payload
             )
@@ -91,6 +91,40 @@ def step_an_event_published_with_payload(context, event_type):
         f"Expected: {expected_payload}\n"
         f"Recent events: {last_events}"
     )
+
+
+@when(
+    "I call the RPC {method_name} on the earthquake-feed service with the following arguments"
+)
+def step_call_rpc_on_earthquake_feed_service(context, method_name):
+    payload = json.loads(context.text.strip()) if context.text else {}
+    context.last_rpc_error = None
+    try:
+        context.last_rpc_result = context.runner.call(
+            "earthquake-feed-service",
+            method_name,
+            **payload,
+        )
+    except Exception as exc:
+        context.last_rpc_result = None
+        context.last_rpc_error = exc
+
+
+@then("the earthquake-feed RPC call succeeds")
+def step_earthquake_feed_rpc_success(context):
+    if context.last_rpc_error is not None:
+        raise AssertionError(
+            f"Expected RPC success, got error: {context.last_rpc_error}"
+        )
+
+
+@then("the earthquake-feed RPC response is")
+def step_earthquake_feed_rpc_response(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    actual = context.last_rpc_result
+    if hasattr(actual, "model_dump"):
+        actual = actual.model_dump(mode="json")
+    assert actual == expected, f"Expected {expected}, got {actual}"
 
 
 @then('no "{event_type}" event is published')

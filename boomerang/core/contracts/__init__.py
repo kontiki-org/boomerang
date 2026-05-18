@@ -1,4 +1,20 @@
-from boomerang.core.contracts.alert_normalized import AlertArea, NormalizedAlert
+from boomerang.core.contracts.alert_catalog import (
+    GET_ALERT_SUBSCRIPTION_CATALOG_RPC,
+    AlertCategoryCatalog,
+    AlertConnectorCatalog,
+    AlertCriterionDescriptor,
+    AlertEventTypeCatalog,
+    AlertSubscriptionCatalog,
+)
+from boomerang.core.contracts.alert_services.earthquake import (
+    EARTHQUAKE_FEED_SERVICE_NAME,
+    EarthquakeFeedRpcProxy,
+)
+from boomerang.core.contracts.alert_normalized import (
+    ALERT_NORMALIZED_EVENT,
+    AlertArea,
+    NormalizedAlert,
+)
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationError,
@@ -15,6 +31,15 @@ __all__ = [
     "NotificationOutcome",
     "NotificationRequest",
     "CreateEmailEndpointRequest",
+    "ALERT_NORMALIZED_EVENT",
+    "EARTHQUAKE_FEED_SERVICE_NAME",
+    "EarthquakeFeedRpcProxy",
+    "GET_ALERT_SUBSCRIPTION_CATALOG_RPC",
     "AlertArea",
+    "AlertCategoryCatalog",
+    "AlertConnectorCatalog",
+    "AlertCriterionDescriptor",
+    "AlertEventTypeCatalog",
+    "AlertSubscriptionCatalog",
     "NormalizedAlert",
 ]

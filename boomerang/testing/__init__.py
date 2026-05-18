@@ -12,10 +12,13 @@ from boomerang.testing.mocks import (
 )
 
 __all__ = [
+    "http_base_url_from_config",
     "http_request",
     "repo_root",
     "safe_unlink",
     "start_kontiki_subprocess",
+    "stop_kontiki_subprocess",
+    "wait_for_http",
     "write_temp_config",
     "EmailNotifierServiceMock",
     "IdentityServiceMock",

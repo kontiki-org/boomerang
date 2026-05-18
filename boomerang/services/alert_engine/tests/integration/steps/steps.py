@@ -77,6 +77,8 @@ def step_alert_engine_calls_subscription_rpc(context):
     assert isinstance(args, (list, tuple)), f"Unexpected call format: {first_call}"
     assert len(args) >= 1, f"Unexpected RPC args payload: {args}"
     actual_args = args[0]
+    if hasattr(actual_args, "model_dump"):
+        actual_args = actual_args.model_dump(mode="json")
     normalized = _normalize_actual_for_placeholders(expected_args, actual_args)
     assert isinstance(normalized, dict), f"Unexpected alert args payload: {actual_args}"
     assert normalized == expected_args, (
@@ -125,7 +127,7 @@ def _assert_dispatch_event_published(context, event_type):
                 continue
             actual_payload = event.get("payload", {})
             if hasattr(actual_payload, "model_dump"):
-                actual_payload = actual_payload.model_dump()
+                actual_payload = actual_payload.model_dump(mode="json")
             sig = _dispatch_match_signature(event_type, actual_payload)
             if sig in matched:
                 continue

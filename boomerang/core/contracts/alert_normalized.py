@@ -1,9 +1,13 @@
+"""Canonical payload for the ``alert.normalized`` event."""
+
 from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+ALERT_NORMALIZED_EVENT = "alert.normalized"
 
 
 class AlertArea(BaseModel):
@@ -48,6 +52,14 @@ class NormalizedAlert(BaseModel):
         self.severity = (self.severity or "unknown").strip().lower() or "unknown"
         self.title = self.title.strip()
         self.body = self.body.strip()
+        normalized_attributes: dict[str, Any] = {}
+        for key, value in self.attributes.items():
+            if not isinstance(key, str):
+                continue
+            normalized_key = key.strip().lower()
+            if normalized_key:
+                normalized_attributes[normalized_key] = value
+        self.attributes = normalized_attributes
         if (
             not self.alert_id
             or not self.source

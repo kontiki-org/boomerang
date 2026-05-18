@@ -1,7 +1,74 @@
-from kontiki.messaging import on_event
+from kontiki.messaging import on_event, rpc
 from kontiki.testing import MockService
 
+from boomerang.core.contracts.alert_catalog import (
+    AlertCategoryCatalog,
+    AlertConnectorCatalog,
+    AlertCriterionDescriptor,
+    AlertEventTypeCatalog,
+)
+from boomerang.core.contracts.alert_services.earthquake import EARTHQUAKE_FEED_SERVICE_NAME
 from boomerang.testing import IdentityServiceMock
+
+WEATHER_ALERT_SERVICE_NAME = "weather-alert-service"
+
+
+def _earthquake_connector_catalog() -> AlertConnectorCatalog:
+    return AlertConnectorCatalog(
+        source_id=EARTHQUAKE_FEED_SERVICE_NAME,
+        categories=[
+            AlertCategoryCatalog(
+                category="natural.earthquake",
+                label="Earthquake",
+                event_types=[
+                    AlertEventTypeCatalog(
+                        event_type="earthquake",
+                        label="Earthquake",
+                        criteria=[
+                            AlertCriterionDescriptor(
+                                key="magnitude",
+                                label="Minimum magnitude",
+                                operators=["gte"],
+                                value_kind="number",
+                            ),
+                            AlertCriterionDescriptor(
+                                key="area.region",
+                                label="Region",
+                                operators=["eq", "contains"],
+                                value_kind="string",
+                            ),
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
+
+
+def _weather_connector_catalog() -> AlertConnectorCatalog:
+    return AlertConnectorCatalog(
+        source_id=WEATHER_ALERT_SERVICE_NAME,
+        categories=[
+            AlertCategoryCatalog(
+                category="weather.alert",
+                label="Weather",
+                event_types=[
+                    AlertEventTypeCatalog(
+                        event_type="wind",
+                        label="Wind",
+                        criteria=[
+                            AlertCriterionDescriptor(
+                                key="min_severity",
+                                label="Minimum severity",
+                                operators=["gte"],
+                                value_kind="string",
+                            ),
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
 
 
 class NotificationEventCatcher(MockService):
@@ -15,3 +82,19 @@ class NotificationEventCatcher(MockService):
                 "payload": payload,
             }
         )
+
+
+class EarthquakeFeedCatalogMock(MockService):
+    name = EARTHQUAKE_FEED_SERVICE_NAME
+
+    @rpc
+    async def get_alert_subscription_catalog(self):
+        return _earthquake_connector_catalog()
+
+
+class WeatherAlertCatalogMock(MockService):
+    name = WEATHER_ALERT_SERVICE_NAME
+
+    @rpc
+    async def get_alert_subscription_catalog(self):
+        return _weather_connector_catalog()

@@ -284,6 +284,8 @@ def step_rpc_response_is(context):
             f"Expected RPC success, got error: {context.last_rpc_error}"
         )
     actual = context.last_rpc_result
+    if hasattr(actual, "model_dump"):
+        actual = actual.model_dump(mode="json")
     normalized_actual = _normalize_actual_for_placeholders(expected, actual)
     assert (
         normalized_actual == expected
@@ -417,7 +419,7 @@ def step_rejected_response(context, status_code):
 
 @then("the get-subscriptions response is")
 @then("the get-channels response is")
-@then("the get-alerts response is")
+@then("the get-alert-catalog response is")
 def step_get_subscriptions_response(context):
     _assert_success_response(context)
 

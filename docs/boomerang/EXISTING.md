@@ -66,14 +66,22 @@ Boomerang is a **self-hostable alerting pipeline** built around:
 - **Owner**: upstream normalizers/connectors
 - **Consumed by**: `alert-engine-service`
 
-Minimum fields expected by the engine include:
-`alert_id`, `category`, `event_type`, `severity`, `areas`, `headline`, `message`,
-`effective_at`, `expires_at` (exact shape may evolve; see service README(s) for
-the canonical contract used by the engine).
+Canonical payload: `boomerang.core.contracts.alert_normalized.NormalizedAlert`
+(`schema_version=1.0`), published on topic `alert.normalized`.
 
-Phase 1 contract clarification introduces a canonical model for normalized alerts:
-`boomerang.core.contracts.alert_normalized.NormalizedAlert` (`schema_version=1.0`),
-with an extensible `attributes` map for producer-specific data.
+Required fields: `alert_id`, `source`, `category`, `event_type`, `severity`,
+`occurred_at`, `title`, `body`, `areas`, `attributes` (map for producer-specific
+data used by subscription criteria), optional `expires_at`.
+
+See `docs/boomerang/ALERT_CONTRACTS.md` for JSON examples.
+
+### Alert subscription catalog
+
+- Each alert connector implements RPC `get_alert_subscription_catalog` and returns
+  `AlertConnectorCatalog` (`boomerang.core.contracts.alert_catalog`).
+- `subscription-service` aggregates configured connectors (`app.alert_connectors`)
+  into `AlertSubscriptionCatalog` via RPC `get_alert_subscription_catalog` and
+  HTTP `GET /alert-catalog`.
 
 ### Notification request (per channel)
 

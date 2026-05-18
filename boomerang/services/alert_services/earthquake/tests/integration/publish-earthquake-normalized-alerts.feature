@@ -66,15 +66,21 @@ Feature: Publish earthquake feed as normalized alerts
       """
       {
         "alert_id": "usgs_usgs_ci_fixture_001",
+        "source": "earthquake-feed-service",
         "category": "natural.earthquake",
         "event_type": "earthquake",
         "severity": "moderate",
+        "occurred_at": "2024-03-09T16:00:00Z",
+        "title": "M 5.0 - Near Testville",
+        "body": "M 5.0 - Near Testville. Detail: https://earthquake.usgs.gov/earthquakes/eventpage/ci_fixture_001",
         "areas": [
           {"type": "region", "value": "DEMO-EARTHQUAKE-1"}
         ],
-        "headline": "M 5.0 - Near Testville",
-        "message": "M 5.0 - Near Testville. Detail: https://earthquake.usgs.gov/earthquakes/eventpage/ci_fixture_001",
-        "effective_at": "2024-03-09T16:00:00Z",
+        "attributes": {
+          "magnitude": 5.0,
+          "place": "Near Testville",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/ci_fixture_001"
+        },
         "expires_at": "2024-03-09T22:00:00Z"
       }
       """

@@ -1,20 +1,12 @@
 import re
 
 from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
-from kontiki.messaging import RpcClientError, RpcTimeoutError
+from boomerang_textual.api import rpc_error_message
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def _rpc_error_message(exc: Exception) -> str:
-    if isinstance(exc, (RpcClientError, RpcTimeoutError)):
-        if exc.code == "AUTH_ERROR":
-            return "Session expired or invalid. Please sign in again."
-        return exc.message or "Request rejected."
-    return str(exc)
 
 
 class EndpointsScreen(Static):
@@ -106,7 +98,7 @@ class EndpointsScreen(Static):
                 extra_headers=headers
             )
         except Exception as exc:
-            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            self.post_message(self.StatusMessage(rpc_error_message(exc), "error"))
             self._endpoints = []
             self._sync_table()
             return
@@ -158,7 +150,7 @@ class EndpointsScreen(Static):
                 extra_headers=headers,
             )
         except Exception as exc:
-            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            self.post_message(self.StatusMessage(rpc_error_message(exc), "error"))
             return
 
         key_input.value = ""
@@ -189,7 +181,7 @@ class EndpointsScreen(Static):
                 extra_headers=headers,
             )
         except Exception as exc:
-            self.post_message(self.StatusMessage(_rpc_error_message(exc), "error"))
+            self.post_message(self.StatusMessage(rpc_error_message(exc), "error"))
             return
 
         await self._reload_endpoints()

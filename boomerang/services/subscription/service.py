@@ -29,7 +29,7 @@ class SubscriptionService:
     }
 
     @rpc
-    async def get_recipients_for_alert(self, alert: dict):
+    async def get_recipients_for_alert(self, alert):
         return await self.delegate.get_recipients_for_alert(alert=alert)
 
     @rpc
@@ -72,15 +72,15 @@ class SubscriptionService:
         return await self.delegate.get_channels()
 
     @rpc
-    async def get_alerts(self):
-        return await self.delegate.get_alerts()
+    async def get_alert_subscription_catalog(self):
+        return await self.delegate.get_alert_subscription_catalog(self.messenger)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
     async def get_subscriptions(self, user_id, email, _headers):
         return await self.delegate.get_subscriptions(user_id)
 
-    @rpc
+
     # --------------------------------------------------------------------------
     # HTTP endpoints
     # --------------------------------------------------------------------------
@@ -134,7 +134,8 @@ class SubscriptionService:
         _ = request
         return await self.delegate.get_channels()
 
-    @http("/alerts", "GET", version="v1")
-    async def get_alerts_http(self, request):
+    @http("/alert-catalog", "GET", version="v1")
+    async def get_alert_subscription_catalog_http(self, request):
         _ = request
-        return await self.delegate.get_alerts()
+        catalog = await self.delegate.get_alert_subscription_catalog(self.messenger)
+        return catalog.model_dump(mode="json")

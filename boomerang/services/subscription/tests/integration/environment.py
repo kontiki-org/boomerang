@@ -1,12 +1,13 @@
-import os
 import time
 
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
 from boomerang.services.subscription.tests.integration.mocks import (
-    IdentityServiceMock,
+    EarthquakeFeedCatalogMock,
     NotificationEventCatcher,
+    WeatherAlertCatalogMock,
 )
+from boomerang.testing import IdentityServiceMock
 from boomerang.testing import safe_unlink
 
 
@@ -20,6 +21,8 @@ def before_all(context):
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
     context.manager.add(NotificationEventCatcher, default_config)
     context.manager.add(IdentityServiceMock, default_config)
+    context.manager.add(EarthquakeFeedCatalogMock, default_config)
+    context.manager.add(WeatherAlertCatalogMock, default_config)
     context.runner = MockServiceRunner(context.manager)
     context.runner.start()
     context.runner.ready_event.wait(timeout=10)

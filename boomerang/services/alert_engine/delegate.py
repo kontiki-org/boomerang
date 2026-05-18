@@ -1,3 +1,4 @@
+from boomerang.core.contracts.alert_normalized import NormalizedAlert
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationMessage,
@@ -7,17 +8,24 @@ from boomerang.core.contracts.subscription.service import SubscriptionRpcProxy
 
 
 class AlertEngineDelegate:
-    def _notification_requests_for_recipients(self, payload, recipients):
+    def _normalized_alert(self, payload) -> NormalizedAlert:
+        if isinstance(payload, NormalizedAlert):
+            return payload
+        return NormalizedAlert.model_validate(payload)
+
+    def _notification_requests_for_recipients(
+        self, alert: NormalizedAlert, recipients
+    ):
         message = NotificationMessage(
-            title=payload["headline"],
-            body=payload["message"],
+            title=alert.title,
+            body=alert.body,
             context=NotificationContext(
                 kind="alert",
                 data={
-                    "alert_id": payload["alert_id"],
-                    "category": payload["category"],
-                    "event_type": payload["event_type"],
-                    "severity": payload["severity"],
+                    "alert_id": alert.alert_id,
+                    "category": alert.category,
+                    "event_type": alert.event_type,
+                    "severity": alert.severity,
                 },
             ),
         )
@@ -47,11 +55,10 @@ class AlertEngineDelegate:
         return out
 
     async def process_normalized_alert(self, messenger, payload):
-        rpc_args = {"alert": payload}
-
-        rpc_client = SubscriptionRpcProxy(messenger)
-        recipients = await rpc_client.get_recipients_for_alert(**rpc_args)
+        alert = self._normalized_alert(payload)
+        recipients = await SubscriptionRpcProxy(messenger).get_recipients_for_alert(
+            alert=alert
+        )
         if not recipients:
             return []
-
-        return self._notification_requests_for_recipients(payload, recipients)
+        return self._notification_requests_for_recipients(alert, recipients)

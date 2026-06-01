@@ -2,7 +2,6 @@ from functools import wraps
 
 from kontiki.messaging import rpc_error
 
-from boomerang.core.authentication.auth_delegate import AuthSessionDelegate
 from boomerang.core.exceptions import AuthError
 
 
@@ -17,14 +16,11 @@ def requires_identity_auth_rpc(handler):
     async def wrapper(self, _headers, *args, **kwargs):
         if not isinstance(_headers, dict):
             return rpc_error(AuthError.code, AuthError.message)
-        auth_delegate = getattr(self, "auth_delegate", None)
-        if not isinstance(auth_delegate, AuthSessionDelegate):
-            return rpc_error(AuthError.code, AuthError.message)
         auth_header = _headers.get("Authorization", "")
         try:
             session = await require_authenticated_session(
                 auth_header=auth_header,
-                auth_delegate=auth_delegate,
+                auth_delegate=self.auth_delegate,
             )
         except AuthError:
             return rpc_error(AuthError.code, AuthError.message)
@@ -43,13 +39,10 @@ def requires_identity_auth_rpc(handler):
 def requires_identity_auth(handler):
     @wraps(handler)
     async def wrapper(self, request, *args, **kwargs):
-        auth_delegate = getattr(self, "auth_delegate", None)
-        if not isinstance(auth_delegate, AuthSessionDelegate):
-            raise AuthError()
         auth_header = request.headers.get("Authorization", "")
         session = await require_authenticated_session(
             auth_header=auth_header,
-            auth_delegate=auth_delegate,
+            auth_delegate=self.auth_delegate,
         )
         return await handler(
             self,

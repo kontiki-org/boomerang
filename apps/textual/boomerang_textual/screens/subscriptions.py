@@ -550,19 +550,19 @@ class SubscriptionsScreen(Static):
         for endpoint in subscription.get("endpoints", []):
             kind = endpoint.get("kind", "")
             endpoint_key = endpoint.get("endpoint_key", "")
-            address = ""
+            display = ""
             for available in self._available_endpoints:
                 if (
                     available.get("kind") == kind
                     and available.get("endpoint_key") == endpoint_key
                 ):
-                    address = available.get("address", "")
+                    display = available.get("display", "")
                     break
             self._selected_endpoints.append(
                 {
                     "kind": kind,
                     "endpoint_key": endpoint_key,
-                    "address": address,
+                    "display": display,
                 }
             )
         self._refresh_selected_endpoints_list()
@@ -577,10 +577,10 @@ class SubscriptionsScreen(Static):
         for endpoint in self._available_endpoints:
             kind = endpoint.get("kind", "").strip().lower()
             endpoint_key = endpoint.get("endpoint_key", "").strip()
-            address = endpoint.get("address", "").strip()
+            display = endpoint.get("display", "").strip()
             if not kind or not endpoint_key:
                 continue
-            label = f"{kind} | {endpoint_key} | {address or '-'}"
+            label = f"{kind} | {endpoint_key} | {display or '-'}"
             value = f"{kind}:{endpoint_key}"
             options.append((label, value))
         if not options:
@@ -626,9 +626,9 @@ class SubscriptionsScreen(Static):
             return
         self._selected_endpoints.append(
             {
-                "kind": endpoint["kind"],
-                "endpoint_key": endpoint["endpoint_key"],
-                "address": endpoint.get("address", ""),
+                    "kind": endpoint["kind"],
+                    "endpoint_key": endpoint["endpoint_key"],
+                    "display": endpoint.get("display", ""),
             }
         )
         self._refresh_selected_endpoints_list()
@@ -661,7 +661,7 @@ class SubscriptionsScreen(Static):
             selected_list.add_row(
                 endpoint.get("kind", "-"),
                 endpoint.get("endpoint_key", "-"),
-                endpoint.get("address", "-"),
+                endpoint.get("display", "-"),
             )
 
     @staticmethod

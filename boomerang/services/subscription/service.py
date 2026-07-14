@@ -7,6 +7,10 @@ from boomerang.core.authentication import (
     requires_identity_auth,
     requires_identity_auth_rpc,
 )
+from boomerang.core.contracts.notification_endpoint import (
+    CreateChannelEndpointRequest,
+    CreateEndpointRequest,
+)
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
@@ -14,6 +18,18 @@ from boomerang.core.contracts.subscription import (
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.subscription.delegate import SubscriptionDelegate
 from boomerang.core.contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
+
+
+def _authorization_headers(headers):
+    if headers is None:
+        return {}
+    if isinstance(headers, dict):
+        authorization = headers.get("Authorization") or headers.get("authorization")
+    else:
+        authorization = headers.get("Authorization") or headers.get("authorization")
+    if authorization:
+        return {"Authorization": authorization}
+    return {}
 
 
 class SubscriptionService:
@@ -68,22 +84,71 @@ class SubscriptionService:
             return rpc_error(exc.code, exc.message)
 
     @rpc
-    async def get_channels(self):
-        return await self.delegate.get_channels()
+    async def get_alert_subscription_catalog(self):
+        catalog = await self.delegate.get_alert_subscription_catalog(self.messenger)
+        return catalog.model_dump(mode="json")
 
     @rpc
-    async def get_alert_subscription_catalog(self):
-        return await self.delegate.get_alert_subscription_catalog(self.messenger)
+    async def get_notification_channels_catalog(self):
+        catalog = await self.delegate.get_notification_channels_catalog(self.messenger)
+        return catalog.model_dump(mode="json", exclude_none=True)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def create_endpoint(self, body, user_id, email, _headers):
+        _ = email
+        return await self.delegate.create_endpoint(
+            body,
+            user_id,
+            _authorization_headers(_headers),
+            self.messenger,
+        )
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def list_endpoints(self, user_id, email, _headers):
+        _ = email
+        return await self.delegate.list_endpoints(
+            user_id,
+            _authorization_headers(_headers),
+            self.messenger,
+        )
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def get_endpoint(self, channel_id, endpoint_key, user_id, email, _headers):
+        _ = email
+        try:
+            return await self.delegate.get_endpoint(
+                channel_id,
+                endpoint_key,
+                user_id,
+                _authorization_headers(_headers),
+                self.messenger,
+            )
+        except NotFoundError as exc:
+            return rpc_error(exc.code, exc.message)
+
+    @rpc(include_headers=True)
+    @requires_identity_auth_rpc
+    async def delete_endpoint(self, channel_id, endpoint_key, user_id, email, _headers):
+        _ = email
+        try:
+            return await self.delegate.delete_endpoint(
+                channel_id,
+                endpoint_key,
+                user_id,
+                _authorization_headers(_headers),
+                self.messenger,
+            )
+        except NotFoundError as exc:
+            return rpc_error(exc.code, exc.message)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
     async def get_subscriptions(self, user_id, email, _headers):
         return await self.delegate.get_subscriptions(user_id)
 
-
-    # --------------------------------------------------------------------------
-    # HTTP endpoints
-    # --------------------------------------------------------------------------
     @http(
         "/subscriptions",
         "POST",
@@ -129,13 +194,90 @@ class SubscriptionService:
         _ = email
         return await self.delegate.delete_subscription(subscription_id, user_id)
 
-    @http("/channels", "GET", version="v1")
-    async def get_channels_http(self, request):
-        _ = request
-        return await self.delegate.get_channels()
-
     @http("/alert-catalog", "GET", version="v1")
     async def get_alert_subscription_catalog_http(self, request):
         _ = request
         catalog = await self.delegate.get_alert_subscription_catalog(self.messenger)
         return catalog.model_dump(mode="json")
+
+    @http("/notification-channels/catalog", "GET", version="v1")
+    async def get_notification_channels_catalog_http(self, request):
+        _ = request
+        catalog = await self.delegate.get_notification_channels_catalog(self.messenger)
+        return catalog.model_dump(mode="json", exclude_none=True)
+
+    @http(
+        "/endpoints",
+        "POST",
+        version="v1",
+        request_model=CreateChannelEndpointRequest,
+        validate_request=True,
+        errors=[ValidationError, AuthError],
+    )
+    @requires_identity_auth
+    async def create_endpoint_http(self, request, body, user_id, email):
+        _ = (request, email)
+        return await self.delegate.create_endpoint(
+            body,
+            user_id,
+            _authorization_headers(request.headers),
+            self.messenger,
+        )
+
+    @http("/endpoints", "GET", version="v1", errors=[AuthError])
+    @requires_identity_auth
+    async def list_endpoints_http(self, request, user_id, email):
+        _ = email
+        return await self.delegate.list_endpoints(
+            user_id,
+            _authorization_headers(request.headers),
+            self.messenger,
+        )
+
+    @http(
+        "/endpoints/{channel_id}/{endpoint_key}",
+        "GET",
+        version="v1",
+        errors=[AuthError, ValidationError, NotFoundError],
+    )
+    @requires_identity_auth
+    async def get_endpoint_http(
+        self,
+        request,
+        channel_id,
+        endpoint_key,
+        user_id,
+        email,
+    ):
+        _ = email
+        return await self.delegate.get_endpoint(
+            channel_id,
+            endpoint_key,
+            user_id,
+            _authorization_headers(request.headers),
+            self.messenger,
+        )
+
+    @http(
+        "/endpoints/{channel_id}/{endpoint_key}",
+        "DELETE",
+        version="v1",
+        errors=[AuthError, ValidationError, NotFoundError],
+    )
+    @requires_identity_auth
+    async def delete_endpoint_http(
+        self,
+        request,
+        channel_id,
+        endpoint_key,
+        user_id,
+        email,
+    ):
+        _ = email
+        return await self.delegate.delete_endpoint(
+            channel_id,
+            endpoint_key,
+            user_id,
+            _authorization_headers(request.headers),
+            self.messenger,
+        )

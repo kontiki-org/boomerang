@@ -6,13 +6,20 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
+from boomerang.core.contracts.notification_endpoint import (
+    CreateChannelEndpointRequest,
+    CreateEndpointRequest,
+)
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
 from boomerang.services.subscription.tests.integration.utils import (
+    configured_notification_channels,
+    email_notifier_config_for_subscription_tests,
     http_request,
     register_identity_session,
+    start_email_notifier_subprocess,
     start_subscription_subprocess,
 )
 
@@ -193,6 +200,32 @@ def step_subscription_running_with_config(context):
         if db_path.exists():
             db_path.unlink()
 
+    if "email-notifier-service" in configured_notification_channels(config):
+        email_config = email_notifier_config_for_subscription_tests()
+        email_sqlite_path = (
+            email_config.get("app", {}).get("storage", {}).get("sqlite_path")
+        )
+        context.email_notifier_sqlite_path = email_sqlite_path
+        if email_sqlite_path:
+            email_db_path = Path(email_sqlite_path)
+            if email_db_path.parent:
+                email_db_path.parent.mkdir(parents=True, exist_ok=True)
+            if email_db_path.exists():
+                email_db_path.unlink()
+        email_proc, email_config_path = start_email_notifier_subprocess(email_config)
+        context.email_notifier_process = email_proc
+        context.email_notifier_config_path = email_config_path
+        time.sleep(5)
+        if email_proc.poll() is not None:
+            stderr = (
+                email_proc.stderr.read().decode(errors="replace")
+                if email_proc.stderr
+                else ""
+            ) or "(empty)"
+            raise RuntimeError(
+                "Email notifier subprocess exited before step. stderr:\n%s" % stderr
+            )
+
     proc, config_path = start_subscription_subprocess(config)
     context.subscription_process = proc
     context.subscription_config_path = config_path
@@ -216,6 +249,10 @@ def step_i_am_authenticated_as(context, email):
 @when("I call {method} on the subscription service on {url} with the following request")
 def step_call_request_on_subscription_service_with_request(context, method, url):
     headers, payload = _parse_request_block(context)
+    token = getattr(context, "last_access_token", None)
+    if token:
+        headers = headers or {}
+        headers.setdefault("Authorization", f"Bearer {token}")
     resolved_url = _resolve_placeholders(url, context)
     status, body = http_request(method, resolved_url, payload=payload, headers=headers)
     context.last_http_status = status
@@ -240,6 +277,8 @@ def step_call_rpc_on_subscription_service(context, method_name):
                 payload["body"] = CreateSubscriptionRequest(**body_dict)
             elif method_name == "update_subscription":
                 payload["body"] = UpdateSubscriptionRequest(**body_dict)
+            elif method_name == "create_endpoint":
+                payload["body"] = CreateChannelEndpointRequest(**body_dict)
     context.last_rpc_error = None
     try:
         context.last_rpc_result = context.runner.call(
@@ -311,6 +350,7 @@ def step_rpc_call_fails_with_error_code(context, error_code):
 
 
 @then("the attach_channel_endpoint request is rejected due to validation error")
+@then("the RPC request is rejected due to validation error")
 def step_attach_channel_endpoint_validation_error(context):
     expected = json.loads(context.text.strip()) if context.text else {}
     error = context.last_rpc_error
@@ -404,6 +444,8 @@ def step_event_is_published(context, event_type):
 @then("the create-subscriptions call is rejected with HTTP {status_code:d}")
 @then("the update-subscription call is rejected with HTTP {status_code:d}")
 @then("the delete-subscription call is rejected with HTTP {status_code:d}")
+@then("the create-endpoint call is rejected with HTTP {status_code:d}")
+@then("the get-endpoint call is rejected with HTTP {status_code:d}")
 def step_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (
@@ -418,8 +460,12 @@ def step_rejected_response(context, status_code):
 
 
 @then("the get-subscriptions response is")
-@then("the get-channels response is")
+@then("the get-notification-channels-catalog response is")
 @then("the get-alert-catalog response is")
+@then("the create-endpoint response is")
+@then("the list-endpoints response is")
+@then("the get-endpoint response is")
+@then("the delete-endpoint response is")
 def step_get_subscriptions_response(context):
     _assert_success_response(context)
 

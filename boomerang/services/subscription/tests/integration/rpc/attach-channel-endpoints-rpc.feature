@@ -34,9 +34,6 @@ Feature: Attach channel endpoints via RPC
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - email
-          - sms
       """
 
   Scenario: Reject attach endpoint operation

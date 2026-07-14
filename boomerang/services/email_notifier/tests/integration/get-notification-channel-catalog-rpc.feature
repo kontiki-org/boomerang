@@ -1,8 +1,8 @@
-@email_endpoints_rpc
-Feature: Create or update email endpoints via authenticated RPC
-  In order to allow internal services to manage user email destinations
-  As a trusted Boomerang service
-  I want to create or update user email endpoints over authenticated RPC
+@notification_channel_catalog_rpc
+Feature: Expose email notification channel catalog via RPC
+  In order to configure endpoints from the platform catalog
+  As email-notifier-service
+  I want to return notification channel field metadata over RPC
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -45,31 +45,27 @@ Feature: Create or update email endpoints via authenticated RPC
             address: no-reply@example.org
       """
 
-  @identity_sessions_1
-  Scenario: Create a new email endpoint for the authenticated user via RPC
-    Given I am authenticated as "user@example.org"
-    When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
+  Scenario: Return notification channel catalog for email
+    When I call the RPC get_notification_channel_catalog on the email-notifier service with the following arguments
       """
-      {
-        "body": {
-          "endpoint_key": "work",
-          "address": "user.work@example.org"
-        },
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
-      }
+      {}
       """
     Then the RPC response is
       """
       {
-        "endpoint": {
-          "user_id": "[USER_ID]",
-          "endpoint_key": "work",
-          "address": "user.work@example.org"
-        }
+        "channel_id": "email",
+        "label": "Email",
+        "service_name": "email-notifier-service",
+        "summary_field": "address",
+        "fields": [
+          {
+            "key": "address",
+            "label": "Destination",
+            "field_type": "email",
+            "required": true,
+            "placeholder": "email address (example: user@example.org)",
+            "display_in_list": true
+          }
+        ]
       }
       """
-    And the "email_endpoints" table should contain
-      | user_id   | endpoint_key | address               |
-      | [USER_ID] | work         | user.work@example.org |

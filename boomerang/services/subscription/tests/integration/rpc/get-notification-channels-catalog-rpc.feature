@@ -1,10 +1,10 @@
-@channels
-Feature: Get allowed channels from configuration
-  In order to configure notification destinations consistently
-  As a Boomerang subscription user
-  I want to get only channels allowed by service configuration
+@notification_channels_catalog_rpc
+Feature: Get aggregated notification channels catalog via RPC
+  In order to configure endpoints from the platform
+  As a Boomerang client
+  I want the subscription service to aggregate notifier channel catalogs
 
-  Scenario: Get configured channels
+  Scenario: Aggregate catalogs from configured notification channels
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -34,27 +34,39 @@ Feature: Get allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - email
-          - sms
-          - slack
+        notification_channels:
+          - email-notifier-service
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
       """
       {}
       """
-    Then the get-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
-        "items": [
-          "email",
-          "sms",
-          "slack"
+        "channels": [
+          {
+            "channel_id": "email",
+            "label": "Email",
+            "service_name": "email-notifier-service",
+            "summary_field": "address",
+            "fields": [
+              {
+                "key": "address",
+                "label": "Destination",
+                "field_type": "email",
+                "required": true,
+                "placeholder": "email address (example: user@example.org)",
+                "display_in_list": true
+              }
+            ]
+          }
         ]
       }
       """
 
-  Scenario: Return empty list when no channel is configured
+  Scenario: Return empty catalog when no notification channel is configured
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -84,20 +96,21 @@ Feature: Get allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels: []
+        notification_channels: []
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
       """
       {}
       """
-    Then the get-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
-        "items": []
+        "channels": []
       }
       """
 
-  Scenario: Normalize configured channels and ignore invalid entries
+  Scenario: Normalize configured notification channels and ignore invalid entries
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -127,25 +140,37 @@ Feature: Get allowed channels from configuration
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - " Email "
+        notification_channels:
+          - " email-notifier-service "
           - ""
           - "  "
           - 12
-          - SMS
-          - "slack"
       """
-    When I call GET on the subscription service on http://127.0.0.1:8000/channels with the following request
+    When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
       """
       {}
       """
-    Then the get-channels response is
+    Then the RPC call succeeds
+    And the RPC response is
       """
       {
-        "items": [
-          "email",
-          "sms",
-          "slack"
+        "channels": [
+          {
+            "channel_id": "email",
+            "label": "Email",
+            "service_name": "email-notifier-service",
+            "summary_field": "address",
+            "fields": [
+              {
+                "key": "address",
+                "label": "Destination",
+                "field_type": "email",
+                "required": true,
+                "placeholder": "email address (example: user@example.org)",
+                "display_in_list": true
+              }
+            ]
+          }
         ]
       }
       """

@@ -13,9 +13,8 @@ app:
     backend: sqlite
     sqlite_path: /data/subscriptions.db
 
-  # Limit core stack to email channel (no SMS).
-  channels:
-    - email
-
   alert_connectors:
     - earthquake-feed-service
+
+  notification_channels:
+    - email-notifier-service

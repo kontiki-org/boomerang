@@ -1,8 +1,8 @@
-@email_endpoints_http
-Feature: Create or update email endpoints via HTTP
-  In order to deliver email notifications to the right destinations
-  As an email provider service
-  I want to create or update user email endpoints over HTTP
+@notification_endpoints_rpc
+Feature: Create or update notification endpoints via authenticated RPC
+  In order to allow internal services to manage user notification destinations
+  As a trusted Boomerang service
+  I want to create or update user endpoints over authenticated RPC
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -45,68 +45,61 @@ Feature: Create or update email endpoints via HTTP
             address: no-reply@example.org
       """
 
-  Scenario: Create a new email endpoint for a user
+  @identity_sessions_1
+  Scenario: Create a new email endpoint for the authenticated user via RPC
     Given I am authenticated as "user@example.org"
-    When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call the RPC create_endpoint on the email-notifier service with the following arguments
       """
       {
-        "payload": {
+        "body": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
         }
       }
       """
-    Then the create-email-endpoint response is
+    Then the RPC response is
       """
       {
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
-    Then the "email_endpoints" table should contain
+    And the "email_endpoints" table should contain
       | user_id   | endpoint_key | address               |
       | [USER_ID] | work         | user.work@example.org |
 
-  Scenario: Second call with same user and key updates the endpoint
+  @identity_sessions_1
+  Scenario: Reject invalid endpoint fields
     Given I am authenticated as "user@example.org"
-      When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call the RPC create_endpoint on the email-notifier service with the following arguments
       """
       {
-        "payload": {
+        "body": {
           "endpoint_key": "work",
-          "address": "new.address@example.org"
+          "fields": {
+            "address": "not-an-email"
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
         }
       }
       """
-    Then the create-email-endpoint response is
+    Then the RPC request is rejected due to validation error
       """
       {
-        "endpoint": {
-          "user_id": "[USER_ID]",
-          "endpoint_key": "work",
-          "address": "new.address@example.org"
-        }
-      }
-      """
-    Then the "email_endpoints" table should contain
-      | user_id   | endpoint_key | address                 |
-      | [USER_ID] | work         | new.address@example.org |
-
-  Scenario: Reject invalid payload when required fields are missing
-    Given I am authenticated as "user@example.org"
-    When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
-      """
-      {
-        "payload": {}
-      }
-      """
-    Then the create-email-endpoint call is rejected with HTTP 422
-      """
-      {
+        "code": "INTERNAL_ERROR",
         "message": "Invalid request payload."
       }
       """
-

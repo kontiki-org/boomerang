@@ -22,7 +22,18 @@ from boomerang.core.contracts.notification import (
     NotificationOutcome,
     NotificationRequest,
 )
-from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
+from boomerang.core.contracts.notification_channel_catalog import (
+    GET_NOTIFICATION_CHANNEL_CATALOG_RPC,
+    GET_NOTIFICATION_CHANNELS_CATALOG_RPC,
+    ChannelFieldChoice,
+    ChannelFieldDescriptor,
+    NotificationChannelCatalog,
+    NotificationChannelsCatalog,
+)
+from boomerang.core.contracts.notification_endpoint import (
+    CreateChannelEndpointRequest,
+    CreateEndpointRequest,
+)
 
 __all__ = [
     "NotificationContext",
@@ -30,7 +41,14 @@ __all__ = [
     "NotificationMessage",
     "NotificationOutcome",
     "NotificationRequest",
-    "CreateEmailEndpointRequest",
+    "CreateEndpointRequest",
+    "CreateChannelEndpointRequest",
+    "GET_NOTIFICATION_CHANNEL_CATALOG_RPC",
+    "GET_NOTIFICATION_CHANNELS_CATALOG_RPC",
+    "ChannelFieldChoice",
+    "ChannelFieldDescriptor",
+    "NotificationChannelCatalog",
+    "NotificationChannelsCatalog",
     "ALERT_NORMALIZED_EVENT",
     "EARTHQUAKE_FEED_SERVICE_NAME",
     "EarthquakeFeedRpcProxy",

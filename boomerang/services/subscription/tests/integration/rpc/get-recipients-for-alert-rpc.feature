@@ -34,9 +34,6 @@ Feature: Get recipients for alert via RPC
         storage:
           backend: sqlite
           sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        channels:
-          - email
-          - sms
       """
 
   Scenario: Return matching recipient for exact area and category

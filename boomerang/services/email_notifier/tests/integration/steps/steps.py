@@ -10,7 +10,7 @@ from behave import given, then, when
 from kontiki.messaging import Messenger
 from kontiki.registry.client.proxy import ServiceRegistryProxy
 
-from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
+from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
@@ -254,10 +254,10 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
 def step_call_rpc_on_email_notifier_service(context, method_name):
     payload_text = _resolve_placeholders(context.text.strip(), context)
     payload = json.loads(payload_text) if payload_text else {}
-    if isinstance(payload, dict) and method_name == "create_email_endpoint":
+    if isinstance(payload, dict) and method_name == "create_endpoint":
         body_dict = payload.get("body")
         if isinstance(body_dict, dict):
-            payload["body"] = CreateEmailEndpointRequest(**body_dict)
+            payload["body"] = CreateEndpointRequest(**body_dict)
     extra_headers = None
     if isinstance(payload, dict) and "headers" in payload:
         extra_headers = payload.pop("headers")
@@ -274,23 +274,23 @@ def step_call_rpc_on_email_notifier_service(context, method_name):
         context.last_rpc_error = exc
 
 
-@then("the create-email-endpoint response is")
-def step_create_email_endpoint_success_response(context):
+@then("the create-endpoint response is")
+def step_create_endpoint_success_response(context):
     _assert_success_response(context)
 
 
-@then("the list-email-endpoints response is")
-def step_list_email_endpoints_success_response(context):
+@then("the list-endpoints response is")
+def step_list_endpoints_success_response(context):
     _assert_success_response(context)
 
 
-@then("the get-email-endpoint response is")
-def step_get_email_endpoint_success_response(context):
+@then("the get-endpoint response is")
+def step_get_endpoint_success_response(context):
     _assert_success_response(context)
 
 
-@then("the delete-email-endpoint response is")
-def step_delete_email_endpoint_success_response(context):
+@then("the delete-endpoint response is")
+def step_delete_endpoint_success_response(context):
     _assert_success_response(context)
 
 
@@ -433,8 +433,8 @@ def step_registry_eventually_reports_degraded(context):
     )
 
 
-@then("the create-email-endpoint call is rejected with HTTP {status_code:d}")
-def step_create_email_endpoint_rejected_response(context, status_code):
+@then("the create-endpoint call is rejected with HTTP {status_code:d}")
+def step_create_endpoint_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (
         status == status_code
@@ -447,8 +447,8 @@ def step_create_email_endpoint_rejected_response(context, status_code):
         ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
 
 
-@then("the get-email-endpoint call is rejected with HTTP {status_code:d}")
-def step_get_email_endpoint_rejected_response(context, status_code):
+@then("the get-endpoint call is rejected with HTTP {status_code:d}")
+def step_get_endpoint_rejected_response(context, status_code):
     status, body = _last_response(context)
     assert (
         status == status_code

@@ -13,7 +13,7 @@ from boomerang.core.contracts.notification import (
     NotificationOutcome,
     NotificationRequest,
 )
-from boomerang.core.contracts.email_notifier import CreateEmailEndpointRequest
+from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
 from boomerang.core.contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
@@ -31,92 +31,86 @@ class EmailNotifierService:
         NotFoundError: (404, NotFoundError.message),
     }
 
-    # --------------------------------------------------------------------------
-    # RPC endpoints
-    # --------------------------------------------------------------------------
+    @rpc
+    async def get_notification_channel_catalog(self):
+        catalog = await self.delegate.get_notification_channel_catalog()
+        return catalog.model_dump(mode="json", exclude_none=True)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
-    async def create_email_endpoint(self, body, user_id, email, _headers):
+    async def create_endpoint(self, body, user_id, email, _headers):
         _ = (email, _headers)
-        return await self.delegate.create_email_endpoint(user_id, body)
+        return await self.delegate.create_endpoint(user_id, body)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
-    async def list_email_endpoints(self, user_id, email, _headers):
+    async def list_endpoints(self, user_id, email, _headers):
         _ = (email, _headers)
-        return await self.delegate.list_email_endpoints(user_id)
+        return await self.delegate.list_endpoints(user_id)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
-    async def get_email_endpoint(self, endpoint_key, user_id, email, _headers):
+    async def get_endpoint(self, endpoint_key, user_id, email, _headers):
         _ = (email, _headers)
         try:
-            return await self.delegate.get_email_endpoint(user_id, endpoint_key)
+            return await self.delegate.get_endpoint(user_id, endpoint_key)
         except NotFoundError as exc:
             return rpc_error(exc.code, exc.message)
 
     @rpc(include_headers=True)
     @requires_identity_auth_rpc
-    async def delete_email_endpoint(self, endpoint_key, user_id, email, _headers):
+    async def delete_endpoint(self, endpoint_key, user_id, email, _headers):
         _ = (email, _headers)
         try:
-            return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
+            return await self.delegate.delete_endpoint(user_id, endpoint_key)
         except NotFoundError as exc:
             return rpc_error(exc.code, exc.message)
 
-    # --------------------------------------------------------------------------
-    # HTTP endpoints
-    # --------------------------------------------------------------------------
     @http(
-        "/email/endpoints",
+        "/endpoints",
         "POST",
         version="v1",
-        request_model=CreateEmailEndpointRequest,
+        request_model=CreateEndpointRequest,
         validate_request=True,
         errors=[ValidationError, AuthError],
     )
     @requires_identity_auth
-    async def create_email_endpoint_http(self, request, body, user_id, email):
+    async def create_endpoint_http(self, request, body, user_id, email):
         _ = (request, email)
-        return await self.delegate.create_email_endpoint(user_id, body)
+        return await self.delegate.create_endpoint(user_id, body)
 
     @http(
-        "/email/endpoints",
+        "/endpoints",
         "GET",
         version="v1",
         errors=[AuthError],
     )
     @requires_identity_auth
-    async def list_email_endpoints_http(self, request, user_id, email):
+    async def list_endpoints_http(self, request, user_id, email):
         _ = (request, email)
-        return await self.delegate.list_email_endpoints(user_id)
+        return await self.delegate.list_endpoints(user_id)
 
     @http(
-        "/email/endpoints/{endpoint_key}",
+        "/endpoints/{endpoint_key}",
         "GET",
         version="v1",
         errors=[AuthError, ValidationError, NotFoundError],
     )
     @requires_identity_auth
-    async def get_email_endpoint_http(self, request, endpoint_key, user_id, email):
+    async def get_endpoint_http(self, request, endpoint_key, user_id, email):
         _ = (request, email)
-        return await self.delegate.get_email_endpoint(user_id, endpoint_key)
+        return await self.delegate.get_endpoint(user_id, endpoint_key)
 
     @http(
-        "/email/endpoints/{endpoint_key}",
+        "/endpoints/{endpoint_key}",
         "DELETE",
         version="v1",
         errors=[AuthError, ValidationError, NotFoundError],
     )
     @requires_identity_auth
-    async def delete_email_endpoint_http(self, request, endpoint_key, user_id, email):
+    async def delete_endpoint_http(self, request, endpoint_key, user_id, email):
         _ = (request, email)
-        return await self.delegate.delete_email_endpoint(user_id, endpoint_key)
-
-    # --------------------------------------------------------------------------
-    # Internal system endpoints
-    # --------------------------------------------------------------------------
+        return await self.delegate.delete_endpoint(user_id, endpoint_key)
 
     @rpc
     async def ensure_auth_email_endpoint(

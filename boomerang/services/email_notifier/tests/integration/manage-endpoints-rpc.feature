@@ -1,8 +1,8 @@
-@email_endpoints_rpc
-Feature: Manage email endpoints via authenticated RPC
-  In order to manage email delivery destinations
+@notification_endpoints_rpc
+Feature: Manage notification endpoints via authenticated RPC
+  In order to manage notification delivery destinations
   As a trusted Boomerang service
-  I want to list, retrieve and delete email endpoints over authenticated RPC
+  I want to list, retrieve and delete endpoints over authenticated RPC
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -48,12 +48,14 @@ Feature: Manage email endpoints via authenticated RPC
   @identity_sessions_1
   Scenario: List endpoints for the authenticated user
     Given I am authenticated as "user@example.org"
-    When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC create_endpoint on the email-notifier service with the following arguments
       """
       {
         "body": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         },
         "headers": {
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
@@ -66,11 +68,14 @@ Feature: Manage email endpoints via authenticated RPC
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
-    When I call the RPC list_email_endpoints on the email-notifier service with the following arguments
+    When I call the RPC list_endpoints on the email-notifier service with the following arguments
       """
       {
         "headers": {
@@ -85,7 +90,10 @@ Feature: Manage email endpoints via authenticated RPC
           {
             "user_id": "[USER_ID]",
             "endpoint_key": "work",
-            "address": "user.work@example.org"
+            "fields": {
+              "address": "user.work@example.org"
+            },
+            "display": "user.work@example.org"
           }
         ]
       }
@@ -97,12 +105,14 @@ Feature: Manage email endpoints via authenticated RPC
   @identity_sessions_1
   Scenario: Retrieve an endpoint by key
     Given I am authenticated as "user@example.org"
-    When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC create_endpoint on the email-notifier service with the following arguments
       """
       {
         "body": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         },
         "headers": {
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
@@ -115,11 +125,14 @@ Feature: Manage email endpoints via authenticated RPC
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
-    When I call the RPC get_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC get_endpoint on the email-notifier service with the following arguments
       """
       {
         "endpoint_key": "work",
@@ -134,7 +147,10 @@ Feature: Manage email endpoints via authenticated RPC
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
@@ -145,12 +161,14 @@ Feature: Manage email endpoints via authenticated RPC
   @identity_sessions_1
   Scenario: Delete an endpoint
     Given I am authenticated as "user@example.org"
-    When I call the RPC create_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC create_endpoint on the email-notifier service with the following arguments
       """
       {
         "body": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         },
         "headers": {
           "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
@@ -163,11 +181,14 @@ Feature: Manage email endpoints via authenticated RPC
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
-    When I call the RPC delete_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC delete_endpoint on the email-notifier service with the following arguments
       """
       {
         "endpoint_key": "work",
@@ -180,7 +201,7 @@ Feature: Manage email endpoints via authenticated RPC
       """
       {}
       """
-    When I call the RPC list_email_endpoints on the email-notifier service with the following arguments
+    When I call the RPC list_endpoints on the email-notifier service with the following arguments
       """
       {
         "headers": {
@@ -200,7 +221,7 @@ Feature: Manage email endpoints via authenticated RPC
   @identity_sessions_1
   Scenario: Reject retrieval of an unknown endpoint
     Given I am authenticated as "user@example.org"
-    When I call the RPC get_email_endpoint on the email-notifier service with the following arguments
+    When I call the RPC get_endpoint on the email-notifier service with the following arguments
       """
       {
         "endpoint_key": "missing",

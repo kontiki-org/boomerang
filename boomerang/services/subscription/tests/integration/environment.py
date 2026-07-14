@@ -16,6 +16,9 @@ def before_all(context):
     context.subscription_process = None
     context.subscription_config_path = None
     context.subscription_sqlite_path = None
+    context.email_notifier_process = None
+    context.email_notifier_config_path = None
+    context.email_notifier_sqlite_path = None
 
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
@@ -36,11 +39,22 @@ def after_scenario(context, scenario):
         context.subscription_process.wait(timeout=5)
         context.subscription_process = None
 
+    if getattr(context, "email_notifier_process", None) is not None:
+        context.email_notifier_process.terminate()
+        context.email_notifier_process.wait(timeout=5)
+        context.email_notifier_process = None
+
     safe_unlink(context.subscription_config_path)
     context.subscription_config_path = None
 
+    safe_unlink(getattr(context, "email_notifier_config_path", None))
+    context.email_notifier_config_path = None
+
     safe_unlink(context.subscription_sqlite_path)
     context.subscription_sqlite_path = None
+
+    safe_unlink(getattr(context, "email_notifier_sqlite_path", None))
+    context.email_notifier_sqlite_path = None
 
     context.manager.clean_events("notification-event-catcher")
     # Prevent RPC return values/calls from leaking between scenarios.

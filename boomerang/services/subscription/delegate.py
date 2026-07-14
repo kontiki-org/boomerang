@@ -2,25 +2,47 @@ import logging
 
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import RpcProxy
+from kontiki.messaging import RpcClientError, RpcProxy
 
 from boomerang.core.contracts.alert_catalog import (
     AlertConnectorCatalog,
     AlertSubscriptionCatalog,
 )
 from boomerang.core.contracts.alert_normalized import NormalizedAlert
+from boomerang.core.contracts.notification_channel_catalog import (
+    NotificationChannelCatalog,
+    NotificationChannelsCatalog,
+)
+from boomerang.core.contracts.notification_endpoint import (
+    CreateChannelEndpointRequest,
+    CreateEndpointRequest,
+)
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
-from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.database import Database
+
+
+def _reraise_proxy_rpc_error(exc: RpcClientError) -> None:
+    if exc.code == NotFoundError.code:
+        raise NotFoundError() from exc
+    if exc.code == ValidationError.code:
+        raise ValidationError() from exc
+    raise exc
 
 
 def _connector_catalog_from_rpc_result(raw) -> AlertConnectorCatalog:
     if isinstance(raw, AlertConnectorCatalog):
         return raw
     return AlertConnectorCatalog.model_validate(raw)
+
+
+def _channel_catalog_from_rpc_result(raw) -> NotificationChannelCatalog:
+    if isinstance(raw, NotificationChannelCatalog):
+        return raw
+    return NotificationChannelCatalog.model_validate(raw)
 
 
 class SubscriptionDelegate(ServiceDelegate):
@@ -35,10 +57,6 @@ class SubscriptionDelegate(ServiceDelegate):
             "app.storage.sqlite_path",
             "/data/subscriptions.db",
         )
-        configured_channels = get_parameter(self.container.config, "app.channels", [])
-        self._configured_channels = (
-            configured_channels if isinstance(configured_channels, list) else []
-        )
         configured_connectors = get_parameter(
             self.container.config, "app.alert_connectors", []
         )
@@ -49,15 +67,28 @@ class SubscriptionDelegate(ServiceDelegate):
                     name = entry.strip()
                     if name:
                         self._alert_connectors.append(name)
+        configured_notification_channels = get_parameter(
+            self.container.config,
+            "app.notification_channels",
+            [],
+        )
+        self._notification_channels = []
+        if isinstance(configured_notification_channels, list):
+            for entry in configured_notification_channels:
+                if isinstance(entry, str):
+                    name = entry.strip()
+                    if name:
+                        self._notification_channels.append(name)
         if self._storage_backend != "sqlite":
             raise RuntimeError("Unsupported storage backend for MVP.")
         self._database = Database(self._sqlite_path)
         self._database.setup()
         logging.info(
-            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s)",
+            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s notification_channels=%s)",
             self._storage_backend,
             self._sqlite_path,
             self._alert_connectors,
+            self._notification_channels,
         )
 
     async def get_alert_subscription_catalog(self, messenger) -> AlertSubscriptionCatalog:
@@ -67,6 +98,106 @@ class SubscriptionDelegate(ServiceDelegate):
             raw = await proxy.get_alert_subscription_catalog()
             sources.append(_connector_catalog_from_rpc_result(raw))
         return AlertSubscriptionCatalog(sources=sources)
+
+    async def get_notification_channels_catalog(
+        self,
+        messenger,
+    ) -> NotificationChannelsCatalog:
+        channels: list[NotificationChannelCatalog] = []
+        for service_name in self._notification_channels:
+            proxy = RpcProxy(messenger, service_name)
+            raw = await proxy.get_notification_channel_catalog()
+            channels.append(_channel_catalog_from_rpc_result(raw))
+        return NotificationChannelsCatalog(channels=channels)
+
+    async def create_endpoint(
+        self,
+        body: CreateChannelEndpointRequest,
+        user_id: str,
+        headers,
+        messenger,
+    ):
+        if not isinstance(body, CreateChannelEndpointRequest):
+            body = CreateChannelEndpointRequest.model_validate(body)
+
+        catalog = await self._channel_catalog_for_id(body.channel_id, messenger)
+        if catalog is None:
+            raise ValidationError()
+
+        request = CreateEndpointRequest(
+            endpoint_key=body.endpoint_key,
+            fields=body.fields,
+        )
+        proxy = RpcProxy(messenger, catalog.service_name)
+        try:
+            result = await proxy.create_endpoint(
+                body=request,
+                extra_headers=headers,
+            )
+        except RpcClientError as exc:
+            _reraise_proxy_rpc_error(exc)
+        return self._with_channel_id(body.channel_id, result)
+
+    async def list_endpoints(self, user_id, headers, messenger):
+        _ = user_id
+        catalog = await self.get_notification_channels_catalog(messenger)
+        endpoints = []
+        for channel in catalog.channels:
+            proxy = RpcProxy(messenger, channel.service_name)
+            try:
+                result = await proxy.list_endpoints(extra_headers=headers)
+            except RpcClientError as exc:
+                _reraise_proxy_rpc_error(exc)
+            for endpoint in result.get("endpoints", []):
+                endpoints.append(
+                    self._endpoint_with_channel(channel.channel_id, endpoint)
+                )
+        return {"endpoints": endpoints}
+
+    async def get_endpoint(
+        self,
+        channel_id: str,
+        endpoint_key: str,
+        user_id,
+        headers,
+        messenger,
+    ):
+        _ = user_id
+        catalog = await self._channel_catalog_for_id(channel_id, messenger)
+        if catalog is None:
+            raise ValidationError()
+
+        proxy = RpcProxy(messenger, catalog.service_name)
+        try:
+            result = await proxy.get_endpoint(
+                endpoint_key=endpoint_key,
+                extra_headers=headers,
+            )
+        except RpcClientError as exc:
+            _reraise_proxy_rpc_error(exc)
+        return self._with_channel_id(channel_id, result)
+
+    async def delete_endpoint(
+        self,
+        channel_id: str,
+        endpoint_key: str,
+        user_id,
+        headers,
+        messenger,
+    ):
+        _ = user_id
+        catalog = await self._channel_catalog_for_id(channel_id, messenger)
+        if catalog is None:
+            raise ValidationError()
+
+        proxy = RpcProxy(messenger, catalog.service_name)
+        try:
+            return await proxy.delete_endpoint(
+                endpoint_key=endpoint_key,
+                extra_headers=headers,
+            )
+        except RpcClientError as exc:
+            _reraise_proxy_rpc_error(exc)
 
     async def get_recipients_for_alert(self, alert):
         if not isinstance(alert, NormalizedAlert):
@@ -121,15 +252,33 @@ class SubscriptionDelegate(ServiceDelegate):
             raise NotFoundError()
         return {"status": "deleted"}
 
-    async def get_channels(self):
-        items = []
-        for entry in self._configured_channels:
-            if isinstance(entry, str):
-                channel = entry.strip().lower()
-            else:
-                channel = ""
+    async def _channel_catalog_for_id(
+        self,
+        channel_id: str,
+        messenger,
+    ) -> NotificationChannelCatalog | None:
+        normalized_channel_id = (channel_id or "").strip().lower()
+        if not normalized_channel_id:
+            return None
+        catalog = await self.get_notification_channels_catalog(messenger)
+        for channel in catalog.channels:
+            if channel.channel_id == normalized_channel_id:
+                return channel
+        return None
 
-            if channel:
-                items.append(channel)
+    def _with_channel_id(self, channel_id: str, result):
+        if not isinstance(result, dict):
+            return result
+        endpoint = result.get("endpoint")
+        if isinstance(endpoint, dict):
+            enriched = dict(endpoint)
+            enriched["channel_id"] = channel_id
+            return {"endpoint": enriched}
+        return result
 
-        return {"items": items}
+    def _endpoint_with_channel(self, channel_id: str, endpoint):
+        if not isinstance(endpoint, dict):
+            return endpoint
+        enriched = dict(endpoint)
+        enriched["channel_id"] = channel_id
+        return enriched

@@ -1,8 +1,8 @@
-@email_endpoints_http
-Feature: Manage email endpoints via HTTP
-  In order to manage email delivery destinations
-  As an email provider service
-  I want to list, retrieve and delete email endpoints over HTTP
+@notification_endpoints_http
+Feature: Manage notification endpoints via HTTP
+  In order to manage notification delivery destinations
+  As a notification channel service
+  I want to list, retrieve and delete endpoints over HTTP
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -48,29 +48,34 @@ Feature: Manage email endpoints via HTTP
   @identity_sessions_1
   Scenario: List endpoints for the authenticated user
     Given I am authenticated as "user@example.org"
-    When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call POST on the email-notifier service on http://127.0.0.1:8000/endpoints with the following request
       """
       {
         "payload": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         }
       }
       """
-    When I call GET on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call GET on the email-notifier service on http://127.0.0.1:8000/endpoints with the following request
       """
       {
         "payload": null
       }
       """
-    Then the list-email-endpoints response is
+    Then the list-endpoints response is
       """
       {
         "endpoints": [
           {
             "user_id": "[USER_ID]",
             "endpoint_key": "work",
-            "address": "user.work@example.org"
+            "fields": {
+              "address": "user.work@example.org"
+            },
+            "display": "user.work@example.org"
           }
         ]
       }
@@ -82,28 +87,33 @@ Feature: Manage email endpoints via HTTP
   @identity_sessions_1
   Scenario: Retrieve an endpoint by key
     Given I am authenticated as "user@example.org"
-    When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call POST on the email-notifier service on http://127.0.0.1:8000/endpoints with the following request
       """
       {
         "payload": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         }
       }
       """
-    When I call GET on the email-notifier service on http://127.0.0.1:8000/email/endpoints/work with the following request
+    When I call GET on the email-notifier service on http://127.0.0.1:8000/endpoints/work with the following request
       """
       {
         "payload": null
       }
       """
-    Then the get-email-endpoint response is
+    Then the get-endpoint response is
       """
       {
         "endpoint": {
           "user_id": "[USER_ID]",
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          },
+          "display": "user.work@example.org"
         }
       }
       """
@@ -114,32 +124,34 @@ Feature: Manage email endpoints via HTTP
   @identity_sessions_1
   Scenario: Delete an endpoint
     Given I am authenticated as "user@example.org"
-    When I call POST on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call POST on the email-notifier service on http://127.0.0.1:8000/endpoints with the following request
       """
       {
         "payload": {
           "endpoint_key": "work",
-          "address": "user.work@example.org"
+          "fields": {
+            "address": "user.work@example.org"
+          }
         }
       }
       """
-    When I call DELETE on the email-notifier service on http://127.0.0.1:8000/email/endpoints/work with the following request
+    When I call DELETE on the email-notifier service on http://127.0.0.1:8000/endpoints/work with the following request
       """
       {
         "payload": null
       }
       """
-    Then the delete-email-endpoint response is
+    Then the delete-endpoint response is
       """
       {}
       """
-    When I call GET on the email-notifier service on http://127.0.0.1:8000/email/endpoints with the following request
+    When I call GET on the email-notifier service on http://127.0.0.1:8000/endpoints with the following request
       """
       {
         "payload": null
       }
       """
-    Then the list-email-endpoints response is
+    Then the list-endpoints response is
       """
       {
         "endpoints": []
@@ -151,16 +163,15 @@ Feature: Manage email endpoints via HTTP
   @identity_sessions_1
   Scenario: Reject retrieval of an unknown endpoint
     Given I am authenticated as "user@example.org"
-    When I call GET on the email-notifier service on http://127.0.0.1:8000/email/endpoints/missing with the following request
+    When I call GET on the email-notifier service on http://127.0.0.1:8000/endpoints/missing with the following request
       """
       {
         "payload": null
       }
       """
-    Then the get-email-endpoint call is rejected with HTTP 404
+    Then the get-endpoint call is rejected with HTTP 404
       """
       {
         "message": "Resource not found."
       }
       """
-

@@ -22,7 +22,11 @@ from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.services.subscription.configured_subscriptions import (
+    load_configured_subscriptions,
+)
 from boomerang.services.subscription.database import Database
+from boomerang.services.subscription.subscription_resolution import merge_recipients
 
 
 def _reraise_proxy_rpc_error(exc: RpcClientError) -> None:
@@ -83,12 +87,21 @@ class SubscriptionDelegate(ServiceDelegate):
             raise RuntimeError("Unsupported storage backend for MVP.")
         self._database = Database(self._sqlite_path)
         self._database.setup()
+        configured_subscriptions = get_parameter(
+            self.container.config,
+            "app.subscriptions",
+            None,
+        )
+        self._configured_subscriptions = load_configured_subscriptions(
+            configured_subscriptions
+        )
         logging.info(
-            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s notification_channels=%s)",
+            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s notification_channels=%s configured_subscriptions=%s)",
             self._storage_backend,
             self._sqlite_path,
             self._alert_connectors,
             self._notification_channels,
+            len(self._configured_subscriptions),
         )
 
     async def get_alert_subscription_catalog(self, messenger) -> AlertSubscriptionCatalog:
@@ -202,7 +215,12 @@ class SubscriptionDelegate(ServiceDelegate):
     async def get_recipients_for_alert(self, alert):
         if not isinstance(alert, NormalizedAlert):
             alert = NormalizedAlert.model_validate(alert)
-        return self._database.get_recipients_for_alert(alert.model_dump(mode="json"))
+        alert_payload = alert.model_dump(mode="json")
+        sqlite_recipients = self._database.get_recipients_for_alert(alert_payload)
+        configured_recipients = self._configured_subscriptions.get_recipients_for_alert(
+            alert_payload
+        )
+        return merge_recipients(sqlite_recipients, configured_recipients)
 
     async def attach_channel_endpoint(
         self,

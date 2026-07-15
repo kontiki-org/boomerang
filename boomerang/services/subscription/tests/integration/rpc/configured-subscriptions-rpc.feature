@@ -1,0 +1,429 @@
+@subscriptions_rpc
+Feature: Configured subscriptions loaded from service configuration
+  In order to deploy Boomerang without UI for Infrastructure-as-Code workflows
+  As an operator
+  I want subscriptions declared in service configuration to be evaluated alongside SQLite subscriptions
+
+  Configured entries are keyed by owner_id, then rule name (opaque, operator-chosen).
+  recipient_id in dispatch equals owner_id — not the rule name. SQLite subscriptions keep user_id from identity (platform profile).
+  Configured endpoints use qualified refs "<channel>.<endpoint_id>" (e.g. telegram.ops_alerts); the loader resolves them to channel + endpoint_key at dispatch.
+
+  Scenario: Match recipients from configured subscriptions when SQLite is empty
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            payment-degraded:
+              status: active
+              subscription:
+                rule:
+                  category: kontiki.registry
+                  event_type: state_changed
+                  criteria:
+                    all_of:
+                      - key: service
+                        operator: eq
+                        value: payment-service
+                endpoints:
+                  - telegram.ops_alerts
+      """
+    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
+      """
+      {
+        "alert": {
+          "schema_version": "1.0",
+          "alert_id": "reg_payment_degraded",
+          "source": "kontiki-registry-alert-service",
+          "category": "kontiki.registry",
+          "event_type": "state_changed",
+          "severity": "severe",
+          "occurred_at": "2026-07-15T12:00:00Z",
+          "title": "payment-service degraded",
+          "body": "Instance state changed to degraded.",
+          "areas": [],
+          "attributes": {
+            "service": "payment-service",
+            "previous_state": "healthy",
+            "new_state": "degraded"
+          }
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      [
+        {
+          "recipient_id": "platform-ops",
+          "channel": "telegram",
+          "endpoint_key": "ops_alerts"
+        }
+      ]
+      """
+
+  Scenario: Coexist configured and SQLite subscriptions for the same alert
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            earthquake-alerts:
+              status: active
+              subscription:
+                rule:
+                  category: natural.earthquake
+                  event_type: earthquake
+                  criteria:
+                    all_of:
+                      - key: magnitude
+                        operator: gte
+                        value: 4
+                endpoints:
+                  - telegram.ops_alerts
+      """
+    And the "subscriptions" table contains
+      | subscription_id | user_id | category           | event_type | criteria_json                                                      | endpoints_json                                  | status | created_at           | updated_at           |
+      | sub_sqlite_1    | usr_ui  | natural.earthquake | earthquake | {"all_of":[{"key":"magnitude","operator":"gte","value":4}]}      | [{"kind":"email","endpoint_key":"email_primary"}] | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
+    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
+      """
+      {
+        "alert": {
+          "schema_version": "1.0",
+          "alert_id": "usgs_demo",
+          "source": "earthquake-feed-service",
+          "category": "natural.earthquake",
+          "event_type": "earthquake",
+          "severity": "moderate",
+          "occurred_at": "2026-07-15T12:00:00Z",
+          "title": "M 4.5 - Demo",
+          "body": "Demo earthquake.",
+          "areas": [],
+          "attributes": {
+            "magnitude": 4.5
+          }
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      [
+        {
+          "recipient_id": "platform-ops",
+          "channel": "telegram",
+          "endpoint_key": "ops_alerts"
+        },
+        {
+          "recipient_id": "usr_ui",
+          "channel": "email",
+          "endpoint_key": "email_primary"
+        }
+      ]
+      """
+
+  Scenario: Ignore paused configured subscriptions
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            registry-catch-all:
+              status: paused
+              subscription:
+                rule:
+                  category: kontiki.registry
+                  event_type: "*"
+                  criteria:
+                    all_of:
+                      - key: "*"
+                        operator: eq
+                        value: "*"
+                endpoints:
+                  - telegram.ops_alerts
+      """
+    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
+      """
+      {
+        "alert": {
+          "schema_version": "1.0",
+          "alert_id": "reg_any",
+          "source": "kontiki-registry-alert-service",
+          "category": "kontiki.registry",
+          "event_type": "exception_recorded",
+          "severity": "critical",
+          "occurred_at": "2026-07-15T12:00:00Z",
+          "title": "Registry exception",
+          "body": "Unhandled exception recorded.",
+          "areas": [],
+          "attributes": {}
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      []
+      """
+
+  Scenario: Return recipients even when configured endpoint is not known to subscription-service
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            registry-catch-all:
+              status: active
+              subscription:
+                rule:
+                  category: kontiki.registry
+                  event_type: "*"
+                  criteria:
+                    all_of:
+                      - key: "*"
+                        operator: eq
+                        value: "*"
+                endpoints:
+                  - telegram.missing_endpoint_key
+      """
+    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
+      """
+      {
+        "alert": {
+          "schema_version": "1.0",
+          "alert_id": "reg_any",
+          "source": "kontiki-registry-alert-service",
+          "category": "kontiki.registry",
+          "event_type": "state_changed",
+          "severity": "low",
+          "occurred_at": "2026-07-15T12:00:00Z",
+          "title": "Registry state changed",
+          "body": "State changed.",
+          "areas": [],
+          "attributes": {}
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      [
+        {
+          "recipient_id": "platform-ops",
+          "channel": "telegram",
+          "endpoint_key": "missing_endpoint_key"
+        }
+      ]
+      """
+
+  @identity_sessions_1
+  Scenario: Configured subscriptions are not returned by get_subscriptions
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            registry-catch-all:
+              status: active
+              subscription:
+                rule:
+                  category: kontiki.registry
+                  event_type: "*"
+                  criteria:
+                    all_of:
+                      - key: "*"
+                        operator: eq
+                        value: "*"
+                endpoints:
+                  - telegram.ops_alerts
+      """
+    And I am authenticated as "user@example.org"
+    When I call the RPC get_subscriptions on the subscription service with the following arguments
+      """
+      {
+        "headers": {
+          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
+        }
+      }
+      """
+    Then the RPC call succeeds
+    And the RPC response is
+      """
+      {
+        "items": []
+      }
+      """
+
+  Scenario: Reject invalid configured subscription at service startup
+    When the subscription service fails to start with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        storage:
+          backend: sqlite
+          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
+        subscriptions:
+          platform-ops:
+            payment-degraded:
+              status: active
+              subscription:
+                rule:
+                  category: kontiki.registry
+                  event_type: state_changed
+                  criteria:
+                    all_of: []
+                endpoints: []
+      """
+    Then the subscription service startup error mentions subscriptions

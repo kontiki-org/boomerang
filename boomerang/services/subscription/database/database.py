@@ -23,6 +23,11 @@ from boomerang.services.subscription.database.queries import (
     SELECT_SUBSCRIPTIONS_BY_USER,
     UPDATE_SUBSCRIPTION,
 )
+from boomerang.services.subscription.subscription_resolution import (
+    build_facts_from_alert,
+    criteria_matches,
+    sort_recipients,
+)
 
 
 class Database:
@@ -201,8 +206,7 @@ class Database:
                     else []
                 ),
             }
-        category = str(alert.get("category", "")).strip().lower()
-        event_type = str(alert.get("event_type", "")).strip().lower()
+        category, event_type, facts = build_facts_from_alert(alert)
         if not category or not event_type:
             return []
         with self._connection() as connection:
@@ -212,38 +216,9 @@ class Database:
             ).fetchall()
 
         targets: list[dict] = []
-        areas = alert.get("areas", [])
-        first_area = areas[0] if isinstance(areas, list) and areas else {}
-        area_type = str(first_area.get("type", "")).strip().lower()
-        area_value = str(first_area.get("value", "")).strip()
-        severity = str(alert.get("severity", "")).strip().lower()
-        attributes = alert.get("attributes", {})
-        attributes = attributes if isinstance(attributes, dict) else {}
-        facts: dict[str, list[str]] = {
-            "category": [category] if category else [],
-            "event_type": [event_type] if event_type else [],
-            "severity": [severity] if severity else [],
-            "area_type": [area_type] if area_type else [],
-            "area_value": [area_value] if area_value else [],
-        }
-        for area in areas if isinstance(areas, list) else []:
-            if not isinstance(area, dict):
-                continue
-            item_type = str(area.get("type", "")).strip().lower()
-            item_value = str(area.get("value", "")).strip()
-            if not item_type or not item_value:
-                continue
-            facts.setdefault(f"area.{item_type}", []).append(item_value)
-        for key, value in attributes.items():
-            if not isinstance(key, str):
-                continue
-            normalized_key = key.strip().lower()
-            if not normalized_key:
-                continue
-            facts.setdefault(normalized_key, []).append(str(value))
         for row in rows:
             criteria = json.loads(row["criteria_json"])
-            if not self._criteria_matches(criteria, facts):
+            if not criteria_matches(criteria, facts):
                 continue
 
             user_id = row["user_id"]
@@ -260,14 +235,7 @@ class Database:
                         "endpoint_key": endpoint_key,
                     }
                 )
-        return sorted(
-            targets,
-            key=lambda item: (
-                item["recipient_id"],
-                item["channel"],
-                item["endpoint_key"],
-            ),
-        )
+        return sort_recipients(targets)
 
     def _connection(self):
         connection = sqlite3.connect(self.sqlite_path)
@@ -286,48 +254,6 @@ class Database:
         canonical = f"v2|{user_id}|{category}|{event_type}|{criteria_json}|{endpoints_json}"
         digest = sha256(canonical.encode("utf-8")).hexdigest()
         return f"sub_{digest[:20]}"
-
-    @staticmethod
-    def _criteria_matches(criteria: dict, facts: dict[str, list[str]]) -> bool:
-        all_of = criteria.get("all_of", [])
-        if not isinstance(all_of, list):
-            return False
-        for item in all_of:
-            if not isinstance(item, dict):
-                return False
-            key = str(item.get("key", "")).strip().lower()
-            operator = str(item.get("operator", "")).strip().lower()
-            expected = item.get("value")
-            if key == "*" and str(expected).strip() == "*":
-                continue
-            if not key or operator not in {"eq", "gte", "lte", "contains"}:
-                return False
-            candidates = facts.get(key) or []
-            if not candidates:
-                return False
-            if not any(
-                Database._matches_operator(actual, expected, operator)
-                for actual in candidates
-            ):
-                return False
-        return True
-
-    @staticmethod
-    def _matches_operator(actual: str, expected: object, operator: str) -> bool:
-        if operator == "contains":
-            return str(expected).lower() in actual.lower()
-        if operator == "eq":
-            return actual.lower() == str(expected).lower()
-        try:
-            actual_num = float(actual)
-            expected_num = float(expected)  # type: ignore[arg-type]
-        except (ValueError, TypeError):
-            return False
-        if operator == "gte":
-            return actual_num >= expected_num
-        if operator == "lte":
-            return actual_num <= expected_num
-        return False
 
     @staticmethod
     def _row_to_subscription_item(row: sqlite3.Row) -> dict:

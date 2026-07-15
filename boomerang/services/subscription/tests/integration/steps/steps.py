@@ -530,3 +530,45 @@ def step_no_account_existence_disclosed(context):
     status, body = _last_response(context)
     assert status == 200, f"Expected HTTP 200, got {status} body={body}"
     assert body == {"status": "ok"}, f"Unexpected response body: {body}"
+
+
+@when("the subscription service fails to start with the following configuration")
+def step_subscription_fails_to_start_with_config(context):
+    config_text = context.text.strip()
+    config = yaml.safe_load(config_text) or {}
+    context.subscription_config = config
+
+    sqlite_path = _sqlite_path_from_context(context)
+    context.subscription_sqlite_path = sqlite_path
+    if sqlite_path:
+        db_path = Path(sqlite_path)
+        if db_path.parent:
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+        if db_path.exists():
+            db_path.unlink()
+
+    proc, config_path = start_subscription_subprocess(config)
+    context.subscription_config_path = config_path
+    time.sleep(5)
+    exit_code = proc.poll()
+    stderr = (
+        proc.stderr.read().decode(errors="replace") if proc.stderr else ""
+    ) or "(empty)"
+    if exit_code is None:
+        proc.terminate()
+        proc.wait(timeout=5)
+        raise AssertionError(
+            "Expected subscription service startup to fail, but process is still running."
+        )
+    context.subscription_startup_stderr = stderr
+    context.subscription_process = None
+
+
+@then("the subscription service startup error mentions subscriptions")
+def step_subscription_startup_error_mentions_subscriptions(context):
+    stderr = getattr(context, "subscription_startup_stderr", "") or ""
+    lowered = stderr.lower()
+    assert "subscriptions" in lowered, (
+        "Expected startup error to mention subscriptions.\n"
+        f"stderr:\n{stderr}"
+    )

@@ -11,7 +11,9 @@ from boomerang.core.contracts.alert_catalog import (
 @dataclass
 class CatalogIndex:
     categories: list[tuple[str, str]] = field(default_factory=list)
-    event_types_by_category: dict[str, list[tuple[str, str]]] = field(default_factory=dict)
+    event_types_by_category: dict[str, list[tuple[str, str]]] = field(
+        default_factory=dict
+    )
     criteria_by_rule: dict[tuple[str, str], list[AlertCriterionDescriptor]] = field(
         default_factory=dict
     )

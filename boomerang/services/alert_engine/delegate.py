@@ -13,9 +13,7 @@ class AlertEngineDelegate:
             return payload
         return NormalizedAlert.model_validate(payload)
 
-    def _notification_requests_for_recipients(
-        self, alert: NormalizedAlert, recipients
-    ):
+    def _notification_requests_for_recipients(self, alert: NormalizedAlert, recipients):
         message = NotificationMessage(
             title=alert.title,
             body=alert.body,

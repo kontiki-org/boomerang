@@ -65,7 +65,12 @@ class NotificationChannelCatalog(BaseModel):
         self.service_name = self.service_name.strip()
         if self.summary_field is not None:
             self.summary_field = self.summary_field.strip().lower() or None
-        if not self.channel_id or not self.label or not self.service_name or not self.fields:
+        if (
+            not self.channel_id
+            or not self.label
+            or not self.service_name
+            or not self.fields
+        ):
             raise ValueError("Invalid notification channel catalog.")
         if self.summary_field is None:
             self.summary_field = self.fields[0].key

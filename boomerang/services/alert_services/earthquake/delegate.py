@@ -16,7 +16,9 @@ from boomerang.core.contracts.alert_catalog import (
     AlertEventTypeCatalog,
 )
 from boomerang.core.contracts.alert_normalized import AlertArea, NormalizedAlert
-from boomerang.core.contracts.alert_services.earthquake import EARTHQUAKE_FEED_SERVICE_NAME
+from boomerang.core.contracts.alert_services.earthquake import (
+    EARTHQUAKE_FEED_SERVICE_NAME,
+)
 
 EARTHQUAKE_EVENT_TYPE = "earthquake"
 

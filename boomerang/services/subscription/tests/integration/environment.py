@@ -7,8 +7,7 @@ from boomerang.services.subscription.tests.integration.mocks import (
     NotificationEventCatcher,
     WeatherAlertCatalogMock,
 )
-from boomerang.testing import IdentityServiceMock
-from boomerang.testing import safe_unlink
+from boomerang.testing import IdentityServiceMock, safe_unlink
 
 
 def before_all(context):

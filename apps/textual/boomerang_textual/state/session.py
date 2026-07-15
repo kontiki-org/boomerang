@@ -9,4 +9,3 @@ class SessionState:
     @property
     def is_authenticated(self) -> bool:
         return bool(self.access_token)
-

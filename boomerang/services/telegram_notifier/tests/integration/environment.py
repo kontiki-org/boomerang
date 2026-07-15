@@ -6,7 +6,11 @@ from boomerang.services.telegram_notifier.tests.integration.mocks import (
     NotificationOutcomeCatcher,
     TelegramApiMock,
 )
-from boomerang.testing import IdentityServiceMock, NotificationPublisherMock, safe_unlink
+from boomerang.testing import (
+    IdentityServiceMock,
+    NotificationPublisherMock,
+    safe_unlink,
+)
 
 
 def before_all(context):

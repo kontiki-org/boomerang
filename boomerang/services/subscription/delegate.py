@@ -17,11 +17,11 @@ from boomerang.core.contracts.notification_endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )
-from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.configured_subscriptions import (
     load_configured_subscriptions,
 )
@@ -104,7 +104,9 @@ class SubscriptionDelegate(ServiceDelegate):
             len(self._configured_subscriptions),
         )
 
-    async def get_alert_subscription_catalog(self, messenger) -> AlertSubscriptionCatalog:
+    async def get_alert_subscription_catalog(
+        self, messenger
+    ) -> AlertSubscriptionCatalog:
         sources: list[AlertConnectorCatalog] = []
         for service_name in self._alert_connectors:
             proxy = RpcProxy(messenger, service_name)

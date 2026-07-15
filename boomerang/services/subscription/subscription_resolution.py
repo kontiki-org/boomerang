@@ -57,7 +57,9 @@ def criteria_matches(criteria: dict, facts: dict[str, list[str]]) -> bool:
     return True
 
 
-def rule_matches_alert(rule_category: str, rule_event_type: str, category: str, event_type: str) -> bool:
+def rule_matches_alert(
+    rule_category: str, rule_event_type: str, category: str, event_type: str
+) -> bool:
     if rule_category != category:
         return False
     return rule_event_type == "*" or rule_event_type == event_type

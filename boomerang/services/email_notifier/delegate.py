@@ -19,6 +19,9 @@ from boomerang.core.notification_channel_validation import (
 from boomerang.services.email_notifier.channel_catalog import (
     email_notification_channel_catalog,
 )
+from boomerang.services.email_notifier.configured_endpoints import (
+    load_configured_endpoints,
+)
 from boomerang.services.email_notifier.database import Database
 
 
@@ -31,6 +34,11 @@ class EmailNotifierDelegate(ServiceDelegate):
         self._database = Database(sqlite_path)
         self._database.setup()
         self._channel_catalog = email_notification_channel_catalog()
+        configured_endpoints = get_parameter(config, "app.endpoints", None)
+        self._configured_endpoints = load_configured_endpoints(
+            configured_endpoints,
+            self._channel_catalog,
+        )
 
         self._smtp_host = get_parameter(config, "app.email.smtp.host", "localhost")
         self._smtp_port = int(get_parameter(config, "app.email.smtp.port", 25))
@@ -164,9 +172,19 @@ class EmailNotifierDelegate(ServiceDelegate):
         }
 
     def _resolve_destination_address(self, request: NotificationRequest) -> str:
-        user_id = (request.recipient_id or "").strip()
         endpoint_key = (request.endpoint_key or "").strip()
-        if not user_id or not endpoint_key:
+        if not endpoint_key:
+            raise ValidationError()
+
+        configured = self._configured_endpoints.get(endpoint_key)
+        if configured is not None:
+            address = (configured.get("address") or "").strip().lower()
+            if not address:
+                raise ValidationError()
+            return address
+
+        user_id = (request.recipient_id or "").strip()
+        if not user_id:
             raise ValidationError()
 
         endpoint = self._database.get_email_endpoint(user_id, endpoint_key)

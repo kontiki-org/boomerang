@@ -569,6 +569,5 @@ def step_subscription_startup_error_mentions_subscriptions(context):
     stderr = getattr(context, "subscription_startup_stderr", "") or ""
     lowered = stderr.lower()
     assert "subscriptions" in lowered, (
-        "Expected startup error to mention subscriptions.\n"
-        f"stderr:\n{stderr}"
+        "Expected startup error to mention subscriptions.\n" f"stderr:\n{stderr}"
     )

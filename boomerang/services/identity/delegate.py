@@ -206,7 +206,6 @@ class IdentityDelegate(ServiceDelegate):
             "token_type": "Bearer",
         }
 
-
     async def verify_session(self, access_token: str):
         self._database.cleanup_expired()
         if not isinstance(access_token, str) or not access_token.strip():

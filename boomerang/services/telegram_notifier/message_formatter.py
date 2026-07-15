@@ -51,7 +51,9 @@ _ATTRIBUTE_ORDER: tuple[str, ...] = (
 )
 
 
-def format_telegram_notification(message: NotificationMessage) -> tuple[str, str | None]:
+def format_telegram_notification(
+    message: NotificationMessage,
+) -> tuple[str, str | None]:
     title = message.title.strip()
     body = message.body.strip()
     context = message.context
@@ -85,7 +87,10 @@ def _format_structured_alert(
     category_icon, category_label = _resolve_category_display(category, event_type)
     severity_icon = _SEVERITY_ICONS.get(severity, _SEVERITY_ICONS["unknown"])
 
-    lines = [f"{category_icon} {severity_icon} <b>{_escape_html(category_label)}</b>", ""]
+    lines = [
+        f"{category_icon} {severity_icon} <b>{_escape_html(category_label)}</b>",
+        "",
+    ]
 
     metadata_lines = _metadata_lines(attributes)
     if metadata_lines:
@@ -123,7 +128,9 @@ def _metadata_lines(attributes: dict[str, Any]) -> list[str]:
         if value is None or value == "":
             continue
         label = _ATTRIBUTE_LABELS.get(key, _humanize_key(key))
-        lines.append(f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}")
+        lines.append(
+            f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}"
+        )
         seen.add(key)
 
     for key in sorted(attributes):
@@ -133,7 +140,9 @@ def _metadata_lines(attributes: dict[str, Any]) -> list[str]:
         if value is None or value == "":
             continue
         label = _ATTRIBUTE_LABELS.get(key, _humanize_key(key))
-        lines.append(f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}")
+        lines.append(
+            f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}"
+        )
 
     return lines
 

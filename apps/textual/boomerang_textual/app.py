@@ -1,5 +1,9 @@
 import os
 
+from boomerang_textual.screens.auth import AuthScreen
+from boomerang_textual.screens.endpoints import EndpointsScreen
+from boomerang_textual.screens.subscriptions import SubscriptionsScreen
+from boomerang_textual.state.session import SessionState
 from kontiki.messaging import Messenger
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -8,10 +12,6 @@ from textual.widgets import Footer, Header, Static, TabbedContent, TabPane
 
 from boomerang.core.contracts.identity.service import IdentityRpcProxy
 from boomerang.core.contracts.subscription import SubscriptionRpcProxy
-from boomerang_textual.screens.auth import AuthScreen
-from boomerang_textual.screens.endpoints import EndpointsScreen
-from boomerang_textual.screens.subscriptions import SubscriptionsScreen
-from boomerang_textual.state.session import SessionState
 
 
 class HomeView(Container):
@@ -54,7 +54,9 @@ class BoomerangTextualApp(App[None]):
         content.mount(self._build_home_view())
         self._show_prompt(f"Signed in as {event.email}.", "success")
 
-    def on_endpoints_screen_status_message(self, event: EndpointsScreen.StatusMessage) -> None:
+    def on_endpoints_screen_status_message(
+        self, event: EndpointsScreen.StatusMessage
+    ) -> None:
         self._show_prompt(event.text, event.level)
 
     def on_endpoints_screen_endpoint_catalog_changed(
@@ -71,7 +73,9 @@ class BoomerangTextualApp(App[None]):
     ) -> None:
         self._show_prompt(event.text, event.level)
 
-    def _show_prompt(self, text: str, level: str = "info", timeout: float = 4.0) -> None:
+    def _show_prompt(
+        self, text: str, level: str = "info", timeout: float = 4.0
+    ) -> None:
         prompt_area = self.query_one("#prompt-area", Container)
         prompt_area.remove_children()
         prompt = Static(text, classes=f"prompt {level}")
@@ -96,6 +100,7 @@ class BoomerangTextualApp(App[None]):
 
     def _build_home_view(self) -> Container:
         return HomeView(id="home-view")
+
 
 def run() -> None:
     BoomerangTextualApp().run()

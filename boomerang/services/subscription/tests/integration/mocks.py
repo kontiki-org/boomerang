@@ -7,7 +7,9 @@ from boomerang.core.contracts.alert_catalog import (
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from boomerang.core.contracts.alert_services.earthquake import EARTHQUAKE_FEED_SERVICE_NAME
+from boomerang.core.contracts.alert_services.earthquake import (
+    EARTHQUAKE_FEED_SERVICE_NAME,
+)
 from boomerang.testing import IdentityServiceMock
 
 WEATHER_ALERT_SERVICE_NAME = "weather-alert-service"

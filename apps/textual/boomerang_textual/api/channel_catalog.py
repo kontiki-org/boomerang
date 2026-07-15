@@ -12,7 +12,9 @@ from boomerang.core.contracts.notification_channel_catalog import (
 @dataclass
 class ChannelCatalogIndex:
     channels: list[tuple[str, str]] = field(default_factory=list)
-    fields_by_channel: dict[str, list[ChannelFieldDescriptor]] = field(default_factory=dict)
+    fields_by_channel: dict[str, list[ChannelFieldDescriptor]] = field(
+        default_factory=dict
+    )
     channel_by_id: dict[str, NotificationChannelCatalog] = field(default_factory=dict)
 
 

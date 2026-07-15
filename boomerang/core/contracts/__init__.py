@@ -6,14 +6,14 @@ from boomerang.core.contracts.alert_catalog import (
     AlertEventTypeCatalog,
     AlertSubscriptionCatalog,
 )
-from boomerang.core.contracts.alert_services.earthquake import (
-    EARTHQUAKE_FEED_SERVICE_NAME,
-    EarthquakeFeedRpcProxy,
-)
 from boomerang.core.contracts.alert_normalized import (
     ALERT_NORMALIZED_EVENT,
     AlertArea,
     NormalizedAlert,
+)
+from boomerang.core.contracts.alert_services.earthquake import (
+    EARTHQUAKE_FEED_SERVICE_NAME,
+    EarthquakeFeedRpcProxy,
 )
 from boomerang.core.contracts.notification import (
     NotificationContext,

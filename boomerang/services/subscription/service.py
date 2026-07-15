@@ -15,9 +15,9 @@ from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
+from boomerang.core.contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.subscription.delegate import SubscriptionDelegate
-from boomerang.core.contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
 
 
 def _authorization_headers(headers):

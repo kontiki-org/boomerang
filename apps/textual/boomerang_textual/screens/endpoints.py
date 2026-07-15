@@ -1,14 +1,15 @@
-from boomerang.core.contracts.notification_endpoint import CreateChannelEndpointRequest
-from boomerang.core.notification_channel_validation import validate_endpoint_fields
+from boomerang_textual.api import rpc_error_message
 from boomerang_textual.api.channel_catalog import (
     ChannelCatalogIndex,
     build_channel_catalog_index,
     channel_catalog_from_rpc,
 )
-from boomerang_textual.api import rpc_error_message
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Button, DataTable, Input, Label, Select, Static
+
+from boomerang.core.contracts.notification_endpoint import CreateChannelEndpointRequest
+from boomerang.core.notification_channel_validation import validate_endpoint_fields
 
 
 class EndpointsScreen(Static):
@@ -43,8 +44,12 @@ class EndpointsScreen(Static):
                 with Vertical(id="endpoint-fields"):
                     pass
                 with Horizontal(id="endpoints-form-actions"):
-                    yield Button("Save endpoint", id="save-endpoint-btn", variant="primary")
-                    yield Button("Delete selected", id="delete-endpoint-btn", variant="error")
+                    yield Button(
+                        "Save endpoint", id="save-endpoint-btn", variant="primary"
+                    )
+                    yield Button(
+                        "Delete selected", id="delete-endpoint-btn", variant="error"
+                    )
             with Vertical(id="endpoints-list-pane"):
                 yield Static("Registered endpoints", classes="section-title")
                 table = DataTable(id="endpoints-list", cursor_type="row")
@@ -186,7 +191,9 @@ class EndpointsScreen(Static):
         endpoint_key = (key_input.value or "").strip()
 
         if channel is None:
-            self.post_message(self.StatusMessage("No notification channel available.", "error"))
+            self.post_message(
+                self.StatusMessage("No notification channel available.", "error")
+            )
             return
         if not endpoint_key:
             self.post_message(self.StatusMessage("Endpoint key is required.", "error"))
@@ -257,7 +264,9 @@ class EndpointsScreen(Static):
 
         await self._reload_endpoints()
         self.post_message(
-            self.StatusMessage(f"Endpoint '{selected['endpoint_key']}' deleted.", "success")
+            self.StatusMessage(
+                f"Endpoint '{selected['endpoint_key']}' deleted.", "success"
+            )
         )
 
     def _refresh_list(self) -> None:
@@ -273,7 +282,9 @@ class EndpointsScreen(Static):
                 channel = self._catalog_index.channel_by_id.get(kind)
                 if channel is not None:
                     label = channel.label
-            endpoints_list.add_row(label, item["endpoint_key"], item.get("display", "-"))
+            endpoints_list.add_row(
+                label, item["endpoint_key"], item.get("display", "-")
+            )
 
     def _publish_endpoint_catalog(self) -> None:
         endpoints = sorted(

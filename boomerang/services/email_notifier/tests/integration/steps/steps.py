@@ -1,7 +1,7 @@
+import asyncio
 import json
 import sqlite3
 import time
-import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,8 +10,8 @@ from behave import given, then, when
 from kontiki.messaging import Messenger
 from kontiki.registry.client.proxy import ServiceRegistryProxy
 
-from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
 from boomerang.core.contracts.notification import NotificationRequest
+from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,
@@ -409,6 +409,47 @@ def step_email_notifier_rejects_invalid_payload(context):
     _ = getattr(context, "last_published_event_payload", None)
     messages = mailhog.list_messages()
     assert not messages, f"Expected no email in MailHog, got {messages}"
+
+
+@when("the email-notifier service fails to start with the following configuration")
+def step_email_notifier_fails_to_start_with_config(context):
+    config_text = context.text.strip()
+    config = yaml.safe_load(config_text) or {}
+    context.email_notifier_config = config
+
+    sqlite_path = _sqlite_path_from_context(context)
+    context.email_notifier_sqlite_path = sqlite_path
+    if sqlite_path:
+        db_path = Path(sqlite_path)
+        if db_path.parent:
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+        if db_path.exists():
+            db_path.unlink()
+
+    proc, config_path = start_email_notifier_subprocess(config)
+    context.email_notifier_config_path = config_path
+    time.sleep(5)
+    exit_code = proc.poll()
+    stderr = (
+        proc.stderr.read().decode(errors="replace") if proc.stderr else ""
+    ) or "(empty)"
+    if exit_code is None:
+        proc.terminate()
+        proc.wait(timeout=5)
+        raise AssertionError(
+            "Expected email-notifier startup to fail, but process is still running."
+        )
+    context.email_notifier_startup_stderr = stderr
+    context.email_notifier_process = None
+
+
+@then("the email-notifier service startup error mentions endpoints")
+def step_email_notifier_startup_error_mentions_endpoints(context):
+    stderr = getattr(context, "email_notifier_startup_stderr", "") or ""
+    lowered = stderr.lower()
+    assert "endpoints" in lowered, (
+        "Expected startup error to mention endpoints.\n" f"stderr:\n{stderr}"
+    )
 
 
 @then("the service registry eventually receives a heartbeat with degraded flag true")

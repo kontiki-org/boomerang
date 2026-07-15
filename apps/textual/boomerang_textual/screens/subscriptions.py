@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+from boomerang_textual.api import (
+    build_catalog_index,
+    catalog_from_rpc,
+    rpc_error_message,
+)
+from boomerang_textual.api.catalog import CatalogIndex
+from textual.containers import Horizontal, Vertical
+from textual.message import Message
+from textual.widgets import Button, DataTable, Input, Label, Select, Static
+
 from boomerang.core.contracts.alert_catalog import AlertCriterionDescriptor
 from boomerang.core.contracts.subscription import (
     CreateSubscriptionRequest,
@@ -10,11 +20,6 @@ from boomerang.core.contracts.subscription import (
     SubscriptionDefinition,
     UpdateSubscriptionRequest,
 )
-from boomerang_textual.api import build_catalog_index, catalog_from_rpc, rpc_error_message
-from boomerang_textual.api.catalog import CatalogIndex
-from textual.containers import Horizontal, Vertical
-from textual.message import Message
-from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
 OPERATOR_LABELS: dict[str, str] = {
     "eq": "equals",
@@ -169,7 +174,9 @@ class SubscriptionsScreen(Static):
             return
         if event.button.id == "new-subscription-btn":
             self._clear_form()
-            self.post_message(self.StatusMessage("Ready to create a subscription.", "info"))
+            self.post_message(
+                self.StatusMessage("Ready to create a subscription.", "info")
+            )
             return
         if event.button.id == "add-subscription-endpoint-btn":
             self._handle_add_selected_endpoint()
@@ -267,7 +274,9 @@ class SubscriptionsScreen(Static):
         category = selected_category or category_select.value or ""
         available = []
         if self._catalog_index is not None:
-            available = self._catalog_index.event_types_by_category.get(str(category), [])
+            available = self._catalog_index.event_types_by_category.get(
+                str(category), []
+            )
         if not available:
             event_select.set_options([("—", "")])
             event_select.value = ""
@@ -322,7 +331,9 @@ class SubscriptionsScreen(Static):
         operator_select = self.query_one("#subscription-criterion-operator", Select)
         category = self.query_one("#subscription-category", Select).value or ""
         event_type = self.query_one("#subscription-event-type", Select).value or ""
-        criterion_key = self.query_one("#subscription-criterion-key", Select).value or ""
+        criterion_key = (
+            self.query_one("#subscription-criterion-key", Select).value or ""
+        )
         if criterion_key == self.EMPTY_CRITERION_KEY:
             operator_select.set_options([(OPERATOR_LABELS["eq"], "eq")])
             operator_select.value = "eq"
@@ -341,7 +352,9 @@ class SubscriptionsScreen(Static):
         operator_select.set_options(options)
         operator_select.value = options[0][1]
 
-    def _parse_criterion_value(self, raw: str, descriptor: AlertCriterionDescriptor | None):
+    def _parse_criterion_value(
+        self, raw: str, descriptor: AlertCriterionDescriptor | None
+    ):
         value = raw.strip()
         kind = descriptor.value_kind if descriptor is not None else "string"
         if kind == "number":
@@ -358,7 +371,9 @@ class SubscriptionsScreen(Static):
     def _build_rule_from_form(self) -> RuleDefinition:
         category = str(self.query_one("#subscription-category", Select).value or "")
         event_type = str(self.query_one("#subscription-event-type", Select).value or "")
-        criterion_key = self.query_one("#subscription-criterion-key", Select).value or ""
+        criterion_key = (
+            self.query_one("#subscription-criterion-key", Select).value or ""
+        )
         criterion_operator = (
             self.query_one("#subscription-criterion-operator", Select).value or "eq"
         )
@@ -444,7 +459,11 @@ class SubscriptionsScreen(Static):
                 errors = result.get("errors", []) if isinstance(result, dict) else []
                 if errors:
                     first = errors[0]
-                    detail = first.get("message", "Create failed.") if isinstance(first, dict) else "Create failed."
+                    detail = (
+                        first.get("message", "Create failed.")
+                        if isinstance(first, dict)
+                        else "Create failed."
+                    )
                     self.post_message(self.StatusMessage(detail, "error"))
                     return
                 skipped = result.get("skipped", []) if isinstance(result, dict) else []
@@ -544,7 +563,9 @@ class SubscriptionsScreen(Static):
         self._sync_criterion_operator_options()
         self.query_one("#subscription-criterion-operator", Select).value = operator
         self.query_one("#subscription-criterion-value", Input).value = value
-        self.query_one("#subscription-status", Select).value = item.get("status", "active")
+        self.query_one("#subscription-status", Select).value = item.get(
+            "status", "active"
+        )
 
         self._selected_endpoints = []
         for endpoint in subscription.get("endpoints", []):
@@ -626,13 +647,15 @@ class SubscriptionsScreen(Static):
             return
         self._selected_endpoints.append(
             {
-                    "kind": endpoint["kind"],
-                    "endpoint_key": endpoint["endpoint_key"],
-                    "display": endpoint.get("display", ""),
+                "kind": endpoint["kind"],
+                "endpoint_key": endpoint["endpoint_key"],
+                "display": endpoint.get("display", ""),
             }
         )
         self._refresh_selected_endpoints_list()
-        self.post_message(self.StatusMessage("Endpoint added to subscription.", "success"))
+        self.post_message(
+            self.StatusMessage("Endpoint added to subscription.", "success")
+        )
 
     def _handle_remove_selected_endpoint(self) -> None:
         selected_list = self.query_one("#subscription-selected-endpoints", DataTable)
@@ -640,7 +663,9 @@ class SubscriptionsScreen(Static):
             self.post_message(self.StatusMessage("No selected endpoint row.", "error"))
             return
         if selected_list.cursor_row >= len(self._selected_endpoints):
-            self.post_message(self.StatusMessage("Invalid endpoint selection.", "error"))
+            self.post_message(
+                self.StatusMessage("Invalid endpoint selection.", "error")
+            )
             return
         removed = self._selected_endpoints.pop(selected_list.cursor_row)
         self._refresh_selected_endpoints_list()

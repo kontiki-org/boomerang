@@ -92,7 +92,9 @@ class ConfiguredSubscriptionStore:
             if record.status != "active":
                 continue
             rule = record.subscription.rule
-            if not rule_matches_alert(rule.category, rule.event_type, category, event_type):
+            if not rule_matches_alert(
+                rule.category, rule.event_type, category, event_type
+            ):
                 continue
             if not criteria_matches(rule.criteria.model_dump(), facts):
                 continue

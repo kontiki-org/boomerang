@@ -251,7 +251,9 @@ class Database:
         criteria_json: str,
         endpoints_json: str,
     ) -> str:
-        canonical = f"v2|{user_id}|{category}|{event_type}|{criteria_json}|{endpoints_json}"
+        canonical = (
+            f"v2|{user_id}|{category}|{event_type}|{criteria_json}|{endpoints_json}"
+        )
         digest = sha256(canonical.encode("utf-8")).hexdigest()
         return f"sub_{digest[:20]}"
 

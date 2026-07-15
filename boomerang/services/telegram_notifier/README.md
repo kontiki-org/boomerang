@@ -40,3 +40,14 @@ The service listens on port **8004** and publishes/consumes:
 
 - `telegram.alerting.notification.requested`
 - `alerting.notification.delivered` / `alerting.notification.failed`
+
+## Message formatting
+
+Alert notifications are rendered as structured HTML messages for Telegram:
+
+- category icon and label (e.g. 🌍 Earthquake)
+- severity icon (🟢 low → 🔴 critical)
+- optional metadata from `context.data.attributes` (magnitude, location, etc.)
+- clickable details link when a URL is available
+
+Non-alert messages (e.g. auth codes) stay plain text.

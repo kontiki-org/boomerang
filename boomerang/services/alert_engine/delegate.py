@@ -26,6 +26,7 @@ class AlertEngineDelegate:
                     "category": alert.category,
                     "event_type": alert.event_type,
                     "severity": alert.severity,
+                    "attributes": alert.attributes,
                 },
             ),
         )

@@ -104,7 +104,8 @@ Feature: Process normalized alerts
               "alert_id": "al_123",
               "category": "safety.fire",
               "event_type": "wildfire",
-              "severity": "severe"
+              "severity": "severe",
+              "attributes": {}
             }
           }
         }
@@ -125,7 +126,8 @@ Feature: Process normalized alerts
               "alert_id": "al_123",
               "category": "safety.fire",
               "event_type": "wildfire",
-              "severity": "severe"
+              "severity": "severe",
+              "attributes": {}
             }
           }
         }
@@ -146,7 +148,8 @@ Feature: Process normalized alerts
               "alert_id": "al_123",
               "category": "safety.fire",
               "event_type": "wildfire",
-              "severity": "severe"
+              "severity": "severe",
+              "attributes": {}
             }
           }
         }

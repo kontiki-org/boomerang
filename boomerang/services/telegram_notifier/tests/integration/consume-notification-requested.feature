@@ -80,6 +80,52 @@ Feature: Consume notification delivery requests
       }
       """
 
+  Scenario: Format a structured earthquake alert notification
+    Given the "telegram_endpoints" table contains
+      | user_id | endpoint_key      | chat_id   |
+      | usr_1   | telegram_primary  | 123456789 |
+    When an "telegram.alerting.notification.requested" event is published with payload
+      """
+      {
+        "channel": "telegram",
+        "recipient_id": "usr_1",
+        "endpoint_key": "telegram_primary",
+        "message": {
+          "title": "M 2.3 - 24 km ENE of Honey Lake, CA",
+          "body": "M 2.3 - 24 km ENE of Honey Lake, CA. Detail: https://earthquake.usgs.gov/earthquakes/eventpage/nc75395766",
+          "context": {
+            "kind": "alert",
+            "data": {
+              "alert_id": "usgs_nc75395766",
+              "category": "natural.earthquake",
+              "event_type": "earthquake",
+              "severity": "low",
+              "attributes": {
+                "magnitude": 2.3,
+                "place": "24 km ENE of Honey Lake, CA",
+                "url": "https://earthquake.usgs.gov/earthquakes/eventpage/nc75395766"
+              }
+            }
+          }
+        }
+      }
+      """
+    Then the Telegram API should contain a sendMessage matching
+      """
+      {
+        "chat_id": "123456789",
+        "text_contains": [
+          "Earthquake",
+          "Magnitude",
+          "2.3",
+          "Honey Lake",
+          "Details",
+          "earthquake.usgs.gov"
+        ],
+        "parse_mode": "HTML"
+      }
+      """
+
   Scenario: Ignore a notification request for a non-telegram channel
     When an "telegram.alerting.notification.requested" event is published with payload
       """

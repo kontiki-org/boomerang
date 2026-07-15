@@ -21,6 +21,9 @@ from boomerang.services.telegram_notifier.channel_catalog import (
     telegram_notification_channel_catalog,
 )
 from boomerang.services.telegram_notifier.database import Database
+from boomerang.services.telegram_notifier.message_formatter import (
+    format_telegram_notification,
+)
 
 
 class TelegramNotifierDelegate(ServiceDelegate):
@@ -97,13 +100,14 @@ class TelegramNotifierDelegate(ServiceDelegate):
 
     async def send_notification_telegram(self, request: NotificationRequest) -> None:
         chat_id = self._resolve_chat_id(request)
-        text = self._format_message_text(request)
+        text, parse_mode = format_telegram_notification(request.message)
 
         try:
             await asyncio.to_thread(
                 self._send_via_telegram_api,
                 chat_id=chat_id,
                 text=text,
+                parse_mode=parse_mode,
             )
         except Exception:
             self._consecutive_api_failures += 1
@@ -137,19 +141,17 @@ class TelegramNotifierDelegate(ServiceDelegate):
             raise ValidationError()
         return chat_id
 
-    def _format_message_text(self, request: NotificationRequest) -> str:
-        title = request.message.title.strip()
-        body = request.message.body.strip()
-        if title and body:
-            return f"{title}\n\n{body}"
-        return title or body
-
-    def _send_via_telegram_api(self, *, chat_id: str, text: str) -> None:
+    def _send_via_telegram_api(
+        self, *, chat_id: str, text: str, parse_mode: str | None = None
+    ) -> None:
         token = (self._bot_token or "").strip()
         if not token:
             raise RuntimeError("telegram bot token is not configured")
 
-        payload = json.dumps({"chat_id": chat_id, "text": text}).encode("utf-8")
+        payload_data = {"chat_id": chat_id, "text": text}
+        if parse_mode:
+            payload_data["parse_mode"] = parse_mode
+        payload = json.dumps(payload_data).encode("utf-8")
         request = urllib.request.Request(
             url=f"{self._api_base_url.rstrip('/')}/bot{token}/sendMessage",
             method="POST",

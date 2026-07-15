@@ -27,3 +27,7 @@ dist/
 # Integration test artifacts
 logs/
 
+# Local stack secrets (Telegram bot token, etc.)
+stack/telegram_notifier_bot_token.yaml
+.env
+

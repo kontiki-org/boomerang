@@ -120,6 +120,30 @@ services:
       timeout: 3s
       retries: 30
 
+  telegram-notifier-service:
+    build:
+      context: .
+    container_name: boomerang-telegram-notifier-service
+    command: >
+      sh -c 'EXTRA=""; if [ -f /stack/telegram_notifier_bot_token.yaml ]; then EXTRA="--config /stack/telegram_notifier_bot_token.yaml"; fi;
+      exec boomerang-telegram-notifier --config /stack/common.services.yaml --config /stack/telegram_notifier.yaml $$EXTRA'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_healthy
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    ports:
+      - "8004:8004"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8004/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   alert-engine-service:
     build:
       context: .

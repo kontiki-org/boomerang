@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from urllib import error, request
@@ -34,9 +35,7 @@ def start_kontiki_subprocess(service_entrypoint: str, config: dict):
     root = repo_root()
     proc = subprocess.Popen(
         [
-            "poetry",
-            "run",
-            "python",
+            sys.executable,
             "-m",
             "kontiki.runner.__main__",
             service_entrypoint,

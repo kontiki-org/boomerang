@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -30,6 +30,12 @@ integration-test-email-notifier:
 
 integration-test-email-notifier-tag:
 	poetry run behave boomerang/services/email_notifier/tests/integration --stop --tags "$(TAG)"
+
+integration-test-telegram-notifier:
+	poetry run behave boomerang/services/telegram_notifier/tests/integration --stop
+
+integration-test-telegram-notifier-tag:
+	poetry run behave boomerang/services/telegram_notifier/tests/integration --stop --tags "$(TAG)"
 
 integration-test-sms-notifier:
 	poetry run behave boomerang/services/sms_notifier/tests/integration --stop

@@ -298,6 +298,8 @@ class Database:
             key = str(item.get("key", "")).strip().lower()
             operator = str(item.get("operator", "")).strip().lower()
             expected = item.get("value")
+            if key == "*" and str(expected).strip() == "*":
+                continue
             if not key or operator not in {"eq", "gte", "lte", "contains"}:
                 return False
             candidates = facts.get(key) or []

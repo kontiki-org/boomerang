@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-kontiki-registry-alert integration-test-kontiki-registry-alert-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -54,6 +54,12 @@ integration-test-earthquake-feed:
 
 integration-test-earthquake-feed-tag:
 	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
+
+integration-test-kontiki-registry-alert:
+	poetry run behave boomerang/services/alert_services/kontiki_registry/tests/integration --stop
+
+integration-test-kontiki-registry-alert-tag:
+	poetry run behave boomerang/services/alert_services/kontiki_registry/tests/integration --stop --tags "$(TAG)"
 
 run-dev-platform:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog kontiki-registry

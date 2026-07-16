@@ -15,6 +15,10 @@ from boomerang.core.contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
     EarthquakeFeedRpcProxy,
 )
+from boomerang.core.contracts.alert_services.kontiki_registry import (
+    KONTIKI_REGISTRY_ALERT_SERVICE_NAME,
+    KontikiRegistryAlertRpcProxy,
+)
 from boomerang.core.contracts.notification import (
     NotificationContext,
     NotificationError,
@@ -52,6 +56,8 @@ __all__ = [
     "ALERT_NORMALIZED_EVENT",
     "EARTHQUAKE_FEED_SERVICE_NAME",
     "EarthquakeFeedRpcProxy",
+    "KONTIKI_REGISTRY_ALERT_SERVICE_NAME",
+    "KontikiRegistryAlertRpcProxy",
     "GET_ALERT_SUBSCRIPTION_CATALOG_RPC",
     "AlertArea",
     "AlertCategoryCatalog",

@@ -45,10 +45,10 @@ Feature: Configured subscriptions loaded from service configuration
               subscription:
                 rule:
                   category: kontiki.registry
-                  event_type: state_changed
+                  event_type: instance_state_changed
                   criteria:
                     all_of:
-                      - key: service
+                      - key: service_name
                         operator: eq
                         value: payment-service
                 endpoints:
@@ -62,14 +62,14 @@ Feature: Configured subscriptions loaded from service configuration
           "alert_id": "reg_payment_degraded",
           "source": "kontiki-registry-alert-service",
           "category": "kontiki.registry",
-          "event_type": "state_changed",
+          "event_type": "instance_state_changed",
           "severity": "severe",
           "occurred_at": "2026-07-15T12:00:00Z",
           "title": "payment-service degraded",
           "body": "Instance state changed to degraded.",
           "areas": [],
           "attributes": {
-            "service": "payment-service",
+            "service_name": "payment-service",
             "previous_state": "healthy",
             "new_state": "degraded"
           }
@@ -298,7 +298,7 @@ Feature: Configured subscriptions loaded from service configuration
           "alert_id": "reg_any",
           "source": "kontiki-registry-alert-service",
           "category": "kontiki.registry",
-          "event_type": "state_changed",
+          "event_type": "instance_state_changed",
           "severity": "low",
           "occurred_at": "2026-07-15T12:00:00Z",
           "title": "Registry state changed",
@@ -421,7 +421,7 @@ Feature: Configured subscriptions loaded from service configuration
               subscription:
                 rule:
                   category: kontiki.registry
-                  event_type: state_changed
+                  event_type: instance_state_changed
                   criteria:
                     all_of: []
                 endpoints: []

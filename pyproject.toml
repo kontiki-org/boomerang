@@ -12,7 +12,7 @@ packages = [{ include = "boomerang" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-kontiki = ">=1.0.2"
+kontiki = ">=1.1.0"
 pydantic = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -32,6 +32,7 @@ boomerang-telegram-notifier = "boomerang.services.telegram_notifier.main:run"
 boomerang-sms-notifier = "boomerang.services.sms_notifier.main:run"
 boomerang-alert-engine = "boomerang.services.alert_engine.main:run"
 boomerang-earthquake-feed = "boomerang.services.alert_services.earthquake.main:run"
+boomerang-kontiki-registry-alert = "boomerang.services.alert_services.kontiki_registry.main:run"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

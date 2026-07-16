@@ -18,7 +18,7 @@ A working connector as fast as possible — maximise progress and the “wow” 
 6. Replace pedagogical `emit_demo_alert` with the real domain mechanism; update `demo/stack/` subscriptions/endpoints to match the catalog.
 7. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 8. Run `make test`; auto-correct until green or a real human blocker.
-9. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`) for the official local demo.
+9. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`). After updating `demo/stack/`: **`make stack-down`** at the end of generation; then **`stack-up`** + **`run-local`** when observing.
 10. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
 11. Announce Definition of Done only when satisfied.
 

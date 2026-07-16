@@ -1,4 +1,4 @@
-.PHONY: start install test check-local run-local emit-demo run-sandbox stack-up stack-down stack-logs
+.PHONY: start install test check-local run-local emit-demo run-sandbox stack-up stack-down stack-restart stack-logs
 
 PYTHON ?= python3
 COMPOSE ?= docker compose
@@ -34,6 +34,9 @@ stack-up:
 
 stack-down:
 	$(COMPOSE) -f docker-compose.yaml down
+
+# Optional shortcut (down + up). After generation, prefer stack-down then stack-up when demoing.
+stack-restart: stack-down stack-up
 
 stack-logs:
 	$(COMPOSE) -f docker-compose.yaml logs -f

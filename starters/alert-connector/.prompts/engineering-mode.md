@@ -19,7 +19,7 @@ A durable, reviewable connector (official or long-lived work) following the Boom
 7. Polling: immediate first poll, then every **60 seconds** (Starter convention).
 8. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 9. Run `make test`; auto-correct until green or a real human blocker.
-10. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`) when guiding local observation.
+10. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`). After updating `demo/stack/`: **`make stack-down`** at the end of generation; then **`stack-up`** + **`run-local`** when observing.
 11. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
 12. Announce Definition of Done only when satisfied.
 

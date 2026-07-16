@@ -120,6 +120,19 @@ make stack-up → make run-local → observe MailHog (http://localhost:8025)
 - Skeleton proof: `make emit-demo` calls pedagogical `emit_demo_alert` (replaced for real connectors).
 - After generating a real connector: update `demo/stack/` subscriptions/endpoints to match the catalog; the user observes via the real domain mechanism (not `emit-demo`).
 
+### After updating `demo/stack/` (end of generation)
+
+YAML under `demo/stack/` is loaded **only at process start**. Editing it while the stack is up does **not** apply.
+
+At the **end** of generation (after writing/updating `demo/stack/`):
+
+1. Tell the user to run **`make stack-down`** so no stale subscription/endpoint config keeps running.
+2. For the MailHog demo, the path is then fresh: **`make stack-up`** → **`make run-local`** (and restart `run-local` if it was already running — connector in-memory dedupe is otherwise stale).
+
+Do not claim MailHog will show notifications from the new catalog until the stack has been brought down and up again with the new YAML.
+
+(`make stack-restart` is an optional shortcut for down+up; the default instruction after generation is **`stack-down`**, then **`stack-up`** when the user is ready to observe.)
+
 Telegram, SMS, and other notifiers are **out of scope** for the official first demo path.
 
 `make test` is for the AI/maintainer correction loop — not a required end-user step before MailHog.
@@ -162,6 +175,7 @@ Not required: production-perfect hardening. Required: a clean first implementati
 - [ ] `make test` green
 - [ ] Assumptions were shown before implementation and documented in README
 - [ ] Demo path explained via email / MailHog when guiding local observation
+- [ ] If `demo/stack/` changed: user told to `make stack-down`, then `stack-up` + `run-local` for demo
 - [ ] Ready for human review
 
 ## Automatic correction loop
@@ -172,4 +186,4 @@ Iterate (fix → retest → re-review) until DoD is met **or** a **real blocker*
 ## README
 
 Keep the README a short product path: `make start`, install, `stack-up` / `run-local` / MailHog, Assumptions section.
-Mention `make test` only as the AI/maintainer loop. Do not dump the engineering method into the README.
+Mention `stack-down` after generation when `demo/stack/` changed. Mention `make test` only as the AI/maintainer loop. Do not dump the engineering method into the README.

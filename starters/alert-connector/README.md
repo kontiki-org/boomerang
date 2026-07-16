@@ -23,6 +23,16 @@ make stack-up      # RabbitMQ, MailHog, registry, subscription, alert-engine, em
 make run-local     # connector on the host (leave running)
 ```
 
+After the AI updates `demo/stack/` (subscriptions / endpoints), stop any running stack so the next demo loads fresh config:
+
+```bash
+make stack-down
+make stack-up
+make run-local
+```
+
+(`make stack-restart` is an optional shortcut for down+up.)
+
 Skeleton only — trigger one pedagogical alert:
 
 ```bash
@@ -41,7 +51,7 @@ Host ports: `5672`, `1025`/`8025`, `15672`. Stop any other stack using them befo
 
 Details: `demo/README.md`.
 
-When an AI generates a **real** connector, it replaces `emit_demo_alert`, updates Behave features, and rewrites `demo/stack/` subscriptions/endpoints to match the new catalog. Telegram / SMS are outside the official first-experience path.
+When an AI generates a **real** connector, it replaces `emit_demo_alert`, updates Behave features, and rewrites `demo/stack/` subscriptions/endpoints to match the new catalog — then tells you to **`make stack-down`**, and for the demo **`make stack-up`** + **`make run-local`** (YAML is loaded only at process start). Telegram / SMS are outside the official first-experience path.
 
 ## Tests (AI / maintainers)
 

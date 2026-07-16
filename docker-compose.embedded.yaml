@@ -1,0 +1,51 @@
+# Embedded profile — Compose overlay
+#
+# Usage:
+#   docker compose -f docker-compose.stack.yaml -f docker-compose.embedded.yaml up -d
+#   make stack-embedded-up
+#
+# Differences vs platform (base stack):
+# - no identity-service, no earthquake-feed-service
+# - subscription / notifiers load YAML from stack/embedded/
+
+services:
+  identity-service:
+    profiles: ["platform"]
+
+  earthquake-feed-service:
+    profiles: ["platform"]
+
+  subscription-service:
+    command: >
+      boomerang-subscription
+      --config /stack/common.services.yaml
+      --config /stack/embedded/subscription.yaml
+
+  email-notifier-service:
+    command: >
+      boomerang-email-notifier
+      --config /stack/common.services.yaml
+      --config /stack/embedded/email_notifier.yaml
+
+  telegram-notifier-service:
+    command: >
+      sh -c 'EXTRA=""; if [ -f /stack/telegram_notifier_bot_token.yaml ]; then EXTRA="--config /stack/telegram_notifier_bot_token.yaml"; fi;
+      exec boomerang-telegram-notifier --config /stack/common.services.yaml --config /stack/embedded/telegram_notifier.yaml $$EXTRA'
+
+  demo-app-service:
+    build:
+      context: .
+    container_name: boomerang-demo-app-service
+    command: >
+      boomerang-demo-app
+      --config /stack/common.services.yaml
+      --config /stack/embedded/demo_app.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_healthy
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    restart: unless-stopped

@@ -28,11 +28,13 @@ If no observable data source or deterministic decision rule exists, the Starter 
 
 ## How work should feel
 
-- Prefer **inference** over questionnaires; document important assumptions.
+- Prefer **inference** over questionnaires; document important assumptions **before** implementation as well as in the README.
 - Prefer **obvious code** over generic frameworks (see `SIMPLICITY.md`).
 - Keep the **canonical structure** of this repository; do not reinvent layout or style (see `WORKFLOW.md`).
 - Treat the root `README.md` as **product UX** (fast path to a working connector), not as technical documentation.
 - Users start the AI experience via **`make start`** (official entry prompt), not by pasting the method into chat.
+- Polling connectors use the Starter Kit convention: immediate first poll, then every **60 seconds** (demo speed, not production).
+- The official local demo notification path is **email via MailHog** only (V1).
 
 ## Authority
 

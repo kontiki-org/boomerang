@@ -12,16 +12,21 @@ A working connector as fast as possible — maximise progress and the “wow” 
 
 1. Respect `AGENTS.md` and `.engineering/`.
 2. After mode choice: short discovery (infer aggressively; ≤ ~3 exchanges).
-3. In **one pass**: declarative features, production code, Behave steps.
-4. Replace pedagogical `emit_demo_alert` with the real domain mechanism.
-5. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
-6. Run `make test`; auto-correct until green or a real human blocker.
-7. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
-8. Announce Definition of Done only when satisfied.
+3. Quality acknowledgment + assumptions summary; get **one global confirmation**, then implement.
+4. In **one pass**: declarative features, production code, Behave steps.
+5. Polling: immediate first poll, then every **60 seconds** (Starter convention).
+6. Replace pedagogical `emit_demo_alert` with the real domain mechanism.
+7. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
+8. Run `make test`; auto-correct until green or a real human blocker.
+9. Point the user to **email / MailHog** for the official local demo notification.
+10. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
+11. Announce Definition of Done only when satisfied.
 
 ## Do not
 
 - Rebuild project structure or invent parallel architecture.
 - Import outside the public surface (stop and propose an API change instead).
-- Ask questionnaires; prefer assumptions + README documentation.
+- Ask questionnaires; prefer assumptions + one confirmation.
+- Invent a long polling interval (e.g. one hour).
+- Guide first demo via Telegram/SMS instead of MailHog email.
 - Dump `.engineering/` into the user chat.

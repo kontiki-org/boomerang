@@ -12,13 +12,16 @@ A durable, reviewable connector (official or long-lived work) following the Boom
 
 1. Respect `AGENTS.md` and `.engineering/`.
 2. After mode choice: short discovery (infer aggressively; ≤ ~3 exchanges).
-3. Write **declarative `.feature` files only** (`GHERKIN.md`).
-4. **Stop for human review** of the features. Do not implement code until the user approves.
-5. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`.
-6. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
-7. Run `make test`; auto-correct until green or a real human blocker.
-8. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
-9. Announce Definition of Done only when satisfied.
+3. Quality acknowledgment + assumptions summary; confirm before writing features.
+4. Write **declarative `.feature` files only** (`GHERKIN.md`).
+5. **Stop for human review** of the features. Do not implement code until the user approves.
+6. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`.
+7. Polling: immediate first poll, then every **60 seconds** (Starter convention).
+8. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
+9. Run `make test`; auto-correct until green or a real human blocker.
+10. Point the user to **email / MailHog** for the official local demo notification when relevant.
+11. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
+12. Announce Definition of Done only when satisfied.
 
 ## Do not
 
@@ -26,4 +29,6 @@ A durable, reviewable connector (official or long-lived work) following the Boom
 - Rebuild project structure or invent parallel architecture.
 - Import outside the public surface (stop and propose an API change instead).
 - Hide business behaviour in step definitions.
+- Invent a long polling interval (e.g. one hour).
+- Guide first demo via Telegram/SMS instead of MailHog email.
 - Dump `.engineering/` into the user chat.

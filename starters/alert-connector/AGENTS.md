@@ -23,9 +23,10 @@ Optional mode formulations (execution aids, not the method itself):
 When the user sends the official entry prompt (`Start the Boomerang Starter Kit.` — see `.engineering/ENTRY_PROMPT.txt` / `make start`):
 
 1. Deliver the first message (`FIRST_MESSAGE.md`) if the session has not already chosen a mode.
-2. Run discovery and generation per `WORKFLOW.md` (use `.prompts/*` only as a short mode checklist).
+2. Run discovery and generation per `WORKFLOW.md` (quality acknowledgment, assumptions confirmation, then implement; use `.prompts/*` only as a short mode checklist).
 3. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 4. Replace pedagogical `emit_demo_alert` when implementing a real domain connector.
-5. Auto-review and iterate until Definition of Done or a real human blocker.
+5. Polling connectors: immediate + 60s. Guide local observation via **email / MailHog**.
+6. Auto-review and iterate until Definition of Done or a real human blocker.
 
 The entry prompt stays deliberately short. Do not expect the user to paste `.engineering/` or `.prompts/` into the chat.

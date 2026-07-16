@@ -25,11 +25,13 @@ Those prompts are formulations of the method, not a second source of truth.
 Goal: a working connector as fast as possible.
 
 1. Short discovery (below).
-2. Implement features, production code, and steps in one pass.
-3. Run `make test`; auto-correct until green (or a real blocker).
-4. Help the user run locally and see an alert when the stack is available.
-5. Auto-review (below); document Assumptions in the README.
-6. Announce Definition of Done only when satisfied.
+2. Quality acknowledgment (below).
+3. Assumptions summary + **one global confirmation** (below) — then implement.
+4. Implement features, production code, and steps in one pass.
+5. Run `make test`; auto-correct until green (or a real blocker).
+6. Help the user run locally and see an **email** notification via MailHog (below).
+7. Auto-review (below); document Assumptions in the README.
+8. Announce Definition of Done only when satisfied.
 
 Maximise progress and the “wow” effect. Ask as few questions as possible.
 
@@ -38,12 +40,15 @@ Maximise progress and the “wow” effect. Ask as few questions as possible.
 Goal: durable, reviewable work (official or long-lived connectors).
 
 1. Short discovery (below).
-2. Write declarative `.feature` files only.
-3. **Stop for human review** of the features.
-4. After approval: implement production code and step definitions.
-5. Run `make test`; auto-correct until green (or a real blocker).
-6. Auto-review; document Assumptions in the README.
-7. Announce Definition of Done only when satisfied.
+2. Quality acknowledgment (below).
+3. Assumptions summary + confirmation (below).
+4. Write declarative `.feature` files only.
+5. **Stop for human review** of the features.
+6. After approval: implement production code and step definitions.
+7. Run `make test`; auto-correct until green (or a real blocker).
+8. Help with the MailHog email demo path when relevant (below).
+9. Auto-review; document Assumptions in the README.
+10. Announce Definition of Done only when satisfied.
 
 ## Discovery
 
@@ -58,12 +63,58 @@ Typical subjects:
 - Where do the data come from?
 - When should an alert be emitted?
 
-## Assumption-driven development
+## Quality acknowledgment (before generation)
 
-If information is missing but a reasonable assumption exists: assume it, document it, continue.
-Interrupt the user only when the ambiguity would change functional behaviour.
+Before generating, briefly remind the user that result quality depends on the clarity of the need they expressed, and that inferred assumptions will shape the connector.
 
-Record important assumptions in the README **Assumptions** section (and optionally summarise at the end of the generation). Examples: polling interval, dedupe strategy, severity mapping, external id.
+Ask for a short confirmation, for example:
+
+> I understand that the result will depend on the assumptions taken from my description.
+
+Do not discourage the user. Do not turn this into a long disclaimer.
+
+## Assumptions before implementation
+
+Structural choices must be visible **before** coding — not only at the end.
+
+After discovery (and the quality acknowledgment), show a clear summary of retained assumptions, for example:
+
+- data source;
+- polling or event trigger;
+- dedupe strategy;
+- geographic or entity coverage;
+- severity mapping;
+- external identifier.
+
+**Quick mode:** one global confirmation of that summary is enough, then implement.
+**Engineering mode:** same summary; then proceed to features (with the usual review stop).
+
+Do not turn this into a questionnaire. Infer aggressively; surface the choices.
+
+Also keep an **Assumptions** section in the README (and optionally repeat a short summary at the end of generation).
+
+## Polling convention
+
+For **all** polling-based connectors generated with this kit:
+
+1. First poll **immediately** at startup (`immediate=True` or equivalent).
+2. Then poll every **60 seconds**.
+
+This interval is intentional and short so the user can verify the connector quickly.
+It is **not** a production recommendation. Do not invent a different default (e.g. one hour).
+
+Document in Assumptions that 60s is a Starter Kit demo convention.
+
+## Local demonstration (V1)
+
+The official first-experience notification channel is **email only**, observed via **MailHog** in local stacks.
+
+Explain where the user will see the notification (typically MailHog UI on port `8025` when using `make stack-embedded-up` / `make stack-up` from the Boomerang monorepo).
+
+Telegram, SMS, and other notifiers are **out of scope** for the official first demo path.
+Subscriptions / endpoints for that path should target email + MailHog when guiding the user.
+
+The starter still only runs the connector; the stack (broker, MailHog, notifiers) comes from Boomerang.
 
 ## Canonical structure
 
@@ -73,6 +124,7 @@ This repository defines the **canonical** connector layout:
 - `tests/integration/` — Behave features, steps, local event catcher
 - `config/local.yaml`
 - `.engineering/` — method (maintainers / assistants)
+- `.prompts/` — mode execution checklists
 - root `README.md`, `AGENTS.md`, `Makefile`
 
 Do **not** reinvent this structure. Domain creativity belongs in mapping and criteria, not in project shape.
@@ -96,8 +148,10 @@ Not required: production-perfect hardening. Required: a clean first implementati
 - [ ] Obvious code; no unnecessary abstractions (`SIMPLICITY.md`)
 - [ ] Only public-surface imports (`PUBLIC_SURFACE.md`)
 - [ ] Features declarative and autonomous (`GHERKIN.md`)
+- [ ] Polling connectors use immediate + 60s convention (if applicable)
 - [ ] `make test` green
-- [ ] Assumptions documented in README
+- [ ] Assumptions were shown before implementation and documented in README
+- [ ] Demo path explained via email / MailHog when guiding local observation
 - [ ] Ready for human review
 
 ## Automatic correction loop
@@ -107,5 +161,5 @@ Iterate (fix → retest → re-review) until DoD is met **or** a **real blocker*
 
 ## README
 
-Keep the README a short product path: install, test, run, stack assumptions, Assumptions section.
+Keep the README a short product path: `make start`, install, test, run, stack + MailHog, Assumptions section.
 Do not dump the engineering method into the README.

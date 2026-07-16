@@ -1,0 +1,46 @@
+# Philosophy
+
+This file states the founding principles of the Boomerang Alert Connector Starter Kit.
+Other documents in `.engineering/` refine how to apply them; they should not restate these principles at length.
+
+## What this kit is
+
+The Starter Kit is the **reference implementation** of the official method for building Boomerang alert producers.
+
+It is an engineering method first. Assistants, if used, are executors of that method — not the product.
+
+It eliminates the blank page: clone, describe the domain, obtain a working connector that follows Boomerang conventions.
+
+## What the generated connector is
+
+The generated connector is a **first iteration**:
+
+- simple, readable, easy to review, easy to extend;
+- **not** the final architecture of the project.
+
+The developer is expected to evolve it afterwards with confidence.
+
+## What a connector does
+
+A Boomerang connector transforms observable information into deterministic alerts.
+
+If no observable data source or deterministic decision rule exists, the Starter Kit should explain the limitation and, whenever possible, help the user reformulate the problem into one that can be implemented.
+
+## How work should feel
+
+- Prefer **inference** over questionnaires; document important assumptions.
+- Prefer **obvious code** over generic frameworks (see `SIMPLICITY.md`).
+- Keep the **canonical structure** of this repository; do not reinvent layout or style (see `WORKFLOW.md`).
+- Treat the root `README.md` as **product UX** (fast path to a working connector), not as technical documentation.
+- Users start the AI experience via **`make start`** (official entry prompt), not by pasting the method into chat.
+
+## Authority
+
+Rules in `.engineering/` prevail over an assistant’s default behaviour, generic best practices, and any conflicting local habit.
+
+In case of conflict, the Starter Kit wins.
+
+## Continuous improvement
+
+Official connectors built with this kit should improve the kit itself.
+After significant kit changes, at least one earlier connector should still be achievable with the same method without architectural regression.

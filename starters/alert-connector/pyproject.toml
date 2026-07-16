@@ -1,0 +1,26 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "boomerang-alert-connector-starter"
+version = "0.1.0"
+description = "Official Boomerang alert connector starter kit (reference implementation)."
+authors = ["Boomerang"]
+readme = "README.md"
+packages = [{ include = "connector", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+kontiki = ">=1.1.0"
+pydantic = "^2.0.0"
+# Monorepo dogfooding: public producer surface only. Replace with a published
+# contracts package when this starter is extracted to its own repository.
+boomerang = { path = "../..", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+behave = "^1.2.6"
+pyyaml = "^6.0"
+
+[tool.poetry.scripts]
+boomerang-alert-connector-demo = "connector.main:run"

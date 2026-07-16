@@ -12,27 +12,43 @@ make start
 
 `make start` prints a short message. Copy it into your AI assistant. The assistant follows `AGENTS.md` and `.engineering/` — you do not paste the whole method into the chat.
 
-## Run locally
+## Local demo path (email / MailHog)
+
+Official V1 first-experience channel = **email**, observed in **MailHog**.
+
+From this directory:
 
 ```bash
-make check-local   # RabbitMQ on localhost:5672
-make test
-make run-local
+make stack-up      # RabbitMQ, MailHog, registry, subscription, alert-engine, email-notifier
+make run-local     # connector on the host (leave running)
 ```
 
-This starter runs **only the connector**. It does not start Boomerang or RabbitMQ.
-
-From the Boomerang monorepo, start a stack that includes MailHog (official V1 demo channel = **email**):
+Skeleton only — trigger one pedagogical alert:
 
 ```bash
-make stack-embedded-up
-# or: make stack-up
+make emit-demo
 ```
 
-Open MailHog at [http://localhost:8025](http://localhost:8025) to see demo notifications.
-Other channels (Telegram, SMS, …) are outside the official first-experience path.
+Open MailHog: [http://localhost:8025](http://localhost:8025)  
+Expected: mail to `demo@example.org` (subject `Starter demo alert`).
 
-The pedagogical RPC `emit_demo_alert` (demo skeleton only) is replaced when you generate a real connector.
+```bash
+make stack-logs
+make stack-down
+```
+
+Host ports: `5672`, `1025`/`8025`, `15672`. Stop any other stack using them before `make stack-up`.
+
+Details: `demo/README.md`.
+
+When an AI generates a **real** connector, it replaces `emit_demo_alert`, updates Behave features, and rewrites `demo/stack/` subscriptions/endpoints to match the new catalog. Telegram / SMS are outside the official first-experience path.
+
+## Tests (AI / maintainers)
+
+```bash
+make test          # Behave; used in the generation correction loop
+make check-local   # RabbitMQ reachable on localhost:5672
+```
 
 ## Assumptions
 

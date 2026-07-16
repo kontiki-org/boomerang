@@ -15,11 +15,11 @@ A durable, reviewable connector (official or long-lived work) following the Boom
 3. Quality acknowledgment + assumptions summary; confirm before writing features.
 4. Write **declarative `.feature` files only** (`GHERKIN.md`).
 5. **Stop for human review** of the features. Do not implement code until the user approves.
-6. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`.
+6. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`; update `demo/stack/` to match the catalog.
 7. Polling: immediate first poll, then every **60 seconds** (Starter convention).
 8. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 9. Run `make test`; auto-correct until green or a real human blocker.
-10. Point the user to **email / MailHog** for the official local demo notification when relevant.
+10. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`) when guiding local observation.
 11. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
 12. Announce Definition of Done only when satisfied.
 

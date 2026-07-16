@@ -1,6 +1,7 @@
-.PHONY: start install test check-local run-local run-sandbox
+.PHONY: start install test check-local run-local emit-demo run-sandbox stack-up stack-down stack-logs
 
 PYTHON ?= python3
+COMPOSE ?= docker compose
 # Dogfooding in the monorepo: expose starter src + monorepo package root.
 MONOREPO_ROOT := $(abspath ../..)
 export PYTHONPATH := src:$(CURDIR):$(MONOREPO_ROOT)$(if $(PYTHONPATH),:$(PYTHONPATH),)
@@ -23,6 +24,19 @@ check-local:
 run-local: check-local
 	$(PYTHON) -m kontiki.runner.__main__ connector.service.ConnectorService \
 		--config config/local.yaml
+
+# Skeleton only — requires stack-up + run-local. Replaced for real connectors.
+emit-demo: check-local
+	$(PYTHON) scripts/emit_demo.py
+
+stack-up:
+	$(COMPOSE) -f docker-compose.yaml up -d --build --wait --wait-timeout 180
+
+stack-down:
+	$(COMPOSE) -f docker-compose.yaml down
+
+stack-logs:
+	$(COMPOSE) -f docker-compose.yaml logs -f
 
 # After POST /alerts — stub
 run-sandbox:

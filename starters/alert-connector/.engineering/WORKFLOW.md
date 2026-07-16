@@ -107,14 +107,22 @@ Document in Assumptions that 60s is a Starter Kit demo convention.
 
 ## Local demonstration (V1)
 
-The official first-experience notification channel is **email only**, observed via **MailHog** in local stacks.
+The official first-experience notification channel is **email only**, observed via **MailHog**.
 
-Explain where the user will see the notification (typically MailHog UI on port `8025` when using `make stack-embedded-up` / `make stack-up` from the Boomerang monorepo).
+Guide the user from **this starter directory**:
+
+```text
+make stack-up → make run-local → observe MailHog (http://localhost:8025)
+```
+
+- `make stack-up` starts the autonomous demo stack (RabbitMQ, MailHog, kontiki-registry plumbing, subscription, alert-engine, email-notifier). Config lives under `demo/stack/`.
+- `make run-local` runs **only the connector** on the host.
+- Skeleton proof: `make emit-demo` calls pedagogical `emit_demo_alert` (replaced for real connectors).
+- After generating a real connector: update `demo/stack/` subscriptions/endpoints to match the catalog; the user observes via the real domain mechanism (not `emit-demo`).
 
 Telegram, SMS, and other notifiers are **out of scope** for the official first demo path.
-Subscriptions / endpoints for that path should target email + MailHog when guiding the user.
 
-The starter still only runs the connector; the stack (broker, MailHog, notifiers) comes from Boomerang.
+`make test` is for the AI/maintainer correction loop — not a required end-user step before MailHog.
 
 ## Canonical structure
 
@@ -123,6 +131,8 @@ This repository defines the **canonical** connector layout:
 - `src/connector/` — `service.py`, `delegate.py`, `catalog.py`, `main.py`
 - `tests/integration/` — Behave features, steps, local event catcher
 - `config/local.yaml`
+- `demo/stack/` — autonomous demo Compose config (AI updates on generation)
+- `docker-compose.yaml` — `make stack-up`
 - `.engineering/` — method (maintainers / assistants)
 - `.prompts/` — mode execution checklists
 - root `README.md`, `AGENTS.md`, `Makefile`
@@ -161,5 +171,5 @@ Iterate (fix → retest → re-review) until DoD is met **or** a **real blocker*
 
 ## README
 
-Keep the README a short product path: `make start`, install, test, run, stack + MailHog, Assumptions section.
-Do not dump the engineering method into the README.
+Keep the README a short product path: `make start`, install, `stack-up` / `run-local` / MailHog, Assumptions section.
+Mention `make test` only as the AI/maintainer loop. Do not dump the engineering method into the README.

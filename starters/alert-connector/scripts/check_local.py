@@ -13,14 +13,13 @@ def main():
             pass
     except OSError as exc:
         print(
-            "Local Boomerang broker is not reachable at %s:%s (%s).\n"
+            "Local AMQP broker is not reachable at %s:%s (%s).\n"
             "\n"
-            "Start a compatible stack from the Boomerang monorepo, for example:\n"
-            "  make stack-embedded-up\n"
+            "From this starter directory, start the demo stack:\n"
             "  make stack-up\n"
-            "  make run-dev-platform\n"
             "\n"
-            "This starter only runs the connector; it does not start RabbitMQ."
+            "Then run the connector with: make run-local\n"
+            "(Host ports 5672 / 1025 / 8025 / 15672 must be free.)"
             % (HOST, PORT, exc),
             file=sys.stderr,
         )

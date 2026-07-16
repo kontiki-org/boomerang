@@ -26,7 +26,7 @@ When the user sends the official entry prompt (`Start the Boomerang Starter Kit.
 2. Run discovery and generation per `WORKFLOW.md` (quality acknowledgment, assumptions confirmation, then implement; use `.prompts/*` only as a short mode checklist).
 3. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 4. Replace pedagogical `emit_demo_alert` when implementing a real domain connector.
-5. Polling connectors: immediate + 60s. Guide local observation via **email / MailHog**.
+5. Polling connectors: immediate + 60s. Guide local observation via **email / MailHog** (`make stack-up` → `make run-local` from this directory).
 6. Auto-review and iterate until Definition of Done or a real human blocker.
 
 The entry prompt stays deliberately short. Do not expect the user to paste `.engineering/` or `.prompts/` into the chat.

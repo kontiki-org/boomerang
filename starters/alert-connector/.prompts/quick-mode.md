@@ -15,10 +15,10 @@ A working connector as fast as possible — maximise progress and the “wow” 
 3. Quality acknowledgment + assumptions summary; get **one global confirmation**, then implement.
 4. In **one pass**: declarative features, production code, Behave steps.
 5. Polling: immediate first poll, then every **60 seconds** (Starter convention).
-6. Replace pedagogical `emit_demo_alert` with the real domain mechanism.
+6. Replace pedagogical `emit_demo_alert` with the real domain mechanism; update `demo/stack/` subscriptions/endpoints to match the catalog.
 7. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
 8. Run `make test`; auto-correct until green or a real human blocker.
-9. Point the user to **email / MailHog** for the official local demo notification.
+9. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`) for the official local demo.
 10. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
 11. Announce Definition of Done only when satisfied.
 

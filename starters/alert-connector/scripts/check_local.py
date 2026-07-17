@@ -19,8 +19,7 @@ def main():
             "  make stack-up\n"
             "\n"
             "Then run the connector with: make run-local\n"
-            "(Host ports 5672 / 1025 / 8025 / 15672 must be free.)"
-            % (HOST, PORT, exc),
+            "(Host ports 5672 / 1025 / 8025 / 15672 must be free.)" % (HOST, PORT, exc),
             file=sys.stderr,
         )
         return 1

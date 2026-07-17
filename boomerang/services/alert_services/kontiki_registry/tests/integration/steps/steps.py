@@ -138,9 +138,10 @@ def step_assert_event_with_payload(context, event_type):
                 return
         time.sleep(0.25)
 
-    assert False, (
-        "No matching %s event.\nExpected: %s\nRecent events: %s"
-        % (event_type, expected_payload, last_events)
+    assert False, "No matching %s event.\nExpected: %s\nRecent events: %s" % (
+        event_type,
+        expected_payload,
+        last_events,
     )
 
 
@@ -228,9 +229,12 @@ def step_rpc_response_includes_event_types(context):
             event_type,
             list(by_type),
         )
-        assert by_type[event_type] == expected, (
-            "Event type mismatch for %s: %s vs %s"
-            % (event_type, by_type[event_type], expected)
+        assert (
+            by_type[event_type] == expected
+        ), "Event type mismatch for %s: %s vs %s" % (
+            event_type,
+            by_type[event_type],
+            expected,
         )
 
 

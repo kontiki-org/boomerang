@@ -1,11 +1,15 @@
 from datetime import datetime, timezone
 
+from connector import SERVICE_NAME
+from connector.catalog import (
+    DEMO_CATEGORY,
+    DEMO_EVENT_TYPE,
+    build_alert_subscription_catalog,
+)
 from kontiki.delegate import ServiceDelegate
 
 from boomerang.core.contracts.alert_catalog import AlertConnectorCatalog
 from boomerang.core.contracts.alert_normalized import NormalizedAlert
-from connector import SERVICE_NAME
-from connector.catalog import DEMO_CATEGORY, DEMO_EVENT_TYPE, build_alert_subscription_catalog
 
 
 class ConnectorDelegate(ServiceDelegate):

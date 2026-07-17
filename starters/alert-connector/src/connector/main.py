@@ -1,6 +1,5 @@
-from kontiki.runner import cli
-
 from connector.service import ConnectorService
+from kontiki.runner import cli
 
 
 def run() -> None:

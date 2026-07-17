@@ -110,7 +110,8 @@ def step_an_event_published_with_payload(context, event_type):
                 context.manager.clean_events(CATCHER)
                 return
         time.sleep(0.25)
-    assert False, (
-        "No matching %s event.\nExpected: %s\nRecent events: %s"
-        % (event_type, expected_payload, last_events)
+    assert False, "No matching %s event.\nExpected: %s\nRecent events: %s" % (
+        event_type,
+        expected_payload,
+        last_events,
     )

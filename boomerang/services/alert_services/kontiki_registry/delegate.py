@@ -114,6 +114,4 @@ class KontikiRegistryAlertDelegate(ServiceDelegate):
                 "Fleet poll failed calling ServiceRegistry.get_services; skipping cycle"
             )
             return []
-        return self._fleet_tracker.evaluate(
-            services, silenced=self._silences.names()
-        )
+        return self._fleet_tracker.evaluate(services, silenced=self._silences.names())

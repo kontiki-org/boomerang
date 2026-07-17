@@ -24,8 +24,7 @@ if __name__ == "__main__":
             "\n"
             "Prerequisites:\n"
             "  make stack-up\n"
-            "  make run-local   # leave running in another terminal\n"
-            % exc,
+            "  make run-local   # leave running in another terminal\n" % exc,
             file=sys.stderr,
         )
         raise SystemExit(1) from exc

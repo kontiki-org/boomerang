@@ -1,10 +1,11 @@
+from connector import SERVICE_NAME
+
 from boomerang.core.contracts.alert_catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from connector import SERVICE_NAME
 
 DEMO_CATEGORY = "demo.starter"
 DEMO_EVENT_TYPE = "demo_alert"

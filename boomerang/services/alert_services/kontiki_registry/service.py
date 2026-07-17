@@ -1,7 +1,6 @@
 import logging
 
 from aiohttp import web
-
 from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.task.task import task
 from kontiki.web.web import http
@@ -79,7 +78,9 @@ class KontikiRegistryAlertService:
 
     @on_event(REGISTRY_EVENT_INSTANCE_REGISTERED)
     async def on_instance_registered(self, payload):
-        await self._publish_normalized_alert(REGISTRY_EVENT_INSTANCE_REGISTERED, payload)
+        await self._publish_normalized_alert(
+            REGISTRY_EVENT_INSTANCE_REGISTERED, payload
+        )
 
     @on_event(REGISTRY_EVENT_INSTANCE_DEREGISTERED)
     async def on_instance_deregistered(self, payload):

@@ -12,7 +12,6 @@ if _STARTER_SRC not in sys.path:
     sys.path.insert(0, _STARTER_SRC)
 
 from kontiki.testing import MockServiceManager, MockServiceRunner
-
 from mocks import AlertNormalizedEventCatcher
 from utils import safe_unlink
 

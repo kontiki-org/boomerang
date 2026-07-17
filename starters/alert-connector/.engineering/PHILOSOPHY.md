@@ -29,6 +29,7 @@ If no observable data source or deterministic decision rule exists, the Starter 
 ## How work should feel
 
 - The **business need always comes from the user** — never from branch names, git history, or prior connector code in the repo (unless the user explicitly asks to reuse or compare).
+- **Fresh Starter generation** must not use other branches, commits, tags, stashes, or deleted implementations as hidden templates — only the current skeleton, public contracts, Starter rules, generic harness, and the stated requirement.
 - Prefer **inference of implementation details** over questionnaires once the need is stated; document important assumptions **before** implementation as well as in the README.
 - Prefer **obvious code** over generic frameworks (see `SIMPLICITY.md`).
 - Keep the **canonical structure** of this repository; do not reinvent layout or style (see `WORKFLOW.md`).

@@ -27,7 +27,8 @@ A working connector as fast as possible — maximise progress and the “wow” 
 ## Do not
 
 - Infer the connector domain from branch name, git history, stashes, deleted files, other branches, or prior connector code — unless the user explicitly asks for reuse or comparison.
-- Search git or read previous implementations before the user describes the business need.
+- Use `git show`, branch trees, commit history, tags, or stashes to read or copy a prior connector's features, delegate, service, mocks, or steps during fresh generation.
+- Read `boomerang/services/alert_services/*` or other monorepo producers as implementation reference unless the user explicitly asks.
 - Rebuild project structure or invent parallel architecture.
 - Import outside the public surface (stop and propose an API change instead).
 - Ask questionnaires; prefer assumptions + one confirmation **after** the user has stated the need.

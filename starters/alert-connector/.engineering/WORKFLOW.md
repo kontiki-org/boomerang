@@ -47,6 +47,32 @@ Repository metadata may be used **only** for technical safety checks (see below)
 
 Each dry-run must stand on its own. Inspecting a previous connector before the business need is known invalidates the Starter Kit as an independent validation of the method.
 
+### Fresh generation — no hidden templates
+
+During **implementation** (features, production code, steps, demo stack), do **not** treat existing connector implementations as hidden templates — unless the user explicitly asks to reuse or compare one.
+
+**Do not inspect implementation files from:**
+
+- other git branches (`git show other-branch:…`, checkout, diff against branch trees, …)
+- previous commits (history of `src/connector/`, `tests/integration/features/`, …)
+- tags
+- stashes
+- deleted connector implementations (recovering old files from git)
+
+This applies **throughout** generation, not only before discovery. A `git show rain_forecast_service:…` (or similar) to copy feature files, delegate structure, mocks, or assumptions is **forbidden** for Starter Kit dogfooding.
+
+**Allowed sources for fresh generation:**
+
+- the **current** Starter Kit skeleton in the working tree (`starters/alert-connector/` as checked out — canonical layout, harness, pedagogical patterns to **replace**);
+- Boomerang **public contracts** (`boomerang.core.contracts.*`, documented `boomerang.testing` helpers — see `PUBLIC_SURFACE.md`);
+- official Starter documentation and rules (`.engineering/`, `AGENTS.md`, `.prompts/`, product `README.md`);
+- **generic** test harness code in `tests/integration/` (environment, runner wiring, catcher patterns — not domain scenarios copied from elsewhere);
+- the **user-approved** business requirement and assumptions table.
+
+Do not read `boomerang/services/alert_services/*`, other starters, or monorepo producer implementations as reference unless the user explicitly requests it.
+
+For normal Boomerang development outside this Starter flow, reusing an existing connector may be fine. **Inside Starter Kit dogfooding**, fresh generation must not inherit structure, tests, assumptions, or bugs from a prior connector via git archaeology.
+
 ## Technical state check (after mode choice)
 
 Before asking for the business need, you may verify **Starter Kit technical readiness** only, for example:
@@ -223,6 +249,7 @@ Not required: production-perfect hardening. Required: a clean first implementati
 ## Auto-review (mandatory before claiming done)
 
 - [ ] Business need came from the user — not from branch/git/history/prior connector code
+- [ ] No `git show` / branch / stash / history used to copy a prior connector implementation (unless user explicitly asked)
 - [ ] Obvious code; no unnecessary abstractions (`SIMPLICITY.md`)
 - [ ] Only public-surface imports (`PUBLIC_SURFACE.md`)
 - [ ] Features declarative and autonomous (`GHERKIN.md`)

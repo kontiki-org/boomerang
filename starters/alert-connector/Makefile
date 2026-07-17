@@ -30,6 +30,7 @@ emit-demo: check-local
 	$(PYTHON) scripts/emit_demo.py
 
 stack-up:
+	@test -f demo/stack/subscription.yaml || cp demo/stack/subscription.skeleton.yaml demo/stack/subscription.yaml
 	$(COMPOSE) -f docker-compose.yaml up -d --build --wait --wait-timeout 180
 
 stack-down:

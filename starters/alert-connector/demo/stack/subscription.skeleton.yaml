@@ -1,0 +1,39 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8002
+
+logging:
+  handlers:
+    file:
+      filename: /data/subscription_service.log
+
+app:
+  storage:
+    backend: sqlite
+    sqlite_path: /data/subscriptions.db
+
+  # Host-run connector service name (updated when a real connector is generated).
+  alert_connectors:
+    - alert-connector-demo-service
+
+  notification_channels:
+    - email-notifier-service
+
+  # Skeleton proof: matches pedagogical emit_demo_alert (demo.starter / demo_alert).
+  # When generating a real connector, replace this rule to match the new catalog.
+  subscriptions:
+    starter-demo:
+      demo-alert-to-mailhog:
+        status: active
+        subscription:
+          rule:
+            category: demo.starter
+            event_type: demo_alert
+            criteria:
+              all_of:
+                - key: "*"
+                  operator: eq
+                  value: "*"
+          endpoints:
+            - email.demo_inbox

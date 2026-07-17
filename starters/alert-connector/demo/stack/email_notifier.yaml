@@ -1,0 +1,27 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8003
+
+logging:
+  handlers:
+    file:
+      filename: /data/email_notifier_service.log
+
+app:
+  storage:
+    sqlite_path: /data/email_notifier.sqlite3
+
+  email:
+    smtp:
+      host: mailhog
+      port: 1025
+      use_starttls: false
+      username: ""
+      password: ""
+    from:
+      address: "boomerang-starter@localhost"
+
+  endpoints:
+    demo_inbox:
+      address: demo@example.org

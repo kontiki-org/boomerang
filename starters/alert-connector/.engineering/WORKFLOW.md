@@ -11,6 +11,52 @@ Before discussing the business problem, deliver the stable opening from `FIRST_M
 
 Then ask the user to choose a mode. The chosen mode remains the default for this project until they change it explicitly.
 
+After mode choice, follow **Business intent vs repository context** and **Technical state check** below — **before** any domain discovery or implementation work.
+
+## Business intent vs repository context
+
+**The business requirement always comes from the user.**
+
+The Starter Kit may infer **implementation details** from a stated business need (API choice, polling interval, dedupe, catalog fields). It must **never** infer the business need itself from repository context.
+
+### Forbidden as product requirements (unless the user explicitly asks)
+
+Do **not** use these to guess or pre-fill what the connector should do:
+
+- current branch name
+- commit messages
+- git history
+- deleted files
+- other branches
+- stashes
+- previous connector implementations in this repo (including skeleton, rain demo, or prior dry-runs)
+
+Do **not** search git history, inspect other branches, or read prior connector code **before** the user has described the alert source or business need — unless they explicitly ask for reuse, comparison, or continuity with a previous implementation.
+
+Repository metadata may be used **only** for technical safety checks (see below), never as substitute for the user's business description.
+
+### Required sequence after mode choice
+
+1. **Technical state check** (Starter Kit readiness only).
+2. Ask the user explicitly:
+
+   > Describe the alert source or business need you want to implement.
+
+3. **Wait** for the user's answer. Do not propose a domain, API, or connector theme until they have responded.
+4. **Only then:** clarify if needed, discover candidate public APIs, build assumptions, prepare the plan, and generate.
+
+Each dry-run must stand on its own. Inspecting a previous connector before the business need is known invalidates the Starter Kit as an independent validation of the method.
+
+## Technical state check (after mode choice)
+
+Before asking for the business need, you may verify **Starter Kit technical readiness** only, for example:
+
+- required files and canonical tree present (`src/connector/`, `tests/integration/`, `.engineering/`, Makefile, …)
+- dependencies installable (`make install` path plausible)
+- working tree state if relevant to safe generation (e.g. warn if unexpected dirty state in starter files — do **not** interpret branch names or commit messages as requirements)
+
+Keep this check brief. Do not turn it into repository archaeology.
+
 ## Modes
 
 Mode behaviour is defined in this file. Short **execution checklists** also live in:
@@ -24,44 +70,52 @@ Those prompts are formulations of the method, not a second source of truth.
 
 Goal: a working connector as fast as possible.
 
-1. Short discovery (below).
-2. Quality acknowledgment (below).
-3. Assumptions summary + **one global confirmation** (below) — then implement.
-4. Implement features, production code, and steps in one pass.
-5. Run `make test`; auto-correct until green (or a real blocker).
-6. Help the user run locally and see an **email** notification via MailHog (below).
-7. Auto-review (below); document Assumptions in the README.
-8. Announce Definition of Done only when satisfied.
+1. Technical state check (above).
+2. Ask for the business need; **wait** for the user's answer.
+3. Short discovery on **that answer only** (below).
+4. Quality acknowledgment (below).
+5. Assumptions summary + **one global confirmation** (below) — then implement.
+6. Implement features, production code, and steps in one pass.
+7. Run `make test`; auto-correct until green (or a real blocker).
+8. Help the user run locally and see an **email** notification via MailHog (below).
+9. Auto-review (below); document Assumptions in the README.
+10. Announce Definition of Done only when satisfied.
 
-Maximise progress and the “wow” effect. Ask as few questions as possible.
+Maximise progress and the “wow” effect. Ask as few questions as possible — but **never** skip waiting for the business description.
 
 ### Engineering mode
 
 Goal: durable, reviewable work (official or long-lived connectors).
 
-1. Short discovery (below).
-2. Quality acknowledgment (below).
-3. Assumptions summary + confirmation (below).
-4. Write declarative `.feature` files only.
-5. **Stop for human review** of the features.
-6. After approval: implement production code and step definitions.
-7. Run `make test`; auto-correct until green (or a real blocker).
-8. Help with the MailHog email demo path when relevant (below).
-9. Auto-review; document Assumptions in the README.
-10. Announce Definition of Done only when satisfied.
+1. Technical state check (above).
+2. Ask for the business need; **wait** for the user's answer.
+3. Short discovery on **that answer only** (below).
+4. Quality acknowledgment (below).
+5. Assumptions summary + confirmation (below).
+6. Write declarative `.feature` files only.
+7. **Stop for human review** of the features.
+8. After approval: implement production code and step definitions.
+9. Run `make test`; auto-correct until green (or a real blocker).
+10. Help with the MailHog email demo path when relevant (below).
+11. Auto-review; document Assumptions in the README.
+12. Announce Definition of Done only when satisfied.
 
 ## Discovery
 
-Understand the business problem, not every technical detail.
+Discovery starts **only after** the user has described the alert source or business need.
 
-Never ask a question whose answer can reasonably be inferred.
-Usually at most three short exchanges. If ambiguity remains, ask **one** focused question — never a questionnaire.
+Understand the business problem from **their words**, not from repository metadata.
 
-Typical subjects:
+Never ask a question whose answer can reasonably be inferred **from what the user already said**.
+Usually at most three short exchanges after the initial description. If ambiguity remains, ask **one** focused question — never a questionnaire.
+
+Typical subjects (once the user has spoken):
 
 - What should be monitored?
 - Where do the data come from?
 - When should an alert be emitted?
+
+Do not propose a connector domain, search git, or open prior implementations until this step.
 
 ## Quality acknowledgment (before generation)
 
@@ -89,7 +143,7 @@ After discovery (and the quality acknowledgment), show a clear summary of retain
 **Quick mode:** one global confirmation of that summary is enough, then implement.
 **Engineering mode:** same summary; then proceed to features (with the usual review stop).
 
-Do not turn this into a questionnaire. Infer aggressively; surface the choices.
+Do not turn this into a questionnaire. Infer implementation choices aggressively **from the user's stated need**; surface them in the assumptions table.
 
 Also keep an **Assumptions** section in the README (and optionally repeat a short summary at the end of generation).
 
@@ -168,6 +222,7 @@ Not required: production-perfect hardening. Required: a clean first implementati
 
 ## Auto-review (mandatory before claiming done)
 
+- [ ] Business need came from the user — not from branch/git/history/prior connector code
 - [ ] Obvious code; no unnecessary abstractions (`SIMPLICITY.md`)
 - [ ] Only public-surface imports (`PUBLIC_SURFACE.md`)
 - [ ] Features declarative and autonomous (`GHERKIN.md`)

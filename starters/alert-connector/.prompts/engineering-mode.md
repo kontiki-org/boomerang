@@ -11,20 +11,24 @@ A durable, reviewable connector (official or long-lived work) following the Boom
 ## Do
 
 1. Respect `AGENTS.md` and `.engineering/`.
-2. After mode choice: short discovery (infer aggressively; ≤ ~3 exchanges).
-3. Quality acknowledgment + assumptions summary; confirm before writing features.
-4. Write **declarative `.feature` files only** (`GHERKIN.md`).
-5. **Stop for human review** of the features. Do not implement code until the user approves.
-6. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`; update `demo/stack/` to match the catalog.
-7. Polling: immediate first poll, then every **60 seconds** (Starter convention).
-8. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
-9. Run `make test`; auto-correct until green or a real human blocker.
-10. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`). After updating `demo/stack/`: **`make stack-down`** at the end of generation; then **`stack-up`** + **`run-local`** when observing.
-11. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
-12. Announce Definition of Done only when satisfied.
+2. After mode choice: **technical Starter Kit state check only** (not git archaeology).
+3. Ask: *Describe the alert source or business need you want to implement.* **Wait** for the answer.
+4. Short discovery on **the user's answer only** (≤ ~3 exchanges if needed).
+5. Quality acknowledgment + assumptions summary; confirm before writing features.
+6. Write **declarative `.feature` files only** (`GHERKIN.md`).
+7. **Stop for human review** of the features. Do not implement code until the user approves.
+8. After approval: production code + Behave steps; replace pedagogical `emit_demo_alert`; update `demo/stack/` to match the catalog.
+9. Polling: immediate first poll, then every **60 seconds** (Starter convention).
+10. Stay inside the canonical tree (`src/connector/`, `tests/integration/`, …).
+11. Run `make test`; auto-correct until green or a real human blocker.
+12. Point the user to `make stack-up` → `make run-local` → **MailHog** (`:8025`). After updating `demo/stack/`: **`make stack-down`** at the end of generation; then **`stack-up`** + **`run-local`** when observing.
+13. Auto-review checklist in `WORKFLOW.md`; document Assumptions in the README.
+14. Announce Definition of Done only when satisfied.
 
 ## Do not
 
+- Infer the connector domain from branch name, git history, stashes, deleted files, other branches, or prior connector code — unless the user explicitly asks for reuse or comparison.
+- Search git or read previous implementations before the user describes the business need.
 - Skip the feature-review stop.
 - Rebuild project structure or invent parallel architecture.
 - Import outside the public surface (stop and propose an API change instead).

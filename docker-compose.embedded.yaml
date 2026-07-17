@@ -6,7 +6,7 @@
 #
 # Differences vs platform (base stack):
 # - no identity-service, no earthquake-feed-service
-# - subscription / notifiers load YAML from stack/embedded/
+# - subscription / notifiers / kontiki-registry-alert load YAML from stack/embedded/
 
 services:
   identity-service:
@@ -31,6 +31,15 @@ services:
     command: >
       sh -c 'EXTRA=""; if [ -f /stack/telegram_notifier_bot_token.yaml ]; then EXTRA="--config /stack/telegram_notifier_bot_token.yaml"; fi;
       exec boomerang-telegram-notifier --config /stack/common.services.yaml --config /stack/embedded/telegram_notifier.yaml $$EXTRA'
+
+  kontiki-registry-alert-service:
+    command: >
+      boomerang-kontiki-registry-alert
+      --config /stack/common.services.yaml
+      --config /stack/kontiki_registry_alert.yaml
+      --config /stack/embedded/kontiki_registry_alert.yaml
+    ports:
+      - "8091:8091"
 
   demo-app-service:
     build:

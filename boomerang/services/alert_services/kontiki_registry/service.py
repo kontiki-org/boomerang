@@ -1,7 +1,10 @@
 import logging
 
-from kontiki.messaging import Messenger, on_event, rpc
+from aiohttp import web
+
+from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.task.task import task
+from kontiki.web.web import http
 
 from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
 from boomerang.core.contracts.alert_services.kontiki_registry import (
@@ -29,6 +32,50 @@ class KontikiRegistryAlertService:
     @rpc
     async def get_alert_subscription_catalog(self):
         return self.delegate.get_alert_subscription_catalog()
+
+    @rpc
+    async def add_silence(self, service_name):
+        try:
+            return self.delegate.add_silence(service_name)
+        except ValueError as exc:
+            return rpc_error("INVALID_SERVICE_NAME", str(exc))
+
+    @rpc
+    async def clear_silence(self, service_name):
+        try:
+            return self.delegate.clear_silence(service_name)
+        except ValueError as exc:
+            return rpc_error("INVALID_SERVICE_NAME", str(exc))
+
+    @rpc
+    async def list_silences(self):
+        return self.delegate.list_silences()
+
+    @http("/silences", "GET")
+    async def http_list_silences(self, request):
+        _ = request
+        return self.delegate.list_silences()
+
+    @http("/silences", "POST")
+    async def http_add_silence(self, request):
+        try:
+            body = await request.json()
+        except Exception as err:
+            raise web.HTTPBadRequest(reason="Invalid JSON body") from err
+        if not isinstance(body, dict):
+            raise web.HTTPBadRequest(reason="JSON object required")
+        try:
+            return self.delegate.add_silence(body.get("service_name"))
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+
+    @http("/silences/{service_name}", "DELETE")
+    async def http_clear_silence(self, request, service_name):
+        _ = request
+        try:
+            return self.delegate.clear_silence(service_name)
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
 
     @on_event(REGISTRY_EVENT_INSTANCE_REGISTERED)
     async def on_instance_registered(self, payload):

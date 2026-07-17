@@ -75,10 +75,15 @@ class FleetStateTracker:
         self._source = source
         self._open = {}
 
-    def evaluate(self, services):
+    def evaluate(self, services, silenced=None):
         if not isinstance(services, dict):
             services = {}
-        current = self._compute_open(services)
+        silenced_names = set(silenced or [])
+        for service_name in list(self._open):
+            if service_name in silenced_names:
+                del self._open[service_name]
+
+        current = self._compute_open(services, silenced_names)
         alerts = []
 
         for service_name, kind in list(self._open.items()):
@@ -106,9 +111,15 @@ class FleetStateTracker:
         self._open = current
         return alerts
 
-    def _compute_open(self, services):
+    def drop_open_without_recover(self, service_name):
+        self._open.pop(service_name, None)
+
+    def _compute_open(self, services, silenced_names=None):
+        silenced_names = set(silenced_names or [])
         open_conditions = {}
         for service_name, min_active in self._expected.items():
+            if service_name in silenced_names:
+                continue
             instances = _snapshot_for_service(services, service_name)
             if not instances:
                 open_conditions[service_name] = CONDITION_MISSING

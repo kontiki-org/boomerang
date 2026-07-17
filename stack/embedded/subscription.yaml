@@ -55,3 +55,31 @@ app:
           endpoints:
             - telegram.ops_alerts
             - email.oncall
+      fleet-service-missing:
+        status: active
+        subscription:
+          rule:
+            category: kontiki.registry
+            event_type: expected_service_missing
+            criteria:
+              all_of:
+                - key: "*"
+                  operator: eq
+                  value: "*"
+          endpoints:
+            - telegram.ops_alerts
+            - email.oncall
+      fleet-insufficient-instances:
+        status: active
+        subscription:
+          rule:
+            category: kontiki.registry
+            event_type: insufficient_active_instances
+            criteria:
+              all_of:
+                - key: "*"
+                  operator: eq
+                  value: "*"
+          endpoints:
+            - telegram.ops_alerts
+            - email.oncall

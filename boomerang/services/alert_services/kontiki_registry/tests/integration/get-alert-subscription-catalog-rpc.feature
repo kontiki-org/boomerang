@@ -31,9 +31,8 @@ Feature: Expose Kontiki Registry subscription catalog via RPC
           level: DEBUG
           handlers:
             - file
-      app:
-        kontiki_registry:
-          category: "kontiki.registry"
+      kontiki-registry-alert-service:
+        category: "kontiki.registry"
       """
     When I call the RPC get_alert_subscription_catalog on the kontiki-registry-alert service with the following arguments
       """
@@ -133,6 +132,32 @@ Feature: Expose Kontiki Registry subscription catalog via RPC
                     "operators": ["eq", "contains"],
                     "value_kind": "string",
                     "attribute_key": "exception_type"
+                  }
+                ]
+              },
+              {
+                "event_type": "expected_service_missing",
+                "label": "Expected service missing",
+                "criteria": [
+                  {
+                    "key": "service_name",
+                    "label": "Service name",
+                    "operators": ["eq", "contains"],
+                    "value_kind": "string",
+                    "attribute_key": "service_name"
+                  }
+                ]
+              },
+              {
+                "event_type": "insufficient_active_instances",
+                "label": "Insufficient active instances",
+                "criteria": [
+                  {
+                    "key": "service_name",
+                    "label": "Service name",
+                    "operators": ["eq", "contains"],
+                    "value_kind": "string",
+                    "attribute_key": "service_name"
                   }
                 ]
               }

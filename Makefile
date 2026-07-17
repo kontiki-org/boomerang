@@ -1,4 +1,4 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-kontiki-registry-alert integration-test-kontiki-registry-alert-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform down-dev-platform stack-up stack-down stack-build stack-rebuild stack-embedded-up stack-embedded-down demo-app-degrade demo-app-recover demo-app-status platform-up platform-down kontiki-tui textual-ui textual-ui-dev
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-kontiki-registry-alert integration-test-kontiki-registry-alert-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform run-dev-platform-no-registry down-dev-platform stack-up stack-down stack-build stack-rebuild stack-embedded-up stack-embedded-down demo-app-degrade demo-app-recover demo-app-status platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -65,6 +65,13 @@ integration-test-kontiki-registry-alert-tag:
 
 run-dev-platform:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog kontiki-registry
+
+# Bus only (no kontiki-registry). Needed when Behave owns ServiceRegistry via mock
+# (e.g. @fleet_state) — a real registry on the same AMQP name would race get_services.
+run-dev-platform-no-registry:
+	docker compose -f $(COMPOSE_FILE) stop kontiki-registry 2>/dev/null || true
+	docker compose -f $(COMPOSE_FILE) rm -f kontiki-registry 2>/dev/null || true
+	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog
 
 down-dev-platform:
 	docker compose -f $(COMPOSE_FILE) down

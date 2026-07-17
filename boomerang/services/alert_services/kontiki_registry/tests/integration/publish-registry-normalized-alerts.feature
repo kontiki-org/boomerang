@@ -30,9 +30,8 @@ Feature: Publish Kontiki Registry events as normalized alerts
           level: DEBUG
           handlers:
             - file
-      app:
-        kontiki_registry:
-          category: "kontiki.registry"
+      kontiki-registry-alert-service:
+        category: "kontiki.registry"
       """
     When a "registry.instance.registered" event is published with payload
       """
@@ -87,9 +86,8 @@ Feature: Publish Kontiki Registry events as normalized alerts
           level: DEBUG
           handlers:
             - file
-      app:
-        kontiki_registry:
-          category: "kontiki.registry"
+      kontiki-registry-alert-service:
+        category: "kontiki.registry"
       """
     When a "registry.instance.deregistered" event is published with payload
       """
@@ -140,9 +138,8 @@ Feature: Publish Kontiki Registry events as normalized alerts
           level: DEBUG
           handlers:
             - file
-      app:
-        kontiki_registry:
-          category: "kontiki.registry"
+      kontiki-registry-alert-service:
+        category: "kontiki.registry"
       """
     When a "registry.instance.status_changed" event is published with payload
       """
@@ -197,9 +194,8 @@ Feature: Publish Kontiki Registry events as normalized alerts
           level: DEBUG
           handlers:
             - file
-      app:
-        kontiki_registry:
-          category: "kontiki.registry"
+      kontiki-registry-alert-service:
+        category: "kontiki.registry"
       """
     When a "registry.exception.recorded" event is published with payload
       """

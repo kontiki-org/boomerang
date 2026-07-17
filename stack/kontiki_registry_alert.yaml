@@ -3,6 +3,5 @@ logging:
     file:
       filename: /data/kontiki_registry_alert_service.log
 
-app:
-  kontiki_registry:
-    category: "kontiki.registry"
+kontiki-registry-alert-service:
+  category: "kontiki.registry"

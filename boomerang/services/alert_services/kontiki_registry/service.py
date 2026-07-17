@@ -1,6 +1,7 @@
 import logging
 
 from kontiki.messaging import Messenger, on_event, rpc
+from kontiki.task.task import task
 
 from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
 from boomerang.core.contracts.alert_services.kontiki_registry import (
@@ -14,6 +15,9 @@ from boomerang.services.alert_services.kontiki_registry.alert_mapping import (
 )
 from boomerang.services.alert_services.kontiki_registry.delegate import (
     KontikiRegistryAlertDelegate,
+)
+from boomerang.services.alert_services.kontiki_registry.fleet_state import (
+    FLEET_POLL_INTERVAL_SECONDS,
 )
 
 
@@ -46,7 +50,20 @@ class KontikiRegistryAlertService:
     async def on_exception_recorded(self, payload):
         await self._publish_normalized_alert(REGISTRY_EVENT_EXCEPTION_RECORDED, payload)
 
-    async def _publish_normalized_alert(self, registry_event_type: str, payload) -> None:
+    @task(interval=FLEET_POLL_INTERVAL_SECONDS, immediate=False)
+    async def poll_fleet_state(self):
+        alerts = await self.delegate.build_fleet_alerts()
+        for alert in alerts:
+            logging.info(
+                "Publishing fleet alert.normalized event_type=%s alert_id=%s "
+                "resolution=%s",
+                alert.event_type,
+                alert.alert_id,
+                alert.attributes.get("resolution"),
+            )
+            await self.messenger.publish(ALERT_NORMALIZED_EVENT, alert)
+
+    async def _publish_normalized_alert(self, registry_event_type, payload):
         alert = self.delegate.build_normalized_alert(registry_event_type, payload)
         if alert is None:
             return

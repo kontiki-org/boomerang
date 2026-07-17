@@ -5,6 +5,7 @@ from kontiki.testing import MockServiceManager, MockServiceRunner
 
 from boomerang.services.alert_services.kontiki_registry.tests.integration.mocks import (
     AlertNormalizedEventCatcher,
+    ServiceRegistryMock,
 )
 from boomerang.testing import NotificationPublisherMock, safe_unlink
 
@@ -18,6 +19,7 @@ def before_all(context):
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
     context.manager.add(NotificationPublisherMock, default_config)
     context.manager.add(AlertNormalizedEventCatcher, default_config)
+    context.manager.add(ServiceRegistryMock, default_config)
     context.runner = MockServiceRunner(context.manager)
     context.runner.start()
     context.runner.ready_event.wait(timeout=10)
@@ -26,6 +28,7 @@ def before_all(context):
 def before_scenario(context, scenario):
     _ = scenario
     context.manager.clean_events("alert-normalized-event-catcher")
+    context.manager.get_service("ServiceRegistry").set_services({})
 
 
 def after_scenario(context, scenario):

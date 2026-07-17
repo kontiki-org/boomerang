@@ -78,6 +78,16 @@ def build_alert_subscription_catalog(
                         label="Exception recorded",
                         criteria=[_SERVICE_NAME, _EXCEPTION_TYPE],
                     ),
+                    AlertEventTypeCatalog(
+                        event_type="expected_service_missing",
+                        label="Expected service missing",
+                        criteria=[_SERVICE_NAME],
+                    ),
+                    AlertEventTypeCatalog(
+                        event_type="insufficient_active_instances",
+                        label="Insufficient active instances",
+                        criteria=[_SERVICE_NAME],
+                    ),
                 ],
             )
         ],

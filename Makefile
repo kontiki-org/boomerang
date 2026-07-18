@@ -113,15 +113,19 @@ platform-up: stack-up
 platform-down: stack-down
 
 # -----------------------------------------------------------------------------
-# Monitoring (PyPI)
+# Monitoring
+# Prefer an already-installed kontiki-tui on PATH (pipx install / editable).
+# `pipx run` alone can reuse a stale cache (e.g. 0.1.0 while PyPI is 0.1.1).
 # -----------------------------------------------------------------------------
 kontiki-tui:
-	@command -v pipx >/dev/null 2>&1 || ( \
-		echo "pipx is required to run kontiki-tui without using a local repo."; \
-		echo "Install pipx then run: pipx run kontiki-tui"; \
+	@if command -v kontiki-tui >/dev/null 2>&1; then \
+		kontiki-tui; \
+	elif command -v pipx >/dev/null 2>&1; then \
+		pipx run --no-cache kontiki-tui; \
+	else \
+		echo "kontiki-tui not found. Install with: pipx install kontiki-tui"; \
 		exit 1; \
-	)
-	pipx run kontiki-tui
+	fi
 
 textual-ui:
 	$(PY) -m pip install -e ./apps/textual

@@ -34,6 +34,10 @@ def before_all(context):
     time.sleep(1)
     context.alert_engine_process = None
     context.alert_engine_config_path = None
+    context.last_http_status = None
+    context.last_http_body = None
+    context.expected_subscription_recipients = []
+    context._matched_dispatch_sigs = []
 
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost/"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
@@ -54,6 +58,10 @@ def after_scenario(context, scenario):
 
     safe_unlink(context.alert_engine_config_path)
     context.alert_engine_config_path = None
+    context.last_http_status = None
+    context.last_http_body = None
+    context.expected_subscription_recipients = []
+    context._matched_dispatch_sigs = []
     context.manager.clean_remote_calls("subscription-service")
     context.manager.clean_events("notification-dispatch-event-catcher")
 

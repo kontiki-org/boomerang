@@ -7,6 +7,7 @@ from behave import given, then, when
 from boomerang.services.alert_engine.tests.integration.utils import (
     start_alert_engine_subprocess,
 )
+from boomerang.testing import http_request
 
 
 def _normalize_actual_for_placeholders(expected, actual):
@@ -51,6 +52,34 @@ def step_alert_engine_running_with_config(context):
 DISPATCH_EVENT_CATCHER = "notification-dispatch-event-catcher"
 
 
+@when(
+    "I call {method} on the alert-engine service on {url} with the following request"
+)
+def step_call_alert_engine_http(context, method, url):
+    payload = json.loads(context.text.strip()) if context.text else {}
+    headers = payload.get("headers")
+    body = payload.get("payload")
+    status, resp_body = http_request(method, url, payload=body, headers=headers)
+    context.last_http_status = status
+    context.last_http_body = resp_body
+
+
+@then("the HTTP response status is {status:d}")
+def step_http_response_status(context, status):
+    assert context.last_http_status == status, "Expected HTTP %s, got %s body=%s" % (
+        status,
+        context.last_http_status,
+        context.last_http_body,
+    )
+
+
+@then("the HTTP response is")
+def step_http_response_is(context):
+    expected = json.loads(context.text.strip()) if context.text else {}
+    actual = context.last_http_body
+    assert actual == expected, "Expected %s, got %s" % (expected, actual)
+
+
 @when('a "{event_type}" event is published with payload')
 def step_publish_event_with_payload(context, event_type):
     payload = json.loads(context.text.strip()) if context.text else {}
@@ -91,7 +120,7 @@ def step_alert_engine_calls_subscription_rpc(context):
 @when("the alert-engine receives recipients from subscription RPC")
 def step_alert_engine_receives_recipients(context):
     expected = json.loads(context.text.strip()) if context.text else []
-    actual = getattr(context, "expected_subscription_recipients", [])
+    actual = context.expected_subscription_recipients
     normalized = _normalize_actual_for_placeholders(expected, actual)
     assert normalized == expected, (
         "Recipients mismatch for subscription RPC response.\n"
@@ -112,7 +141,7 @@ def _dispatch_match_signature(event_type, payload):
 
 def _assert_dispatch_event_published(context, event_type):
     expected_payload = json.loads(context.text.strip()) if context.text else {}
-    matched = getattr(context, "_matched_dispatch_sigs", None) or []
+    matched = context._matched_dispatch_sigs
     deadline = time.time() + 15
     last_events = []
     while time.time() < deadline:

@@ -1,13 +1,48 @@
+import secrets
+
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+from pydantic import ValidationError as PydanticValidationError
+
 from boomerang.core.contracts.alert.normalized import NormalizedAlert
 from boomerang.core.contracts.notification.message import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
+from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.core.service_contracts.subscription.service import SubscriptionRpcProxy
 
 
-class AlertEngineDelegate:
+class AlertEngineDelegate(ServiceDelegate):
+    async def setup(self):
+        config = self.container.config
+        token = get_parameter(config, "app.http.token", "")
+        self._http_token = token if isinstance(token, str) else ""
+
+    def require_http_auth(self, request):
+        expected = self._http_token
+        if not expected:
+            raise AuthError()
+        auth_header = request.headers.get("Authorization") or request.headers.get(
+            "authorization"
+        )
+        if not isinstance(auth_header, str) or not auth_header.startswith("Bearer "):
+            raise AuthError()
+        provided = auth_header[len("Bearer ") :]
+        if not secrets.compare_digest(provided, expected):
+            raise AuthError()
+
+    async def parse_normalized_alert(self, request):
+        try:
+            payload = await request.json()
+        except Exception as exc:
+            raise ValidationError() from exc
+        try:
+            return self._normalized_alert(payload)
+        except (PydanticValidationError, ValueError, TypeError) as exc:
+            raise ValidationError() from exc
+
     def _normalized_alert(self, payload) -> NormalizedAlert:
         if isinstance(payload, NormalizedAlert):
             return payload

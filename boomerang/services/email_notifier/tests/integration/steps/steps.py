@@ -10,8 +10,8 @@ from behave import given, then, when
 from kontiki.messaging import Messenger
 from kontiki.registry.client.proxy import ServiceRegistryProxy
 
-from boomerang.core.contracts.notification.message import NotificationRequest
-from boomerang.core.contracts.notification.endpoint import CreateEndpointRequest
+from boomerang_contracts.notification.message import NotificationRequest
+from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.services.email_notifier.tests.integration import mailhog
 from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,

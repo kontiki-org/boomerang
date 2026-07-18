@@ -197,6 +197,7 @@ Feature: Silence alerts for a service on demand
       []
       """
 
+  @pb
   Scenario: Silenced service does not open a fleet missing alert until cleared
     When I call the RPC add_silence on the kontiki-registry-alert service with the following arguments
       """

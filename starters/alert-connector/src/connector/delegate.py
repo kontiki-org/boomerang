@@ -8,8 +8,8 @@ from connector.catalog import (
 )
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.contracts.alert.catalog import AlertConnectorCatalog
-from boomerang.core.contracts.alert.normalized import NormalizedAlert
+from boomerang_contracts.alert.catalog import AlertConnectorCatalog
+from boomerang_contracts.alert.normalized import NormalizedAlert
 
 
 class ConnectorDelegate(ServiceDelegate):

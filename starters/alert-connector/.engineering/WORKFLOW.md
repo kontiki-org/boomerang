@@ -64,7 +64,7 @@ This applies **throughout** generation, not only before discovery. A `git show r
 **Allowed sources for fresh generation:**
 
 - the **current** Starter Kit skeleton in the working tree (`starters/alert-connector/` as checked out — canonical layout, harness, pedagogical patterns to **replace**);
-- Boomerang **public contracts** (`boomerang.core.contracts.*`, documented `boomerang.testing` helpers — see `PUBLIC_SURFACE.md`);
+- Boomerang **public contracts** (`boomerang_contracts.*`, documented `boomerang.testing` helpers — see `PUBLIC_SURFACE.md`);
 - official Starter documentation and rules (`.engineering/`, `AGENTS.md`, `.prompts/`, product `README.md`);
 - **generic** test harness code in `tests/integration/` (environment, runner wiring, catcher patterns — not domain scenarios copied from elsewhere);
 - the **user-approved** business requirement and assumptions table.

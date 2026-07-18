@@ -1,4 +1,4 @@
-from boomerang.core.contracts.notification.channel_catalog import (
+from boomerang_contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )

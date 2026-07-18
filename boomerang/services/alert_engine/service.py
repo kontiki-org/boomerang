@@ -2,7 +2,7 @@ from aiohttp.web import HTTPUnprocessableEntity
 from kontiki.messaging import Messenger, on_event
 from kontiki.web import http
 
-from boomerang.core.contracts.alert.normalized import ALERT_NORMALIZED_EVENT
+from boomerang_contracts.alert.normalized import ALERT_NORMALIZED_EVENT
 from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.services.alert_engine.delegate import AlertEngineDelegate
 

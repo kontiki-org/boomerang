@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from boomerang.core.contracts.notification.channel_catalog import (
+from boomerang_contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
     NotificationChannelsCatalog,

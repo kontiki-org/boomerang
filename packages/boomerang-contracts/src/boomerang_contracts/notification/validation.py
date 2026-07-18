@@ -3,11 +3,11 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
-from boomerang.core.contracts.notification.channel_catalog import (
+from boomerang_contracts.exceptions import ValidationError
+from boomerang_contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )
-from boomerang.core.exceptions import ValidationError
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 

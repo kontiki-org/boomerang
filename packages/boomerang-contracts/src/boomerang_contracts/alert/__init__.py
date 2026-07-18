@@ -1,4 +1,4 @@
-from boomerang.core.contracts.alert.catalog import (
+from boomerang_contracts.alert.catalog import (
     GET_ALERT_SUBSCRIPTION_CATALOG_RPC,
     AlertCategoryCatalog,
     AlertConnectorCatalog,
@@ -6,7 +6,7 @@ from boomerang.core.contracts.alert.catalog import (
     AlertEventTypeCatalog,
     AlertSubscriptionCatalog,
 )
-from boomerang.core.contracts.alert.normalized import (
+from boomerang_contracts.alert.normalized import (
     ALERT_NORMALIZED_EVENT,
     AlertArea,
     NormalizedAlert,

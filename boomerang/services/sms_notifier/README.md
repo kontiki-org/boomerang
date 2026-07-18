@@ -30,7 +30,7 @@ Consumes:
 
 Behavior:
 
-- parse payload as `NotificationRequest` (`boomerang.core.contracts.notification`),
+- parse payload as `NotificationRequest` (`boomerang_contracts.notification`),
 - resolve the destination phone via SQLite using `(recipient_id, endpoint_key)`,
 - send HTTP request to provider `POST {app.sms.provider.base_url}/sms/send`,
 - publish:

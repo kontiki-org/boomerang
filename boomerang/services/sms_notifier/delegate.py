@@ -6,7 +6,7 @@ import urllib.request
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.contracts.notification.message import NotificationRequest
+from boomerang_contracts.notification.message import NotificationRequest
 from boomerang.services.sms_notifier.database import Database
 from boomerang.services.sms_notifier.exceptions import NotFoundError, ValidationError
 from boomerang.services.sms_notifier.http_models import CreateSmsEndpointRequest

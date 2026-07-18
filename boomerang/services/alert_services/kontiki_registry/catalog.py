@@ -1,4 +1,4 @@
-from boomerang.core.contracts.alert.catalog import (
+from boomerang_contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,

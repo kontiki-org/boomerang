@@ -8,7 +8,7 @@ Do not copy Boomerang contract models into this repository.
 ## Allowed — alert contracts
 
 ```python
-from boomerang.core.contracts.alert import (
+from boomerang_contracts.alert import (
     ALERT_NORMALIZED_EVENT,
     NormalizedAlert,
     AlertArea,
@@ -19,7 +19,7 @@ from boomerang.core.contracts.alert import (
 )
 ```
 
-Equivalents: `boomerang.core.contracts.alert.normalized` / `.catalog`.
+Equivalents: `boomerang_contracts.alert.normalized` / `.catalog`.
 
 ## Allowed — test helpers (monorepo dogfooding)
 

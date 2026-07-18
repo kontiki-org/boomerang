@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
-from boomerang.core.contracts.notification.endpoint import (
+from boomerang_contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )

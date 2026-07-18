@@ -9,12 +9,12 @@ from boomerang.core.authentication import (
     requires_identity_auth_rpc,
 )
 from boomerang.core.service_contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
-from boomerang.core.contracts.notification.message import (
+from boomerang_contracts.notification.message import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,
 )
-from boomerang.core.contracts.notification.endpoint import CreateEndpointRequest
+from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.email_notifier.delegate import EmailNotifierDelegate
 

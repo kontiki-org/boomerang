@@ -1,54 +1,34 @@
-"""Shared Boomerang contracts for external alert connectors and notifiers.
-
-Service-specific RpcProxy / SERVICE_NAME live under
-``boomerang.core.service_contracts``.
-"""
-
-from boomerang.core.contracts.alert import (
-    ALERT_NORMALIZED_EVENT,
-    GET_ALERT_SUBSCRIPTION_CATALOG_RPC,
-    AlertArea,
-    AlertCategoryCatalog,
-    AlertConnectorCatalog,
-    AlertCriterionDescriptor,
-    AlertEventTypeCatalog,
-    AlertSubscriptionCatalog,
-    NormalizedAlert,
-)
-from boomerang.core.contracts.notification import (
+from boomerang_contracts.notification.channel_catalog import (
     GET_NOTIFICATION_CHANNEL_CATALOG_RPC,
     GET_NOTIFICATION_CHANNELS_CATALOG_RPC,
     ChannelFieldChoice,
     ChannelFieldDescriptor,
-    CreateChannelEndpointRequest,
-    CreateEndpointRequest,
     NotificationChannelCatalog,
     NotificationChannelsCatalog,
+)
+from boomerang_contracts.notification.endpoint import (
+    CreateChannelEndpointRequest,
+    CreateEndpointRequest,
+)
+from boomerang_contracts.notification.message import (
     NotificationContext,
     NotificationError,
     NotificationMessage,
     NotificationOutcome,
     NotificationRequest,
+)
+from boomerang_contracts.notification.validation import (
     endpoint_display,
     validate_endpoint_fields,
 )
 
 __all__ = [
-    "ALERT_NORMALIZED_EVENT",
-    "AlertArea",
-    "AlertCategoryCatalog",
-    "AlertConnectorCatalog",
-    "AlertCriterionDescriptor",
-    "AlertEventTypeCatalog",
-    "AlertSubscriptionCatalog",
     "ChannelFieldChoice",
     "ChannelFieldDescriptor",
     "CreateChannelEndpointRequest",
     "CreateEndpointRequest",
-    "GET_ALERT_SUBSCRIPTION_CATALOG_RPC",
     "GET_NOTIFICATION_CHANNEL_CATALOG_RPC",
     "GET_NOTIFICATION_CHANNELS_CATALOG_RPC",
-    "NormalizedAlert",
     "NotificationChannelCatalog",
     "NotificationChannelsCatalog",
     "NotificationContext",

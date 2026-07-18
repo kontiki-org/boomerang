@@ -1,34 +1,51 @@
-from boomerang.core.contracts.notification.channel_catalog import (
+"""Shared Boomerang contracts for alert connectors and notifiers."""
+
+from boomerang_contracts.alert import (
+    ALERT_NORMALIZED_EVENT,
+    GET_ALERT_SUBSCRIPTION_CATALOG_RPC,
+    AlertArea,
+    AlertCategoryCatalog,
+    AlertConnectorCatalog,
+    AlertCriterionDescriptor,
+    AlertEventTypeCatalog,
+    AlertSubscriptionCatalog,
+    NormalizedAlert,
+)
+from boomerang_contracts.exceptions import ValidationError
+from boomerang_contracts.notification import (
     GET_NOTIFICATION_CHANNEL_CATALOG_RPC,
     GET_NOTIFICATION_CHANNELS_CATALOG_RPC,
     ChannelFieldChoice,
     ChannelFieldDescriptor,
-    NotificationChannelCatalog,
-    NotificationChannelsCatalog,
-)
-from boomerang.core.contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
-)
-from boomerang.core.contracts.notification.message import (
+    NotificationChannelCatalog,
+    NotificationChannelsCatalog,
     NotificationContext,
     NotificationError,
     NotificationMessage,
     NotificationOutcome,
     NotificationRequest,
-)
-from boomerang.core.contracts.notification.validation import (
     endpoint_display,
     validate_endpoint_fields,
 )
 
 __all__ = [
+    "ALERT_NORMALIZED_EVENT",
+    "AlertArea",
+    "AlertCategoryCatalog",
+    "AlertConnectorCatalog",
+    "AlertCriterionDescriptor",
+    "AlertEventTypeCatalog",
+    "AlertSubscriptionCatalog",
     "ChannelFieldChoice",
     "ChannelFieldDescriptor",
     "CreateChannelEndpointRequest",
     "CreateEndpointRequest",
+    "GET_ALERT_SUBSCRIPTION_CATALOG_RPC",
     "GET_NOTIFICATION_CHANNEL_CATALOG_RPC",
     "GET_NOTIFICATION_CHANNELS_CATALOG_RPC",
+    "NormalizedAlert",
     "NotificationChannelCatalog",
     "NotificationChannelsCatalog",
     "NotificationContext",
@@ -36,6 +53,7 @@ __all__ = [
     "NotificationMessage",
     "NotificationOutcome",
     "NotificationRequest",
+    "ValidationError",
     "endpoint_display",
     "validate_endpoint_fields",
 ]

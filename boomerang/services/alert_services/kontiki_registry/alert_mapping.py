@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from boomerang.core.contracts.alert.normalized import NormalizedAlert
+from boomerang_contracts.alert.normalized import NormalizedAlert
 from boomerang.core.service_contracts.alert_services.kontiki_registry import (
     KONTIKI_REGISTRY_ALERT_SERVICE_NAME,
 )

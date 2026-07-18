@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from boomerang.core.contracts.alert.catalog import (
+from boomerang_contracts.alert.catalog import (
     AlertCriterionDescriptor,
     AlertSubscriptionCatalog,
 )

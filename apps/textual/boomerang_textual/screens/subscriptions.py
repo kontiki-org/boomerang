@@ -10,7 +10,7 @@ from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
-from boomerang.core.contracts.alert.catalog import AlertCriterionDescriptor
+from boomerang_contracts.alert.catalog import AlertCriterionDescriptor
 from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     CriteriaExpression,

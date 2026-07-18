@@ -8,12 +8,12 @@ from boomerang.core.authentication import (
     requires_identity_auth,
     requires_identity_auth_rpc,
 )
-from boomerang.core.contracts.notification.message import (
+from boomerang_contracts.notification.message import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,
 )
-from boomerang.core.contracts.notification.endpoint import CreateEndpointRequest
+from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.core.service_contracts.telegram_notifier.service import (
     TELEGRAM_NOTIFIER_SERVICE_NAME,
 )

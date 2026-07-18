@@ -1,5 +1,5 @@
 from boomerang.core.service_contracts.email_notifier.service import EMAIL_NOTIFIER_SERVICE_NAME
-from boomerang.core.contracts.notification.channel_catalog import (
+from boomerang_contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )

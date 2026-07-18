@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
-from boomerang.core.contracts.notification.message import NotificationRequest
+from boomerang_contracts.notification.message import NotificationRequest
 from boomerang.services.sms_notifier.tests.integration.utils import (
     http_request,
     start_sms_notifier_subprocess,

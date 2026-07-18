@@ -3,7 +3,7 @@ from kontiki.messaging import Messenger, on_event
 from kontiki.web import http
 
 from boomerang.core.authentication import AuthSessionDelegate, requires_identity_auth
-from boomerang.core.contracts.notification.message import (
+from boomerang_contracts.notification.message import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,

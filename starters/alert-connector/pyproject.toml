@@ -14,8 +14,8 @@ packages = [{ include = "connector", from = "src" }]
 python = ">=3.11,<4.0"
 kontiki = ">=1.2.0"
 pydantic = "^2.0.0"
-# Monorepo dogfooding: public producer surface only. Replace with a published
-# contracts package when this starter is extracted to its own repository.
+boomerang-contracts = { path = "../../packages/boomerang-contracts", develop = true }
+# Test helpers (safe_unlink) still live in the monorepo for now.
 boomerang = { path = "../..", develop = true }
 
 [tool.poetry.group.dev.dependencies]

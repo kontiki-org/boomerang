@@ -8,7 +8,7 @@ from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import Messenger
 
 from boomerang.core.service_contracts.email_notifier.service import EmailNotifierRpcProxy
-from boomerang.core.contracts.notification.message import (
+from boomerang_contracts.notification.message import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,

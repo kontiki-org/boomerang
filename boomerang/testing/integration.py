@@ -33,6 +33,13 @@ def start_kontiki_subprocess(service_entrypoint: str, config: dict):
     """Start a Kontiki service in a subprocess; returns (process, temp config path)."""
     config_path = write_temp_config(config)
     root = repo_root()
+    contracts_src = root / "packages" / "boomerang-contracts" / "src"
+    env = os.environ.copy()
+    path_parts = [str(contracts_src)]
+    existing = env.get("PYTHONPATH", "")
+    if existing:
+        path_parts.append(existing)
+    env["PYTHONPATH"] = os.pathsep.join(path_parts)
     proc = subprocess.Popen(
         [
             sys.executable,
@@ -43,6 +50,7 @@ def start_kontiki_subprocess(service_entrypoint: str, config: dict):
             config_path,
         ],
         cwd=str(root),
+        env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
     )

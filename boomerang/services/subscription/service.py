@@ -7,7 +7,7 @@ from boomerang.core.authentication import (
     requires_identity_auth,
     requires_identity_auth_rpc,
 )
-from boomerang.core.contracts.notification.endpoint import (
+from boomerang_contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )

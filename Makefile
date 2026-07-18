@@ -57,10 +57,11 @@ integration-test-earthquake-feed:
 integration-test-earthquake-feed-tag:
 	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
 
-integration-test-kontiki-registry-alert:
+# Fleet / silences Behave owns ServiceRegistry via mock — stop the real registry first.
+integration-test-kontiki-registry-alert: run-dev-platform-no-registry
 	poetry run behave boomerang/services/alert_services/kontiki_registry/tests/integration --stop
 
-integration-test-kontiki-registry-alert-tag:
+integration-test-kontiki-registry-alert-tag: run-dev-platform-no-registry
 	poetry run behave boomerang/services/alert_services/kontiki_registry/tests/integration --stop --tags "$(TAG)"
 
 run-dev-platform:

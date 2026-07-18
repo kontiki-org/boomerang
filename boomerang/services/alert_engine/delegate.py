@@ -4,8 +4,8 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from pydantic import ValidationError as PydanticValidationError
 
-from boomerang.core.contracts.alert.normalized import NormalizedAlert
-from boomerang.core.contracts.notification.message import (
+from boomerang_contracts.alert.normalized import NormalizedAlert
+from boomerang_contracts.notification.message import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,

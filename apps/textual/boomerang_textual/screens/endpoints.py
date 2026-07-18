@@ -8,8 +8,8 @@ from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Button, DataTable, Input, Label, Select, Static
 
-from boomerang.core.contracts.notification.endpoint import CreateChannelEndpointRequest
-from boomerang.core.contracts.notification.validation import validate_endpoint_fields
+from boomerang_contracts.notification.endpoint import CreateChannelEndpointRequest
+from boomerang_contracts.notification.validation import validate_endpoint_fields
 
 
 class EndpointsScreen(Static):

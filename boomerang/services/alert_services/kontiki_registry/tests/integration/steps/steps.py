@@ -5,9 +5,10 @@ import yaml
 from behave import given, then, when
 from pydantic import BaseModel
 
-from boomerang.services.alert_services.kontiki_registry.fleet_state import (
-    FLEET_POLL_INTERVAL_SECONDS,
-)
+# Must match poll_interval_seconds in @fleet_state / @alert_silences feature configs.
+# Longer than Background startup wait so the first poll lands after clean_events.
+FLEET_TEST_POLL_INTERVAL_SECONDS = 8
+
 from boomerang.services.alert_services.kontiki_registry.tests.integration.utils import (
     start_kontiki_registry_alert_subprocess,
 )
@@ -115,7 +116,7 @@ def step_fleet_poll_observes_registry_services(context):
     services = json.loads(context.text.strip()) if context.text else {}
     context.manager.get_service(REGISTRY_MOCK).set_services(services)
     context.manager.clean_events(CATCHER)
-    time.sleep(FLEET_POLL_INTERVAL_SECONDS + 5)
+    time.sleep(FLEET_TEST_POLL_INTERVAL_SECONDS + 5)
 
 
 @then('an "{event_type}" event is published with payload')

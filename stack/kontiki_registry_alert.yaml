@@ -5,3 +5,4 @@ logging:
 
 kontiki-registry-alert-service:
   category: "kontiki.registry"
+  poll_interval_seconds: 30

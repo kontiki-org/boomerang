@@ -12,7 +12,7 @@ packages = [{ include = "connector", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-kontiki = ">=1.1.0"
+kontiki = ">=1.2.0"
 pydantic = "^2.0.0"
 # Monorepo dogfooding: public producer surface only. Replace with a published
 # contracts package when this starter is extracted to its own repository.

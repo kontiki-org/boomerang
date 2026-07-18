@@ -33,6 +33,7 @@ Feature: Detect fleet expectation failures as normalized alerts
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 8
         expected_services:
           alpha-service:
             min_active: 1

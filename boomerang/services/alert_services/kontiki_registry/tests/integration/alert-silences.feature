@@ -37,6 +37,7 @@ Feature: Silence alerts for a service on demand
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 8
         expected_services:
           alpha-service:
             min_active: 1

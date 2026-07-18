@@ -19,7 +19,7 @@ from boomerang.services.alert_services.kontiki_registry.delegate import (
     KontikiRegistryAlertDelegate,
 )
 from boomerang.services.alert_services.kontiki_registry.fleet_state import (
-    FLEET_POLL_INTERVAL_SECONDS,
+    FLEET_POLL_INTERVAL_CONFIG_KEY,
 )
 
 
@@ -98,7 +98,7 @@ class KontikiRegistryAlertService:
     async def on_exception_recorded(self, payload):
         await self._publish_normalized_alert(REGISTRY_EVENT_EXCEPTION_RECORDED, payload)
 
-    @task(interval=FLEET_POLL_INTERVAL_SECONDS, immediate=False)
+    @task(interval=FLEET_POLL_INTERVAL_CONFIG_KEY, immediate=False)
     async def poll_fleet_state(self):
         alerts = await self.delegate.build_fleet_alerts()
         for alert in alerts:

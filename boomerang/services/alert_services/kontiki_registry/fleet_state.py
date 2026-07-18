@@ -13,7 +13,11 @@ CONDITION_INSUFFICIENT = "insufficient"
 EXPECTED_SERVICE_MISSING = "expected_service_missing"
 INSUFFICIENT_ACTIVE_INSTANCES = "insufficient_active_instances"
 
+# Default when kontiki-registry-alert-service.poll_interval_seconds is set in YAML.
 FLEET_POLL_INTERVAL_SECONDS = 30
+FLEET_POLL_INTERVAL_CONFIG_KEY = (
+    "%s.poll_interval_seconds" % KONTIKI_REGISTRY_ALERT_SERVICE_NAME
+)
 
 
 def parse_expected_services(raw):

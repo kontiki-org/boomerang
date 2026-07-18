@@ -32,6 +32,7 @@ Feature: Publish Kontiki Registry events as normalized alerts
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 30
       """
     When a "registry.instance.registered" event is published with payload
       """
@@ -88,6 +89,7 @@ Feature: Publish Kontiki Registry events as normalized alerts
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 30
       """
     When a "registry.instance.deregistered" event is published with payload
       """
@@ -140,6 +142,7 @@ Feature: Publish Kontiki Registry events as normalized alerts
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 30
       """
     When a "registry.instance.status_changed" event is published with payload
       """
@@ -196,6 +199,7 @@ Feature: Publish Kontiki Registry events as normalized alerts
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 30
       """
     When a "registry.exception.recorded" event is published with payload
       """

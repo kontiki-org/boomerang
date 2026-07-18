@@ -33,6 +33,7 @@ Feature: Expose Kontiki Registry subscription catalog via RPC
             - file
       kontiki-registry-alert-service:
         category: "kontiki.registry"
+        poll_interval_seconds: 30
       """
     When I call the RPC get_alert_subscription_catalog on the kontiki-registry-alert service with the following arguments
       """

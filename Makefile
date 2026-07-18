@@ -1,10 +1,8 @@
-.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform run-dev-platform-no-registry down-dev-platform stack-up stack-down stack-build stack-rebuild stack-embedded-up stack-embedded-down demo-app-degrade demo-app-recover demo-app-status platform-up platform-down kontiki-tui textual-ui textual-ui-dev
+.PHONY: install test integration-test integration-test-subscription integration-test-subscription-tag integration-test-identity integration-test-identity-tag integration-test-earthquake-feed integration-test-earthquake-feed-tag integration-test-telegram-notifier integration-test-telegram-notifier-tag cov fmt lint check clean run-service run-dev-platform run-dev-platform-no-registry down-dev-platform stack-up stack-down stack-build stack-rebuild platform-up platform-down kontiki-tui textual-ui textual-ui-dev
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
 STACK_COMPOSE_FILE ?= docker-compose.stack.yaml
-EMBEDDED_COMPOSE_FILE ?= docker-compose.embedded.yaml
-STACK_EMBEDDED_COMPOSE = -f $(STACK_COMPOSE_FILE) -f $(EMBEDDED_COMPOSE_FILE)
 
 install:
 	$(PY) -m pip install -U pip setuptools wheel
@@ -84,23 +82,6 @@ stack-up:
 
 stack-down:
 	docker compose -f $(STACK_COMPOSE_FILE) down
-
-stack-embedded-up:
-	docker compose $(STACK_EMBEDDED_COMPOSE) up -d --build --wait --wait-timeout 180
-
-stack-embedded-down:
-	docker compose $(STACK_EMBEDDED_COMPOSE) down
-
-# Flip demo-app-service degraded flag (embedded stack must be up; MailHog: :8025).
-# Heartbeat interval is 5s — wait a few seconds after degrade before checking mail.
-demo-app-degrade:
-	$(PY) -m boomerang.testing.demo_app.cli degrade
-
-demo-app-recover:
-	$(PY) -m boomerang.testing.demo_app.cli recover
-
-demo-app-status:
-	$(PY) -m boomerang.testing.demo_app.cli status
 
 platform-up: stack-up
 

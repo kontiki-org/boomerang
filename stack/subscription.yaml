@@ -15,7 +15,6 @@ app:
 
   alert_connectors:
     - earthquake-feed-service
-    - kontiki-monitor
 
   notification_channels:
     - email-notifier-service

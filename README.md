@@ -7,7 +7,6 @@ Service built on Kontiki.
 | Profile | Command | Doc |
 |---|---|---|
 | **platform** (UI / identity / earthquake demo) | `make stack-up` | — |
-| **embedded** (headless Registry → email/telegram) | `make stack-embedded-up` | [DEPLOYMENT_EMBEDDED.md](docs/boomerang/DEPLOYMENT_EMBEDDED.md) |
+| **embedded** (Registry → monitor → email/telegram) | from sibling **kontiki-monitor**: `make stack-up` | [kontiki-monitor/docs/DEPLOYMENT_EMBEDDED.md](../kontiki-monitor/docs/DEPLOYMENT_EMBEDDED.md) |
 
 Roadmap: [docs/boomerang/ROADMAP.md](docs/boomerang/ROADMAP.md).
-

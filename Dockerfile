@@ -9,6 +9,7 @@ ENV PYTHONUNBUFFERED=1
 RUN pip install --no-cache-dir -U pip
 
 COPY pyproject.toml poetry.lock README.md ./
+COPY packages/boomerang-contracts ./packages/boomerang-contracts
 COPY boomerang ./boomerang
 
 # Install the service package (includes kontiki dependency via pyproject).

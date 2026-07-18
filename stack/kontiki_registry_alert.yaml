@@ -1,8 +1,0 @@
-logging:
-  handlers:
-    file:
-      filename: /data/kontiki_registry_alert_service.log
-
-kontiki-registry-alert-service:
-  category: "kontiki.registry"
-  poll_interval_seconds: 30

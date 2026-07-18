@@ -184,14 +184,15 @@ services:
       - ./data:/data
     restart: unless-stopped
 
-  kontiki-registry-alert-service:
+  kontiki-monitor:
     build:
-      context: .
-    container_name: boomerang-kontiki-registry-alert-service
+      context: ..
+      dockerfile: kontiki-monitor/Dockerfile
+    container_name: kontiki-monitor
     command: >
-      boomerang-kontiki-registry-alert
+      kontiki-monitor
       --config /stack/common.services.yaml
-      --config /stack/kontiki_registry_alert.yaml
+      --config /config/default.yaml
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -202,4 +203,5 @@ services:
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
+      - ../kontiki-monitor/config:/config:ro
     restart: unless-stopped

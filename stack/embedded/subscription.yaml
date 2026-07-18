@@ -15,7 +15,7 @@ app:
 
   # Embedded: Registry only (no earthquake demo connector).
   alert_connectors:
-    - kontiki-registry-alert-service
+    - kontiki-monitor
 
   notification_channels:
     - email-notifier-service

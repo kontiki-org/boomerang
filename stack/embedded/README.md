@@ -4,10 +4,12 @@
 #
 # Files:
 # - subscription.yaml — Registry connector + declarative ops subscriptions (lifecycle + fleet)
-# - kontiki_registry_alert.yaml — `expected_services` + HTTP silences (`:8091`)
 # - email_notifier.yaml — SMTP (MailHog locally) + `app.endpoints`
 # - telegram_notifier.yaml — Telegram + `app.endpoints`
 # - demo_app.yaml — demo Kontiki app (set_degraded via `make demo-app-degrade`)
 #
+# Fleet / silences config lives in the sibling repo:
+#   ../kontiki-monitor/config/default.yaml + embedded.yaml
+#
 # Shared with platform: `../common.services.yaml`, `../alert_engine.yaml`,
-# `../kontiki_registry_alert.yaml`, `../kontiki_registry.yaml`, …
+# `../kontiki_registry.yaml`, …

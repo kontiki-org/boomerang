@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from boomerang.core.contracts.notification_channel_catalog import (
+from boomerang.core.contracts.notification.channel_catalog import (
     NotificationChannelCatalog,
 )
 from boomerang.core.exceptions import ValidationError
-from boomerang.core.notification_channel_validation import validate_endpoint_fields
+from boomerang.core.contracts.notification.validation import validate_endpoint_fields
 
 
 class ConfiguredEndpointStore:

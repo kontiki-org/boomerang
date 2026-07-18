@@ -10,8 +10,8 @@ from behave import given, then, when
 from kontiki.messaging import Messenger
 from kontiki.registry.client.proxy import ServiceRegistryProxy
 
-from boomerang.core.contracts.notification import NotificationRequest
-from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
+from boomerang.core.contracts.notification.message import NotificationRequest
+from boomerang.core.contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.services.identity.database.database import Database as IdentityDatabase
 from boomerang.services.subscription.tests.integration.utils import (
     register_identity_session,

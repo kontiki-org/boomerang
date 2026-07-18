@@ -1,4 +1,4 @@
-from boomerang.core.contracts.email_notifier.service import (
+from boomerang.core.service_contracts.email_notifier.service import (
     EMAIL_NOTIFIER_SERVICE_NAME,
     EmailNotifierRpcProxy,
 )

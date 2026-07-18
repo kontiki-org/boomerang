@@ -7,15 +7,15 @@ from boomerang.core.authentication import (
     requires_identity_auth,
     requires_identity_auth_rpc,
 )
-from boomerang.core.contracts.notification_endpoint import (
+from boomerang.core.contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )
-from boomerang.core.contracts.subscription import (
+from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
-from boomerang.core.contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
+from boomerang.core.service_contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
 from boomerang.core.exceptions import AuthError, NotFoundError, ValidationError
 from boomerang.services.subscription.delegate import SubscriptionDelegate
 

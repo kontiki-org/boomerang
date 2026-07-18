@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
-from boomerang.core.contracts.notification_channel_catalog import (
+from boomerang.core.contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )

@@ -1,13 +1,13 @@
 from kontiki.messaging import on_event, rpc
 from kontiki.testing import MockService
 
-from boomerang.core.contracts.alert_catalog import (
+from boomerang.core.contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from boomerang.core.contracts.alert_services.earthquake import (
+from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )
 from boomerang.testing import IdentityServiceMock

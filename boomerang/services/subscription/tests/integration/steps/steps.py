@@ -6,11 +6,11 @@ from pathlib import Path
 import yaml
 from behave import given, then, when
 
-from boomerang.core.contracts.notification_endpoint import (
+from boomerang.core.contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )
-from boomerang.core.contracts.subscription import (
+from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )

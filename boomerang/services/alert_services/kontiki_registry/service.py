@@ -5,8 +5,8 @@ from kontiki.messaging import Messenger, on_event, rpc, rpc_error
 from kontiki.task.task import task
 from kontiki.web.web import http
 
-from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
-from boomerang.core.contracts.alert_services.kontiki_registry import (
+from boomerang.core.contracts.alert.normalized import ALERT_NORMALIZED_EVENT
+from boomerang.core.service_contracts.alert_services.kontiki_registry import (
     KONTIKI_REGISTRY_ALERT_SERVICE_NAME,
 )
 from boomerang.services.alert_services.kontiki_registry.alert_mapping import (

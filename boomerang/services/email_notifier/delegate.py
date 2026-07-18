@@ -6,13 +6,13 @@ from email.message import EmailMessage
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.contracts.notification import NotificationRequest
-from boomerang.core.contracts.notification_channel_catalog import (
+from boomerang.core.contracts.notification.message import NotificationRequest
+from boomerang.core.contracts.notification.channel_catalog import (
     NotificationChannelCatalog,
 )
-from boomerang.core.contracts.notification_endpoint import CreateEndpointRequest
+from boomerang.core.contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.core.exceptions import NotFoundError, ValidationError
-from boomerang.core.notification_channel_validation import (
+from boomerang.core.contracts.notification.validation import (
     endpoint_display,
     validate_endpoint_fields,
 )

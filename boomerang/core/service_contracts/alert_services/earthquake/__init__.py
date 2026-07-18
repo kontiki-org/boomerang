@@ -1,4 +1,4 @@
-from boomerang.core.contracts.alert_services.earthquake.service import (
+from boomerang.core.service_contracts.alert_services.earthquake.service import (
     EARTHQUAKE_FEED_SERVICE_NAME,
     EarthquakeFeedRpcProxy,
 )

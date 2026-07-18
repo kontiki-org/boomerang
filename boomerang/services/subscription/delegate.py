@@ -4,20 +4,20 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.messaging import RpcClientError, RpcProxy
 
-from boomerang.core.contracts.alert_catalog import (
+from boomerang.core.contracts.alert.catalog import (
     AlertConnectorCatalog,
     AlertSubscriptionCatalog,
 )
-from boomerang.core.contracts.alert_normalized import NormalizedAlert
-from boomerang.core.contracts.notification_channel_catalog import (
+from boomerang.core.contracts.alert.normalized import NormalizedAlert
+from boomerang.core.contracts.notification.channel_catalog import (
     NotificationChannelCatalog,
     NotificationChannelsCatalog,
 )
-from boomerang.core.contracts.notification_endpoint import (
+from boomerang.core.contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )
-from boomerang.core.contracts.subscription import (
+from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )

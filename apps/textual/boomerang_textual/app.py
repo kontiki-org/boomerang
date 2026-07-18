@@ -10,8 +10,8 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer, Header, Static, TabbedContent, TabPane
 
-from boomerang.core.contracts.identity.service import IdentityRpcProxy
-from boomerang.core.contracts.subscription import SubscriptionRpcProxy
+from boomerang.core.service_contracts.identity.service import IdentityRpcProxy
+from boomerang.core.service_contracts.subscription import SubscriptionRpcProxy
 
 
 class HomeView(Container):

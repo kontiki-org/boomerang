@@ -3,8 +3,8 @@ import logging
 from kontiki.messaging import Messenger, rpc
 from kontiki.task.task import task
 
-from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
-from boomerang.core.contracts.alert_services.earthquake import (
+from boomerang.core.contracts.alert.normalized import ALERT_NORMALIZED_EVENT
+from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )
 from boomerang.services.alert_services.earthquake.delegate import EarthquakeFeedDelegate

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 
-from boomerang.core.contracts.subscription import (
+from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     CriteriaExpression,
     EndpointRef,

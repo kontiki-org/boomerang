@@ -1,10 +1,10 @@
-from boomerang.core.contracts.alert_catalog import (
+from boomerang.core.contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from boomerang.core.contracts.alert_services.kontiki_registry import (
+from boomerang.core.service_contracts.alert_services.kontiki_registry import (
     KONTIKI_REGISTRY_ALERT_SERVICE_NAME,
 )
 

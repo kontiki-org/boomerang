@@ -4,7 +4,7 @@ from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 from kontiki.registry import ServiceRegistryProxy
 
-from boomerang.core.contracts.alert_services.kontiki_registry import (
+from boomerang.core.service_contracts.alert_services.kontiki_registry import (
     KONTIKI_REGISTRY_ALERT_SERVICE_NAME,
 )
 from boomerang.services.alert_services.kontiki_registry.alert_mapping import (

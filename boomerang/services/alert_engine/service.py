@@ -1,6 +1,6 @@
 from kontiki.messaging import Messenger, on_event
 
-from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
+from boomerang.core.contracts.alert.normalized import ALERT_NORMALIZED_EVENT
 from boomerang.services.alert_engine.delegate import AlertEngineDelegate
 
 

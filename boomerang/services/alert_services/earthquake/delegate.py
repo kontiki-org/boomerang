@@ -9,14 +9,14 @@ from typing import Any
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.contracts.alert_catalog import (
+from boomerang.core.contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from boomerang.core.contracts.alert_normalized import AlertArea, NormalizedAlert
-from boomerang.core.contracts.alert_services.earthquake import (
+from boomerang.core.contracts.alert.normalized import AlertArea, NormalizedAlert
+from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )
 

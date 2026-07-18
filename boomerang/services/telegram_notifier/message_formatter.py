@@ -1,7 +1,7 @@
 import re
 from typing import Any
 
-from boomerang.core.contracts.notification import NotificationMessage
+from boomerang.core.contracts.notification.message import NotificationMessage
 
 _URL_RE = re.compile(r"https?://[^\s]+")
 

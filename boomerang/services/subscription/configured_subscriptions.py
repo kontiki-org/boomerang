@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from boomerang.core.contracts.subscription import RuleDefinition
+from boomerang.core.service_contracts.subscription import RuleDefinition
 from boomerang.services.subscription.subscription_resolution import (
     build_facts_from_alert,
     criteria_matches,

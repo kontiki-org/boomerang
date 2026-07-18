@@ -1,8 +1,8 @@
-from boomerang.core.contracts.notification_channel_catalog import (
+from boomerang.core.contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )
-from boomerang.core.contracts.telegram_notifier.service import (
+from boomerang.core.service_contracts.telegram_notifier.service import (
     TELEGRAM_NOTIFIER_SERVICE_NAME,
 )
 

@@ -1,10 +1,10 @@
-from boomerang.core.contracts.alert_normalized import NormalizedAlert
-from boomerang.core.contracts.notification import (
+from boomerang.core.contracts.alert.normalized import NormalizedAlert
+from boomerang.core.contracts.notification.message import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
-from boomerang.core.contracts.subscription.service import SubscriptionRpcProxy
+from boomerang.core.service_contracts.subscription.service import SubscriptionRpcProxy
 
 
 class AlertEngineDelegate:

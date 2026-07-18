@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.contracts.identity.service import IdentityRpcProxy
+from boomerang.core.service_contracts.identity.service import IdentityRpcProxy
 from boomerang.core.exceptions import AuthError
 
 

@@ -4,7 +4,7 @@ from connector import SERVICE_NAME
 from connector.delegate import ConnectorDelegate
 from kontiki.messaging import Messenger, rpc
 
-from boomerang.core.contracts.alert_normalized import ALERT_NORMALIZED_EVENT
+from boomerang.core.contracts.alert.normalized import ALERT_NORMALIZED_EVENT
 
 
 class ConnectorService:

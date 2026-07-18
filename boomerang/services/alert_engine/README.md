@@ -16,7 +16,7 @@ channel-ready notification requests for notifier services.
 ## Payload and contract notes
 
 - Outbound payload follows `boomerang.core.contracts.notification.NotificationRequest`.
-- Inbound alerts follow `boomerang.core.contracts.alert_normalized.NormalizedAlert`.
+- Inbound alerts follow `boomerang.core.contracts.alert.normalized.NormalizedAlert`.
 - Message is built from `title`, `body`, and `context.data` from the normalized alert.
 - The full alert (including `attributes`) is sent to
   `get_recipients_for_alert` for subscription matching.

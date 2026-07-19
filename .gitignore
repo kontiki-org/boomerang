@@ -28,6 +28,7 @@ dist/
 logs/
 
 # Local stack secrets (Telegram bot token, etc.)
+stack/notifiers/telegram_bot_token.yaml
 stack/telegram_notifier_bot_token.yaml
 .env
 

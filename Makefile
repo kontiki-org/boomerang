@@ -21,16 +21,16 @@ integration-test-subscription-tag:
 	poetry run behave boomerang/services/subscription/tests/integration --stop --tags "$(TAG)"
 
 integration-test-email-notifier:
-	poetry run behave boomerang/services/email_notifier/tests/integration --stop
+	poetry run behave boomerang/services/notifiers/email/tests/integration --stop
 
 integration-test-email-notifier-tag:
-	poetry run behave boomerang/services/email_notifier/tests/integration --stop --tags "$(TAG)"
+	poetry run behave boomerang/services/notifiers/email/tests/integration --stop --tags "$(TAG)"
 
 integration-test-telegram-notifier:
-	poetry run behave boomerang/services/telegram_notifier/tests/integration --stop
+	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop
 
 integration-test-telegram-notifier-tag:
-	poetry run behave boomerang/services/telegram_notifier/tests/integration --stop --tags "$(TAG)"
+	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop --tags "$(TAG)"
 
 integration-test-alert-engine:
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop

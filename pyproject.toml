@@ -27,8 +27,8 @@ behave = "^1.2.6"
 
 [tool.poetry.scripts]
 boomerang-subscription = "boomerang.services.subscription.main:run"
-boomerang-email-notifier = "boomerang.services.email_notifier.main:run"
-boomerang-telegram-notifier = "boomerang.services.telegram_notifier.main:run"
+boomerang-email-notifier = "boomerang.services.notifiers.email.main:run"
+boomerang-telegram-notifier = "boomerang.services.notifiers.telegram.main:run"
 boomerang-alert-engine = "boomerang.services.alert_engine.main:run"
 boomerang-earthquake-feed = "boomerang.services.alert_services.earthquake.main:run"
 boomerang-demo-app = "boomerang.testing.demo_app.main:run"

@@ -1,0 +1,4 @@
+# Merged on top of subscription.yaml when starting with docker-compose.demo.yaml.
+app:
+  alert_connectors:
+    - earthquake-feed-service

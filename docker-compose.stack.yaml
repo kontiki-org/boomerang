@@ -75,7 +75,7 @@ services:
     command: >
       boomerang-email-notifier
       --config /stack/common.services.yaml
-      --config /stack/email_notifier.yaml
+      --config /stack/notifiers/email.yaml
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -86,22 +86,17 @@ services:
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
-    ports:
-      - "8003:8003"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8003/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # No HTTP surface (bus-only). Healthcheck via registry GET /live/{service}
+    # once Kontiki exposes it — see kontiki FEATURES.md.
 
   telegram-notifier-service:
     build:
       context: .
     container_name: boomerang-telegram-notifier-service
     command: >
-      sh -c 'EXTRA=""; if [ -f /stack/telegram_notifier_bot_token.yaml ]; then EXTRA="--config /stack/telegram_notifier_bot_token.yaml"; fi;
-      exec boomerang-telegram-notifier --config /stack/common.services.yaml --config /stack/telegram_notifier.yaml $$EXTRA'
+      sh -c 'EXTRA=""; if [ -f /stack/notifiers/telegram_bot_token.yaml ]; then EXTRA="--config /stack/notifiers/telegram_bot_token.yaml"; fi;
+      exec boomerang-telegram-notifier --config /stack/common.services.yaml --config /stack/notifiers/telegram.yaml $$EXTRA'
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -110,14 +105,8 @@ services:
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
-    ports:
-      - "8004:8004"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8004/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # No HTTP surface (bus-only). Same as email-notifier-service.
 
   alert-engine-service:
     build:

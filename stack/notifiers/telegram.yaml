@@ -1,0 +1,17 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8004
+
+logging:
+  handlers:
+    file:
+      filename: /data/telegram_notifier_service.log
+
+app:
+  storage:
+    sqlite_path: /data/telegram_notifier.sqlite3
+
+  telegram:
+    api_base_url: https://api.telegram.org
+    # bot_token: stack/notifiers/telegram_bot_token.yaml (gitignored, merged at startup).

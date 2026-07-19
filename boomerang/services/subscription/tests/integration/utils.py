@@ -1,4 +1,4 @@
-from boomerang.services.email_notifier.tests.integration.utils import (
+from boomerang.services.notifiers.email.tests.integration.utils import (
     start_email_notifier_subprocess,
 )
 from boomerang.testing import http_request, start_kontiki_subprocess

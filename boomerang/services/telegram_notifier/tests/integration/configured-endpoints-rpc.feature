@@ -5,7 +5,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
   I want Telegram endpoints declared in service configuration to be used at notification dispatch
 
   Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of owner.
-  Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions. SQLite endpoints keep user_id from identity (platform profile).
+  Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions.
+  SQLite endpoints remain for seeded / legacy rows; YAML is the primary OSS path.
 
   Scenario: Deliver notification using configured endpoint when SQLite is empty
     Given the telegram-notifier service is running with the following configuration
@@ -180,60 +181,6 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
           "UI alert",
           "SQLite endpoint delivery."
         ]
-      }
-      """
-
-  @identity_sessions_1
-  Scenario: Configured endpoints are not returned by list_endpoints
-    Given the telegram-notifier service is running with the following configuration
-      """
-      kontiki:
-        amqp:
-          url: amqp://guest:guest@localhost/
-        http:
-          address: 127.0.0.1
-          port: 8004
-      logging:
-        version: 1
-        disable_existing_loggers: false
-        formatters:
-          default:
-            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            datefmt: "%Y-%m-%d %H:%M:%S"
-        handlers:
-          file:
-            class: logging.FileHandler
-            formatter: default
-            filename: /tmp/telegram-notifier.log
-            level: INFO
-        root:
-          level: DEBUG
-          handlers:
-            - file
-      app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/telegram_notifier/tests/integration/db/telegram_notifier.sqlite3
-        telegram:
-          bot_token: test-bot-token
-          api_base_url: http://127.0.0.1:9999
-        endpoints:
-          ops_alerts:
-            chat_id: "123456789"
-      """
-    And I am authenticated as "user@example.org"
-    When I call the RPC list_endpoints on the telegram-notifier service with the following arguments
-      """
-      {
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
-      }
-      """
-    Then the RPC response is
-      """
-      {
-        "endpoints": []
       }
       """
 

@@ -5,11 +5,7 @@ from kontiki.testing import MockServiceManager, MockServiceRunner
 from boomerang.services.email_notifier.tests.integration.mocks import (
     NotificationOutcomeCatcher,
 )
-from boomerang.testing import (
-    IdentityServiceMock,
-    NotificationPublisherMock,
-    safe_unlink,
-)
+from boomerang.testing import NotificationPublisherMock, safe_unlink
 
 
 def before_all(context):
@@ -20,7 +16,6 @@ def before_all(context):
 
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
-    context.manager.add(IdentityServiceMock, default_config)
     context.manager.add(NotificationPublisherMock, default_config)
     context.manager.add(NotificationOutcomeCatcher, default_config)
     context.runner = MockServiceRunner(context.manager)
@@ -42,19 +37,8 @@ def after_scenario(context, scenario):
     safe_unlink(context.email_notifier_sqlite_path)
     context.email_notifier_sqlite_path = None
 
-    # Prevent RPC return values/calls from leaking between scenarios.
-    context.manager.clean_remote_calls("identity-service")
     context.manager.clean_events("notification-outcome-catcher")
 
 
 def after_all(context):
     context.runner.stop()
-
-
-def before_tag(context, tag):
-    if tag.startswith("identity_sessions_"):
-        try:
-            repeats = int(tag.rsplit("_", 1)[-1])
-        except ValueError:
-            return
-        context.identity_session_repeats = repeats

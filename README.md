@@ -1,12 +1,31 @@
 # boomerang
 
-Service built on Kontiki.
+Alerting engine built on Kontiki: producers publish `NormalizedAlert`; subscription
++ alert-engine resolve recipients; email / telegram notifiers deliver.
 
-## Profiles
+## Quickstart
 
-| Profile | Command | Doc |
-|---|---|---|
-| **platform** (UI / identity / earthquake demo) | `make stack-up` | — |
-| **embedded** (Registry → monitor → email/telegram) | from sibling **kontiki-monitor**: `make stack-up` | [kontiki-monitor/docs/DEPLOYMENT_EMBEDDED.md](../kontiki-monitor/docs/DEPLOYMENT_EMBEDDED.md) |
+```bash
+make stack-up
+```
 
-Roadmap: [docs/boomerang/ROADMAP.md](docs/boomerang/ROADMAP.md).
+Core stack:
+
+- RabbitMQ + kontiki-registry
+- subscription, alert-engine
+- email-notifier (MailHog on :8025) + telegram-notifier
+- `POST /alerts` via alert-engine (see `stack/alert_engine.yaml` for the token)
+
+Optional earthquake demo producer:
+
+```bash
+make stack-up-demo
+```
+
+Stop everything:
+
+```bash
+make stack-down
+```
+
+Declare subscriptions / endpoints in `stack/*.yaml` (YAML is the primary config path).

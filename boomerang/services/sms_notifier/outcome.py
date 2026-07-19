@@ -1,1 +1,0 @@
-"""SMS notifier outcome skeleton."""

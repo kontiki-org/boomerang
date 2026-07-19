@@ -1,8 +1,7 @@
 """
 Subscription service schema.
 
-Identity data (email, sessions, auth codes) is owned by identity-service.
-This DB stores only subscription records keyed by the opaque user_id.
+This DB stores subscription records keyed by an opaque owner / user_id.
 """
 
 CREATE_SUBSCRIPTIONS_TABLE = """

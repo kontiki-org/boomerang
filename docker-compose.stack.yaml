@@ -68,31 +68,6 @@ services:
       timeout: 3s
       retries: 30
 
-  identity-service:
-    build:
-      context: .
-    container_name: boomerang-identity-service
-    command: >
-      boomerang-identity
-      --config /stack/common.services.yaml
-      --config /stack/identity.yaml
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      kontiki-registry:
-        condition: service_healthy
-    volumes:
-      - ./stack:/stack:ro
-      - ./data:/data
-    ports:
-      - "8001:8001"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8001/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-
   email-notifier-service:
     build:
       context: .
@@ -158,26 +133,6 @@ services:
       kontiki-registry:
         condition: service_healthy
       subscription-service:
-        condition: service_started
-    volumes:
-      - ./stack:/stack:ro
-      - ./data:/data
-    restart: unless-stopped
-
-  earthquake-feed-service:
-    build:
-      context: .
-    container_name: boomerang-earthquake-feed-service
-    command: >
-      boomerang-earthquake-feed
-      --config /stack/common.services.yaml
-      --config /stack/earthquake.yaml
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      kontiki-registry:
-        condition: service_healthy
-      alert-engine-service:
         condition: service_started
     volumes:
       - ./stack:/stack:ro

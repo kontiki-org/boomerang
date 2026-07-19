@@ -13,8 +13,8 @@ app:
     backend: sqlite
     sqlite_path: /data/subscriptions.db
 
-  alert_connectors:
-    - earthquake-feed-service
+  # Producers are listed only when present (see stack/subscription.demo.yaml).
+  alert_connectors: []
 
   notification_channels:
     - email-notifier-service

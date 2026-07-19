@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import smtplib
 from email.message import EmailMessage
 
@@ -70,40 +69,6 @@ class EmailNotifierDelegate(ServiceDelegate):
             address=address,
         )
         return {"endpoint": self._endpoint_payload(record, fields)}
-
-    async def ensure_auth_email_endpoint(
-        self,
-        user_id: str,
-        endpoint_key: str,
-        address: str,
-    ) -> dict:
-        endpoint = self._database.get_email_endpoint(user_id, endpoint_key)
-        if endpoint is not None:
-            logging.info(
-                "ensure_auth_email_endpoint: endpoint already exists for user_id=%s endpoint_key=%s",
-                user_id,
-                endpoint_key,
-            )
-            return {
-                "endpoint": {
-                    "user_id": endpoint["user_id"],
-                    "endpoint_key": endpoint["endpoint_key"],
-                    "address": endpoint["address"],
-                },
-            }
-
-        record = self._database.upsert_email_endpoint(
-            user_id=user_id,
-            endpoint_key=endpoint_key,
-            address=address,
-        )
-        return {
-            "endpoint": {
-                "user_id": record["user_id"],
-                "endpoint_key": record["endpoint_key"],
-                "address": record["address"],
-            },
-        }
 
     async def list_endpoints(self, user_id: str) -> dict:
         endpoints = self._database.list_email_endpoints(user_id)

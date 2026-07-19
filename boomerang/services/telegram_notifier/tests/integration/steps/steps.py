@@ -12,10 +12,6 @@ from kontiki.registry.client.proxy import ServiceRegistryProxy
 
 from boomerang_contracts.notification.message import NotificationRequest
 from boomerang_contracts.notification.endpoint import CreateEndpointRequest
-from boomerang.services.identity.database.database import Database as IdentityDatabase
-from boomerang.services.subscription.tests.integration.utils import (
-    register_identity_session,
-)
 from boomerang.services.telegram_notifier.tests.integration.utils import (
     http_request,
     start_telegram_notifier_subprocess,
@@ -187,24 +183,6 @@ def step_telegram_notifier_running_with_config(context):
         raise RuntimeError(
             "TelegramNotifier subprocess exited before step. stderr:\n%s" % stderr
         )
-
-
-@given('I am authenticated as "{email}"')
-def step_i_am_authenticated_as(context, email):
-    access_token = "test-access-token"
-    context.last_access_token = access_token
-    register_identity_session(context, email, access_token)
-
-
-@given('I have resolved the identity user id for "{email}" as "{user_id}"')
-def step_resolve_identity_user_id(context, email, user_id):
-    resolved_user_id = IdentityDatabase.build_user_id(email.strip().lower())
-    context.last_user_id = resolved_user_id
-    expected_user_id = _resolve_placeholders(user_id, context)
-    assert resolved_user_id == expected_user_id, (
-        f"Resolved user_id mismatch. expected={expected_user_id} "
-        f"actual={resolved_user_id}"
-    )
 
 
 @given('the "telegram_endpoints" table contains')

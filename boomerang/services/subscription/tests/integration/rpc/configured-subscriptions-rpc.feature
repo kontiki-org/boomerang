@@ -5,7 +5,7 @@ Feature: Configured subscriptions loaded from service configuration
   I want subscriptions declared in service configuration to be evaluated alongside SQLite subscriptions
 
   Configured entries are keyed by owner_id, then rule name (opaque, operator-chosen).
-  recipient_id in dispatch equals owner_id — not the rule name. SQLite subscriptions keep user_id from identity (platform profile).
+  recipient_id in dispatch equals owner_id — not the rule name.
   Configured endpoints use qualified refs "<channel>.<endpoint_id>" (e.g. telegram.ops_alerts); the loader resolves them to channel + endpoint_key at dispatch.
 
   Scenario: Match recipients from configured subscriptions when SQLite is empty
@@ -318,70 +318,6 @@ Feature: Configured subscriptions loaded from service configuration
           "endpoint_key": "missing_endpoint_key"
         }
       ]
-      """
-
-  @identity_sessions_1
-  Scenario: Configured subscriptions are not returned by get_subscriptions
-    Given the subscription service is running with the following configuration
-      """
-      kontiki:
-        amqp:
-          url: amqp://guest:guest@localhost/
-        http:
-          address: 127.0.0.1
-          port: 8000
-      logging:
-        version: 1
-        disable_existing_loggers: false
-        formatters:
-          default:
-            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            datefmt: "%Y-%m-%d %H:%M:%S"
-        handlers:
-          file:
-            class: logging.FileHandler
-            formatter: default
-            filename: /tmp/subscription.log
-            level: INFO
-        root:
-          level: DEBUG
-          handlers:
-            - file
-      app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
-        subscriptions:
-          platform-ops:
-            registry-catch-all:
-              status: active
-              subscription:
-                rule:
-                  category: kontiki.registry
-                  event_type: "*"
-                  criteria:
-                    all_of:
-                      - key: "*"
-                        operator: eq
-                        value: "*"
-                endpoints:
-                  - telegram.ops_alerts
-      """
-    And I am authenticated as "user@example.org"
-    When I call the RPC get_subscriptions on the subscription service with the following arguments
-      """
-      {
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
-      }
-      """
-    Then the RPC call succeeds
-    And the RPC response is
-      """
-      {
-        "items": []
-      }
       """
 
   Scenario: Reject invalid configured subscription at service startup

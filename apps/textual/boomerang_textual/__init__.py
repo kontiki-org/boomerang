@@ -1,1 +1,0 @@
-"""Boomerang Textual client package."""

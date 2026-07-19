@@ -1,0 +1,31 @@
+# Optional demo overlay: earthquake feed producer.
+# Usage: make stack-up-demo
+#   → docker compose -f docker-compose.stack.yaml -f docker-compose.demo.yaml up ...
+
+services:
+  subscription-service:
+    command: >
+      boomerang-subscription
+      --config /stack/common.services.yaml
+      --config /stack/subscription.yaml
+      --config /stack/subscription.demo.yaml
+
+  earthquake-feed-service:
+    build:
+      context: .
+    container_name: boomerang-earthquake-feed-service
+    command: >
+      boomerang-earthquake-feed
+      --config /stack/common.services.yaml
+      --config /stack/earthquake.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_healthy
+      alert-engine-service:
+        condition: service_started
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    restart: unless-stopped

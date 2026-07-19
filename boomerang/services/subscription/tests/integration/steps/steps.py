@@ -18,7 +18,6 @@ from boomerang.services.subscription.tests.integration.utils import (
     configured_notification_channels,
     email_notifier_config_for_subscription_tests,
     http_request,
-    register_identity_session,
     start_email_notifier_subprocess,
     start_subscription_subprocess,
 )
@@ -239,20 +238,9 @@ def step_subscription_running_with_config(context):
         )
 
 
-@given('I am authenticated as "{email}"')
-def step_i_am_authenticated_as(context, email):
-    access_token = "test-access-token"
-    context.last_access_token = access_token
-    register_identity_session(context, email, access_token)
-
-
 @when("I call {method} on the subscription service on {url} with the following request")
 def step_call_request_on_subscription_service_with_request(context, method, url):
     headers, payload = _parse_request_block(context)
-    token = getattr(context, "last_access_token", None)
-    if token:
-        headers = headers or {}
-        headers.setdefault("Authorization", f"Bearer {token}")
     resolved_url = _resolve_placeholders(url, context)
     status, body = http_request(method, resolved_url, payload=payload, headers=headers)
     context.last_http_status = status

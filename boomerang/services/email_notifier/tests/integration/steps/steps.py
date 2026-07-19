@@ -17,10 +17,6 @@ from boomerang.services.email_notifier.tests.integration.utils import (
     http_request,
     start_email_notifier_subprocess,
 )
-from boomerang.services.identity.database.database import Database as IdentityDatabase
-from boomerang.services.subscription.tests.integration.utils import (
-    register_identity_session,
-)
 
 
 def _last_response(context):
@@ -190,24 +186,6 @@ def step_email_notifier_running_with_config(context):
         )
 
 
-@given('I am authenticated as "{email}"')
-def step_i_am_authenticated_as(context, email):
-    access_token = "test-access-token"
-    context.last_access_token = access_token
-    register_identity_session(context, email, access_token)
-
-
-@given('I have resolved the identity user id for "{email}" as "{user_id}"')
-def step_resolve_identity_user_id(context, email, user_id):
-    resolved_user_id = IdentityDatabase.build_user_id(email.strip().lower())
-    context.last_user_id = resolved_user_id
-    expected_user_id = _resolve_placeholders(user_id, context)
-    assert resolved_user_id == expected_user_id, (
-        f"Resolved user_id mismatch. expected={expected_user_id} "
-        f"actual={resolved_user_id}"
-    )
-
-
 @given('the "email_endpoints" table contains')
 def step_given_email_endpoints_table_contains(context):
     sqlite_path = _sqlite_path_from_context(context)
@@ -295,8 +273,7 @@ def step_delete_endpoint_success_response(context):
 
 
 @then('the RPC call succeeds with status "{status}"')
-@then('the ensure_auth_email_endpoint RPC call succeeds with status "{status}"')
-def step_ensure_auth_email_endpoint_rpc_success(context, status):
+def step_rpc_call_succeeds_with_status(context, status):
     if context.last_rpc_error is not None:
         raise AssertionError(
             f"Expected RPC success, got error: {context.last_rpc_error}"
@@ -311,8 +288,7 @@ def step_ensure_auth_email_endpoint_rpc_success(context, status):
 
 
 @then("the RPC response is")
-@then("the ensure_auth_email_endpoint RPC response is")
-def step_ensure_auth_email_endpoint_rpc_response(context):
+def step_rpc_response(context):
     expected = json.loads(context.text.strip()) if context.text else {}
     if context.last_rpc_error is not None:
         raise AssertionError(
@@ -326,8 +302,7 @@ def step_ensure_auth_email_endpoint_rpc_response(context):
 
 
 @then("the RPC request is rejected due to validation error")
-@then("the ensure_auth_email_endpoint request is rejected due to validation error")
-def step_ensure_auth_email_endpoint_validation_error(context):
+def step_rpc_validation_error(context):
     expected = json.loads(context.text.strip()) if context.text else {}
     error = context.last_rpc_error
     assert error is not None, "Expected RPC validation error, but call succeeded."

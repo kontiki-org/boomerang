@@ -37,12 +37,10 @@ Feature: Attach channel endpoints via RPC
       """
 
   Scenario: Reject attach endpoint operation
-    Given I am authenticated as "user@example.org"
-    And I have resolved the subscription user id as "[USER_ID]"
     When I call the RPC attach_channel_endpoint on the subscription service with the following arguments
       """
       {
-        "user_id": "[USER_ID]",
+        "user_id": "usr_example",
         "channel": "pigeon",
         "endpoint_key": "pigeon_1",
         "is_default": false

@@ -10,12 +10,11 @@ from boomerang_contracts.alert.catalog import (
 from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )
-from boomerang.testing import IdentityServiceMock
 
 WEATHER_ALERT_SERVICE_NAME = "weather-alert-service"
 
 
-def _earthquake_connector_catalog() -> AlertConnectorCatalog:
+def _earthquake_connector_catalog():
     return AlertConnectorCatalog(
         source_id=EARTHQUAKE_FEED_SERVICE_NAME,
         categories=[
@@ -47,7 +46,7 @@ def _earthquake_connector_catalog() -> AlertConnectorCatalog:
     )
 
 
-def _weather_connector_catalog() -> AlertConnectorCatalog:
+def _weather_connector_catalog():
     return AlertConnectorCatalog(
         source_id=WEATHER_ALERT_SERVICE_NAME,
         categories=[

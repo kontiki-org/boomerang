@@ -5,7 +5,8 @@ Feature: Configured endpoints loaded from email-notifier service configuration
   I want email endpoints declared in service configuration to be used at notification dispatch
 
   Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of owner.
-  Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions. SQLite endpoints keep user_id from identity (platform profile).
+  Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions.
+  SQLite endpoints remain for seeded / legacy rows; YAML is the primary OSS path.
 
   Scenario: Deliver notification using configured endpoint when SQLite is empty
     Given the email-notifier service is running with the following configuration
@@ -195,66 +196,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
         "body_contains": [
           "SQLite endpoint delivery."
         ]
-      }
-      """
-
-  @identity_sessions_1
-  Scenario: Configured endpoints are not returned by list_endpoints
-    Given the email-notifier service is running with the following configuration
-      """
-      kontiki:
-        amqp:
-          url: amqp://guest:guest@localhost/
-        http:
-          address: 127.0.0.1
-          port: 8003
-      logging:
-        version: 1
-        disable_existing_loggers: false
-        formatters:
-          default:
-            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            datefmt: "%Y-%m-%d %H:%M:%S"
-        handlers:
-          file:
-            class: logging.FileHandler
-            formatter: default
-            filename: /tmp/email-notifier.log
-            level: INFO
-        root:
-          level: DEBUG
-          handlers:
-            - file
-      app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/email_notifier/tests/integration/db/email_notifier.sqlite3
-        email:
-          smtp:
-            host: 127.0.0.1
-            port: 1025
-            use_starttls: false
-            username: ""
-            password: ""
-          from:
-            address: no-reply@example.org
-        endpoints:
-          oncall:
-            address: ops@example.org
-      """
-    And I am authenticated as "user@example.org"
-    When I call the RPC list_endpoints on the email-notifier service with the following arguments
-      """
-      {
-        "headers": {
-          "Authorization": "Bearer [LAST_ACCESS_TOKEN]"
-        }
-      }
-      """
-    Then the RPC response is
-      """
-      {
-        "endpoints": []
       }
       """
 

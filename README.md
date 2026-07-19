@@ -2,10 +2,27 @@
 
 ---
 
-Alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
+## Overview
 
-Producers emit a `NormalizedAlert`. Boomerang resolves who should be notified from
-**YAML subscriptions**, then delivers on **email** or **Telegram**.
+**Boomerang** is an alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
+Producers publish alerts; the core matches **YAML subscriptions**; notifiers deliver
+(email, Telegram, …).
+
+The pipeline stays stable because both ends speak shared contracts
+(`boomerang-contracts`):
+
+```text
+Producers ──► NormalizedAlert ──► subscription + alert-engine ──► NotificationRequest ──► Notifiers
+```
+
+- **Upstream**: add a producer that emits `NormalizedAlert` (AMQP `alert.normalized`
+  or `POST /alerts`) — no change to the engine.
+- **Downstream**: add a notifier that consumes `{channel}.alerting.notification.requested`
+  and exposes a channel catalogue — same targeting model.
+- **Middle**: who gets notified is declared in YAML (`app.subscriptions` +
+  notifier `app.endpoints`).
+
+More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](docs/contracts.md).
 
 ---
 

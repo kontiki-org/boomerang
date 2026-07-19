@@ -3,16 +3,19 @@
 `telegram-notifier-service` resolves Telegram destinations and delivers
 notifications for the telegram channel.
 
+Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
+
 ## What it does
 
-- Load Telegram endpoints from YAML (`app.endpoints`) and/or SQLite.
-- Expose the telegram channel catalog (`get_notification_channel_catalog`).
+- Load Telegram endpoints from YAML (`app.endpoints`).
+- Expose the telegram channel catalog (RPC `get_notification_channel_catalog`).
 - Consume `telegram.alerting.notification.requested`.
-- Resolve destination using configured `endpoint_key` (YAML first, else SQLite).
+- Resolve destination using configured `endpoint_key`.
 - Send via Telegram Bot API.
 - Publish delivery outcomes:
   - `alerting.notification.delivered`
   - `alerting.notification.failed`
+- Mark the instance degraded on repeated API failures (`@degraded_on`).
 
 ## Stack E2E
 
@@ -36,10 +39,10 @@ notifications for the telegram channel.
    make stack-up
    ```
 
-The service listens on port **8004** and publishes/consumes:
+Events:
 
-- `telegram.alerting.notification.requested`
-- `alerting.notification.delivered` / `alerting.notification.failed`
+- consume `telegram.alerting.notification.requested`
+- publish `alerting.notification.delivered` / `alerting.notification.failed`
 
 ## Message formatting
 

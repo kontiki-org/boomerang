@@ -4,20 +4,32 @@
 publishes **`alert.normalized`** events (`NormalizedAlert`) for the rest of the
 Boomerang pipeline.
 
-It also exposes RPC **`get_alert_subscription_catalog`**, returning
-`AlertConnectorCatalog` for subscription UI and aggregation by `subscription-service`.
+It also exposes RPC **`get_alert_subscription_catalog`**, returning an
+`AlertConnectorCatalog` for aggregation by `subscription-service`.
 
-See **`docs/boomerang/EARTHQUAKE_SERVICE_ARCHITECTURE.md`** for architecture,
-configuration, and USGS usage notes.
+This is the optional **demo** producer (`make stack-up-demo`), not part of the
+core alerting runtime.
 
 ## Run
+
+Stack (with core):
+
+```bash
+make stack-up-demo
+```
+
+Standalone:
 
 ```bash
 poetry run boomerang-earthquake-feed --config /path/to/config.yaml
 ```
 
-Minimal `config.yaml` needs Kontiki AMQP settings plus optional `app.earthquake.*`
-keys (defaults exist for URL, magnitude threshold, and demo `subscription_area`).
+Example config: `stack/earthquake.yaml` (merged with `stack/common.services.yaml`
+in Compose). Keys under `app.earthquake.*` cover feed URL, `min_magnitude`,
+`subscription_area`, category, TTL, and HTTP timeout.
+
+Demo overlay registers the connector on subscription via
+`stack/subscription.demo.yaml` (`app.alert_connectors`).
 
 ## Subscription area vs geolocation (MVP)
 
@@ -26,24 +38,13 @@ configuration**, not derived from USGS coordinates. Every normalized alert uses
 that single **`areas[0]`** so the **subscription store** can match the same
 `(area_type, area_value)` as in user subscriptions. In practice you can align
 subscriptions with one logical “bucket” and receive **all qualifying events from
-the configured feed** (still subject to feed scope, **`min_magnitude`**, category
-allowlists, and dedupe)—not true geographic targeting yet.
+the configured feed** (still subject to feed scope, **`min_magnitude`**, and
+dedupe)—not true geographic targeting yet.
 
-**If you want real zones** you need a **geo matching layer** somewhere in the
-pipeline, for example:
-
-- **In this connector** before `publish`: enrich or replace `areas` only when the
-  event intersects known geometries (heavier connector, geo data ownership here).
-- **In the core** (`alert-engine` + **`subscription-service`** / RPC): keep a rich
-  payload (coordinates, region codes, …) and resolve recipients with **spatial
-  queries** or a table **`subscription_area → geometry`** (often preferable so all
-  alert sources share one model).
-- **Dedicated normalization / geozone service** between source and engine, similar
-  to splitting ingestion and normalization for other domains.
-
-Filtering usually happens **when going from alert to subscribers** (or before
-publish if you only want geo-scoped events on the bus), not at SMS/email send time:
-by then recipients are already chosen.
+**If you want real zones**, add a geo matching layer somewhere in the pipeline
+(connector enrichment, core spatial matching, or a dedicated geozone service).
+Filtering belongs when resolving subscribers (or before publish), not at notifier
+delivery time.
 
 ## Integration tests (Behave)
 

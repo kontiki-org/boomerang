@@ -1,39 +1,45 @@
 # Alert Engine Service
 
-`alert-engine-service` transforms an `alert.normalized` event into
-channel-ready notification requests for notifier services.
+`alert-engine-service` turns a `NormalizedAlert` into channel-ready
+`NotificationRequest` events for notifier services.
 
 ## What it does
 
-- Consume `alert.normalized`.
+- Ingest alerts via:
+  - AMQP event `alert.normalized`
+  - HTTP `POST /alerts` (Bearer token = `app.http.token`)
 - Resolve recipients via RPC `subscription-service.get_recipients_for_alert`.
 - Build one `NotificationRequest` per `(recipient_id, channel, endpoint_key)`.
-- Publish channel-scoped events:
-  - `email.alerting.notification.requested`
-  - `sms.alerting.notification.requested`
-  - (pattern: `{channel}.alerting.notification.requested`)
+- Publish `{channel}.alerting.notification.requested` (e.g.
+  `email.alerting.notification.requested`,
+  `telegram.alerting.notification.requested`).
+
+## Stack
+
+- Config: `stack/alert_engine.yaml`
+- HTTP: port **8005** → `POST /alerts` (docs at `/api/v1/docs`)
+- Token: `app.http.token` (default in stack: `change-me`)
 
 ## Payload and contract notes
 
-- Outbound payload follows `boomerang_contracts.notification.NotificationRequest`.
-- Inbound alerts follow `boomerang_contracts.alert.normalized.NormalizedAlert`.
-- Message is built from `title`, `body`, and `context.data` from the normalized alert.
-- The full alert (including `attributes`) is sent to
-  `get_recipients_for_alert` for subscription matching.
+- Inbound: `boomerang_contracts.alert.normalized.NormalizedAlert`
+  (validated with Pydantic on both AMQP and HTTP paths).
+- Outbound: `boomerang_contracts.notification.message.NotificationRequest`.
+- Message `title` / `body` come from the alert; `context.kind` is `"alert"` and
+  `context.data` carries `alert_id`, `category`, `event_type`, `severity`,
+  `attributes`.
+- The full alert is sent to `get_recipients_for_alert` for subscription matching.
 
 ## Current MVP limitations
 
-- Recipient resolution uses only `areas[0]` (single-area behavior).
-- The service assumes normalized payload validity is handled upstream by the
-  normalization service (no defensive schema validation here).
-- If a recipient row has mismatched `channels` / `endpoint_keys` lengths, that
-  row is skipped.
+- Area matching lives in subscription-service and uses only `areas[0]`.
+- Rows missing `recipient_id` / `channel` / `endpoint_key` are skipped.
 
 ## Service boundaries
 
 This service does **not**:
 
 - fetch domain data,
-- normalize source payloads,
+- normalize source payloads from upstream APIs,
 - send notifications directly (handled by notifier services),
-- manage user endpoints (handled by notifier + subscription services).
+- manage user endpoints (handled by notifiers + subscription config).

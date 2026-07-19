@@ -1,3 +1,8 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8005
+
 logging:
   handlers:
     file:
@@ -8,4 +13,3 @@ app:
     token: "change-me"
   rpc:
     subscription_service_name: subscription-service
-

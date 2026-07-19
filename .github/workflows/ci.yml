@@ -53,6 +53,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Prepare log volume
+        run: mkdir -p logs
+
       - name: Start local platform
         run: make run-dev-platform
 

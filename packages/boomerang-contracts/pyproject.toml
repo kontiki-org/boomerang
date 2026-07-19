@@ -7,8 +7,20 @@ name = "boomerang-contracts"
 version = "0.1.0"
 description = "Shared Boomerang alert and notification contracts."
 authors = ["Julien Weber <jpkwbr@protonmail.com>"]
+readme = "README.md"
 license = "Apache-2.0"
+homepage = "https://github.com/kontiki-org/boomerang"
+repository = "https://github.com/kontiki-org/boomerang"
 packages = [{ include = "boomerang_contracts", from = "src" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"

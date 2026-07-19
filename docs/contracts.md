@@ -92,8 +92,8 @@ packages/boomerang-contracts/
     notification/channel_catalog.py
 ```
 
-The root app depends on it via a Poetry path dependency today; PyPI publish is
-planned separately.
+The root app depends on `boomerang-contracts` from PyPI
+(`pip install boomerang-contracts`).
 
 > Note: the package may still export unused CRUD-oriented request models under
 > `notification/endpoint.py`. They are **not** part of the OSS YAML targeting

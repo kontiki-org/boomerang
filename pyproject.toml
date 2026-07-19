@@ -9,13 +9,28 @@ description = "Alerting engine built on Kontiki."
 authors = ["Julien Weber <jpkwbr@protonmail.com>"]
 readme = "README.md"
 license = "Apache-2.0"
+homepage = "https://github.com/kontiki-org/boomerang"
+repository = "https://github.com/kontiki-org/boomerang"
 packages = [{ include = "boomerang" }]
+exclude = [
+    "boomerang/**/tests",
+    "boomerang/**/tests/**",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 kontiki = ">=1.2.0"
 pydantic = "^2.0.0"
-boomerang-contracts = { path = "packages/boomerang-contracts", develop = true }
+boomerang-contracts = ">=0.1.0,<0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"

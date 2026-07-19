@@ -302,17 +302,15 @@ name = "boomerang-contracts"
 version = "0.1.0"
 description = "Shared Boomerang alert and notification contracts."
 optional = false
-python-versions = ">=3.11,<4.0"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "boomerang_contracts-0.1.0-py3-none-any.whl", hash = "sha256:2da4b98ce0948836f70cdb43bd85ca0ac1006b2d6155d395a95462a973dac391"},
+    {file = "boomerang_contracts-0.1.0.tar.gz", hash = "sha256:f97787f4599c2c840728de172df18f8c2e1a25f98fd6e1a1bf33e07a1d57cdbb"},
+]
 
 [package.dependencies]
-pydantic = "^2.0.0"
-
-[package.source]
-type = "directory"
-url = "packages/boomerang-contracts"
+pydantic = ">=2.0.0,<3.0.0"
 
 [[package]]
 name = "click"
@@ -1420,4 +1418,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "1cb61613bccaeabf751280c5b4931a2cf47a9a73a97fb495fcccf436e751198d"
+content-hash = "5e4e937ecea8ee2741f356530c3f9182b8ad7c60410d8421348be7f9b0df1a98"

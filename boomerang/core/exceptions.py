@@ -1,6 +1,3 @@
-from boomerang_contracts.exceptions import ValidationError
-
-
 class AuthError(Exception):
     code = "AUTH_ERROR"
     message = "Authentication required or invalid."

@@ -16,6 +16,7 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .coverage
+htmlcov/
 
 # IDE / editor
 .vscode/
@@ -24,11 +25,18 @@ dist/
 # Local Python version (pyenv)
 .python-version
 
-# Integration test artifacts
+# Runtime data / logs (local stack volumes)
+data/
 logs/
+*.log
 
-# Local stack secrets (Telegram bot token, etc.)
+# Local stack secrets
 stack/notifiers/telegram_bot_token.yaml
 stack/telegram_notifier_bot_token.yaml
 .env
+.env.*
+!.env.example
 
+# SQLite / local DBs outside ignored data/ (safety net)
+*.sqlite3
+*.db

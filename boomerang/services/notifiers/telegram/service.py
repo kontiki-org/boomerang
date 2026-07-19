@@ -1,11 +1,11 @@
-from kontiki.messaging import Messenger, on_event, rpc
-from kontiki.registry import degraded_on
-
 from boomerang_contracts.notification.message import (
     NotificationError,
     NotificationOutcome,
     NotificationRequest,
 )
+from kontiki.messaging import Messenger, on_event, rpc
+from kontiki.registry import degraded_on
+
 from boomerang.core.service_contracts.notifiers.telegram.service import (
     TELEGRAM_NOTIFIER_SERVICE_NAME,
 )

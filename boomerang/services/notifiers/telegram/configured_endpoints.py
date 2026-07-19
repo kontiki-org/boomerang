@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import re
 
-from boomerang_contracts.notification.channel_catalog import (
-    NotificationChannelCatalog,
-)
-from boomerang.core.exceptions import ValidationError
+from boomerang_contracts.notification.channel_catalog import NotificationChannelCatalog
 from boomerang_contracts.notification.validation import validate_endpoint_fields
+
+from boomerang.core.exceptions import ValidationError
 
 _CHAT_ID_RE = re.compile(r"-?\d+")
 
@@ -57,7 +56,8 @@ def load_configured_endpoints(
         chat_id = fields.get("chat_id", "")
         if not _CHAT_ID_RE.fullmatch(chat_id):
             raise RuntimeError(
-                f"Invalid app.endpoints configuration for endpoint {key!r}: invalid chat_id."
+                f"Invalid app.endpoints configuration for endpoint {key!r}:"
+                " invalid chat_id."
             )
         endpoints[key] = fields
     return ConfiguredEndpointStore(endpoints)

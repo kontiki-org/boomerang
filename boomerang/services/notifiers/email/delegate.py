@@ -2,19 +2,17 @@ import asyncio
 import smtplib
 from email.message import EmailMessage
 
-from kontiki.configuration.parameter import get_parameter
-from kontiki.delegate import ServiceDelegate
-
-from boomerang_contracts.notification.message import NotificationRequest
-from boomerang_contracts.notification.channel_catalog import (
-    NotificationChannelCatalog,
-)
+from boomerang_contracts.notification.channel_catalog import NotificationChannelCatalog
 from boomerang_contracts.notification.endpoint import CreateEndpointRequest
-from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang_contracts.notification.message import NotificationRequest
 from boomerang_contracts.notification.validation import (
     endpoint_display,
     validate_endpoint_fields,
 )
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.notifiers.email.channel_catalog import (
     email_notification_channel_catalog,
 )

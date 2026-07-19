@@ -52,9 +52,7 @@ def step_alert_engine_running_with_config(context):
 DISPATCH_EVENT_CATCHER = "notification-dispatch-event-catcher"
 
 
-@when(
-    "I call {method} on the alert-engine service on {url} with the following request"
-)
+@when("I call {method} on the alert-engine service on {url} with the following request")
 def step_call_alert_engine_http(context, method, url):
     payload = json.loads(context.text.strip()) if context.text else {}
     headers = payload.get("headers")

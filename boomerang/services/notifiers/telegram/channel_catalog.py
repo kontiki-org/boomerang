@@ -2,6 +2,7 @@ from boomerang_contracts.notification.channel_catalog import (
     ChannelFieldDescriptor,
     NotificationChannelCatalog,
 )
+
 from boomerang.core.service_contracts.notifiers.telegram.service import (
     TELEGRAM_NOTIFIER_SERVICE_NAME,
 )

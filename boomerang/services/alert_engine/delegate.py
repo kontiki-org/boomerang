@@ -1,15 +1,15 @@
 import secrets
 
-from kontiki.configuration.parameter import get_parameter
-from kontiki.delegate import ServiceDelegate
-from pydantic import ValidationError as PydanticValidationError
-
 from boomerang_contracts.alert.normalized import NormalizedAlert
 from boomerang_contracts.notification.message import (
     NotificationContext,
     NotificationMessage,
     NotificationRequest,
 )
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+from pydantic import ValidationError as PydanticValidationError
+
 from boomerang.core.exceptions import AuthError, ValidationError
 from boomerang.core.service_contracts.subscription.service import SubscriptionRpcProxy
 

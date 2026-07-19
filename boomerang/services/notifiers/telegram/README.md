@@ -16,14 +16,16 @@ notifications for the telegram channel.
 
 ## Stack E2E
 
-1. Create `stack/notifiers/telegram_bot_token.yaml` (gitignored, merged on top of
-   `stack/notifiers/telegram.yaml` at startup):
+1. Copy `stack/notifiers/telegram_bot_token.yaml.example` to
+   `stack/notifiers/telegram_bot_token.yaml` (gitignored) and set your bot token:
 
    ```yaml
    app:
      telegram:
        bot_token: "123456789:YOUR_BOT_TOKEN_FROM_BOTFATHER"
    ```
+
+   That file is merged on top of `stack/notifiers/telegram.yaml` at startup.
 
 2. Declare endpoints in `stack/notifiers/telegram.yaml` (`app.endpoints`) and
    subscriptions in `stack/subscription.yaml`.

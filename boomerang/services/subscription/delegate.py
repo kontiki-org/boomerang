@@ -1,9 +1,5 @@
 import logging
 
-from kontiki.configuration.parameter import get_parameter
-from kontiki.delegate import ServiceDelegate
-from kontiki.messaging import RpcClientError, RpcProxy
-
 from boomerang_contracts.alert.catalog import (
     AlertConnectorCatalog,
     AlertSubscriptionCatalog,
@@ -17,11 +13,15 @@ from boomerang_contracts.notification.endpoint import (
     CreateChannelEndpointRequest,
     CreateEndpointRequest,
 )
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+from kontiki.messaging import RpcClientError, RpcProxy
+
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.core.service_contracts.subscription import (
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest,
 )
-from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.subscription.configured_subscriptions import (
     load_configured_subscriptions,
 )
@@ -96,7 +96,8 @@ class SubscriptionDelegate(ServiceDelegate):
             configured_subscriptions
         )
         logging.info(
-            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s notification_channels=%s configured_subscriptions=%s)",
+            "SubscriptionDelegate configured (backend=%s path=%s connectors=%s"
+            " notification_channels=%s configured_subscriptions=%s)",
             self._storage_backend,
             self._sqlite_path,
             self._alert_connectors,

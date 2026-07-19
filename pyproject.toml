@@ -5,9 +5,10 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "boomerang"
 version = "0.1.0"
-description = "Service built on Kontiki."
-authors = ["Your Name <you@example.com>"]
+description = "Alerting engine built on Kontiki."
+authors = ["Julien Weber <jpkwbr@protonmail.com>"]
 readme = "README.md"
+license = "Apache-2.0"
 packages = [{ include = "boomerang" }]
 
 [tool.poetry.dependencies]

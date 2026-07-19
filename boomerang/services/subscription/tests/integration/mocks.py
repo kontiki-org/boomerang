@@ -1,12 +1,12 @@
-from kontiki.messaging import on_event, rpc
-from kontiki.testing import MockService
-
 from boomerang_contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
+from kontiki.messaging import on_event, rpc
+from kontiki.testing import MockService
+
 from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )

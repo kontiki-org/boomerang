@@ -6,7 +6,8 @@ build-backend = "poetry.core.masonry.api"
 name = "boomerang-contracts"
 version = "0.1.0"
 description = "Shared Boomerang alert and notification contracts."
-authors = ["Boomerang"]
+authors = ["Julien Weber <jpkwbr@protonmail.com>"]
+license = "Apache-2.0"
 packages = [{ include = "boomerang_contracts", from = "src" }]
 
 [tool.poetry.dependencies]

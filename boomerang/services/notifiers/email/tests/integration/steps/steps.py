@@ -7,11 +7,11 @@ from pathlib import Path
 
 import yaml
 from behave import given, then, when
+from boomerang_contracts.notification.endpoint import CreateEndpointRequest
+from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger
 from kontiki.registry.client.proxy import ServiceRegistryProxy
 
-from boomerang_contracts.notification.message import NotificationRequest
-from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang.services.notifiers.email.tests.integration import mailhog
 from boomerang.services.notifiers.email.tests.integration.utils import (
     http_request,

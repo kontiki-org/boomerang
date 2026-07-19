@@ -1,7 +1,9 @@
 from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
-from boomerang.core.service_contracts.subscription.service import SUBSCRIPTION_SERVICE_NAME
+from boomerang.core.service_contracts.subscription.service import (
+    SUBSCRIPTION_SERVICE_NAME,
+)
 from boomerang.services.subscription.delegate import SubscriptionDelegate
 
 

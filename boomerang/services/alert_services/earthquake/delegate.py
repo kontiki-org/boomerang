@@ -6,9 +6,6 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from kontiki.configuration.parameter import get_parameter
-from kontiki.delegate import ServiceDelegate
-
 from boomerang_contracts.alert.catalog import (
     AlertCategoryCatalog,
     AlertConnectorCatalog,
@@ -16,11 +13,15 @@ from boomerang_contracts.alert.catalog import (
     AlertEventTypeCatalog,
 )
 from boomerang_contracts.alert.normalized import AlertArea, NormalizedAlert
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+
 from boomerang.core.service_contracts.alert_services.earthquake import (
     EARTHQUAKE_FEED_SERVICE_NAME,
 )
 
 EARTHQUAKE_EVENT_TYPE = "earthquake"
+USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson"
 
 
 def _http_get_json(url: str, timeout_seconds: float) -> dict[str, Any]:
@@ -46,11 +47,7 @@ class EarthquakeFeedDelegate(ServiceDelegate):
 
     async def setup(self) -> None:
         config = self.container.config
-        self._feed_url = get_parameter(
-            config,
-            "app.earthquake.usgs.feed_url",
-            "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson",
-        )
+        self._feed_url = get_parameter(config, "app.earthquake.usgs.feed_url", USGS_URL)
         self._min_magnitude = float(
             get_parameter(config, "app.earthquake.min_magnitude", 2.5)
         )
@@ -74,8 +71,8 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         )
         self._seen_ids: set[str] = set()
         logging.info(
-            "EarthquakeFeedDelegate configured feed_url=%s min_magnitude=%s category=%s "
-            "area=%s/%s ttl_hours=%s dedupe_max_ids=%s",
+            "EarthquakeFeedDelegate configured feed_url=%s min_magnitude=%s"
+            " category=%s area=%s/%s ttl_hours=%s dedupe_max_ids=%s",
             self._feed_url,
             self._min_magnitude,
             self._category,
@@ -133,8 +130,8 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         except (TypeError, ValueError):
             return None
         if mag_f < self._min_magnitude:
-            logging.info(
-                "Earthquake feed skipping feature %s with magnitude %s below minimum %s",
+            logging.debug(
+                "Earthquake feed skipping feature %s with magnitude %s < minimum %s",
                 usgs_id,
                 mag_f,
                 self._min_magnitude,
@@ -224,14 +221,12 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         self._trim_dedupe()
         if out:
             logging.info(
-                "Earthquake feed emitting %s new alert.normalized payload(s) (seen_ids=%s)",
+                "Earthquake feed emitting %s new alert.normalized payload(s)",
                 len(out),
-                len(self._seen_ids),
             )
         else:
-            logging.info(
-                "Earthquake feed poll produced no new alerts (features=%s, seen_ids=%s)",
+            logging.debug(
+                "Earthquake feed poll produced no new alerts (features=%s)",
                 len(features),
-                len(self._seen_ids),
             )
         return out

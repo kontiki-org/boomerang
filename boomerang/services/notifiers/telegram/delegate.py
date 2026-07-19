@@ -4,19 +4,17 @@ import re
 import urllib.error
 import urllib.request
 
-from kontiki.configuration.parameter import get_parameter
-from kontiki.delegate import ServiceDelegate
-
-from boomerang_contracts.notification.message import NotificationRequest
-from boomerang_contracts.notification.channel_catalog import (
-    NotificationChannelCatalog,
-)
+from boomerang_contracts.notification.channel_catalog import NotificationChannelCatalog
 from boomerang_contracts.notification.endpoint import CreateEndpointRequest
-from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang_contracts.notification.message import NotificationRequest
 from boomerang_contracts.notification.validation import (
     endpoint_display,
     validate_endpoint_fields,
 )
+from kontiki.configuration.parameter import get_parameter
+from kontiki.delegate import ServiceDelegate
+
+from boomerang.core.exceptions import NotFoundError, ValidationError
 from boomerang.services.notifiers.telegram.channel_catalog import (
     telegram_notification_channel_catalog,
 )

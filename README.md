@@ -26,6 +26,26 @@ More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](doc
 
 ---
 
+## Install
+
+**Run the platform** (CLI entrypoints):
+
+```bash
+pip install kontiki-boomerang
+# boomerang-subscription, boomerang-alert-engine,
+# boomerang-email-notifier, boomerang-telegram-notifier, …
+```
+
+**Extend Boomerang** (producers / notifiers — contracts only):
+
+```bash
+pip install boomerang-contracts
+```
+
+The quickstart below uses Docker Compose instead of a local pip install.
+
+---
+
 ## Quickstart — earthquake → Telegram
 
 The demo stack polls USGS, normalizes quakes, and notifies a Telegram chat.

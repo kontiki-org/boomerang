@@ -1,97 +1,91 @@
-# Boomerang
-
-Alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
-
-- **Normalized alerts in, notifications out**: producers publish a
-  `NormalizedAlert`; subscription + alert-engine resolve who should be notified;
-  email and telegram notifiers deliver.
-- **Two ingest paths**: AMQP event `alert.normalized`, or HTTP
-  `POST /alerts` on alert-engine (Bearer token).
-- **Configuration-driven targeting**: subscriptions and notification endpoints
-  live in YAML only (no SQLite); catalogues expose what producers and channels
-  support.
-- **Contracts package**: shared Pydantic models in `boomerang-contracts`
-  (`packages/boomerang-contracts`).
-
-For a detailed overview, see `docs/features.md`.
+<img src="./assets/boomerang_logo.png" width="500">
 
 ---
 
-## Quickstart
+Alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
 
-Start the core stack (RabbitMQ, registry, subscription, alert-engine, email +
-telegram notifiers, MailHog):
+Producers emit a `NormalizedAlert`. Boomerang resolves who should be notified from
+**YAML subscriptions**, then delivers on **email** or **Telegram**.
 
-```bash
-make stack-up
-```
+---
 
-Useful endpoints after startup:
+## Quickstart — earthquake → Telegram
 
-| What | Where |
-|------|--------|
-| Subscription HTTP (catalogues) | http://127.0.0.1:8002/api/v1/docs |
-| Alert engine `POST /alerts` | http://127.0.0.1:8005/alerts |
-| MailHog UI | http://127.0.0.1:8025 |
-| RabbitMQ management | http://127.0.0.1:15672 (guest/guest) |
+The demo stack polls USGS, normalizes quakes, and notifies a Telegram chat.
 
-Ingest token for `POST /alerts` is `app.http.token` in
-`stack/alert_engine.yaml` (default `change-me`):
+**1. Bot token** (once):
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8005/alerts \
-  -H "Authorization: Bearer change-me" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "alert_id": "demo-1",
-    "source": "curl",
-    "category": "demo",
-    "occurred_at": "2026-07-19T12:00:00Z",
-    "title": "Hello",
-    "body": "Boomerang is up",
-    "areas": [{"type": "region", "value": "eu"}]
-  }'
+cp stack/notifiers/telegram_bot_token.yaml.example \
+   stack/notifiers/telegram_bot_token.yaml
+# set app.telegram.bot_token from BotFather
 ```
 
-Delivery only happens when you also declare matching `app.subscriptions`
-(subscription service) and `app.endpoints` (notifiers). The stock stack YAML
-does not include sample targeting — see `docs/features.md`.
-
-Optional earthquake demo producer:
+**2. Start the demo:**
 
 ```bash
 make stack-up-demo
 ```
 
-Stop everything:
+**3. Target a chat** — subscription excerpt (operator config):
+
+```yaml
+# stack/subscription.yaml (excerpt)
+app:
+  subscriptions:
+    demo:
+      earthquakes:
+        status: active
+        subscription:
+          rule:
+            category: natural.earthquake
+            event_type: earthquake
+            criteria:
+              all_of:
+                - key: area_value
+                  operator: eq
+                  value: DEMO-EARTHQUAKE-1
+          endpoints:
+            - telegram.alerts
+```
+
+```yaml
+# stack/notifiers/telegram.yaml (excerpt)
+app:
+  endpoints:
+    alerts:
+      chat_id: "YOUR_CHAT_ID"
+```
+
+When a matching quake arrives, Telegram looks like this:
+
+<p align="center">
+  <img src="./assets/telegram-earthquake-alert.png" alt="Telegram notification from Boomerang earthquake demo" width="420">
+</p>
+
+Stop the stack:
 
 ```bash
 make stack-down
 ```
 
-> Local Behave deps (RabbitMQ, MailHog, kontiki-registry):
->
-> ```bash
-> make run-dev-platform
-> ```
+Details (pipeline, HTTP ingest, catalogues, contracts): [`docs/features.md`](docs/features.md).
 
 ---
 
 ## Documentation
 
-- Index: `docs/README.md`
-- Features: `docs/features.md`
-- Contracts (payloads & events): `docs/contracts.md`
-- Example stack config: `stack/`
-- Contributing: `CONTRIBUTING.md`
-- License: `LICENSE` (Apache-2.0)
-
-Service-level notes:
+- Index: [`docs/README.md`](docs/README.md)
+- Features: [`docs/features.md`](docs/features.md)
+- Contracts: [`docs/contracts.md`](docs/contracts.md)
+- Stack config: [`stack/`](stack/)
+- Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- License: [`LICENSE`](LICENSE) (Apache-2.0)
 
 | Service | README |
 |---------|--------|
-| Subscription | `boomerang/services/subscription/README.md` |
-| Alert engine | `boomerang/services/alert_engine/README.md` |
-| Email notifier | `boomerang/services/notifiers/email/README.md` |
-| Telegram notifier | `boomerang/services/notifiers/telegram/README.md` |
-| Earthquake feed (demo) | `boomerang/services/alert_services/earthquake/README.md` |
+| Subscription | [`boomerang/services/subscription/README.md`](boomerang/services/subscription/README.md) |
+| Alert engine | [`boomerang/services/alert_engine/README.md`](boomerang/services/alert_engine/README.md) |
+| Email notifier | [`boomerang/services/notifiers/email/README.md`](boomerang/services/notifiers/email/README.md) |
+| Telegram notifier | [`boomerang/services/notifiers/telegram/README.md`](boomerang/services/notifiers/telegram/README.md) |
+| Earthquake feed (demo) | [`boomerang/services/alert_services/earthquake/README.md`](boomerang/services/alert_services/earthquake/README.md) |

@@ -21,9 +21,8 @@ notifications.
 - Connectors: `app.alert_connectors`
 - Notifiers: `app.notification_channels`
 
-YAML is the primary way to declare subscriptions and attach channel endpoints for
-local / embedded runs. There is no interactive auth CRUD HTTP surface on this
-service.
+Subscriptions are YAML-only (`app.subscriptions`). There is no SQLite store and
+no interactive CRUD HTTP/RPC surface on this service.
 
 ## Architecture notes
 
@@ -35,7 +34,7 @@ service.
 - Allowed channel IDs (`email`, `telegram`, …) come from the aggregated
   notification channel catalog.
 - Channel endpoint credentials are not stored here; notifier services own
-  endpoint storage and delivery.
+  `app.endpoints` and delivery.
 - Recipient matching currently uses **`areas[0]`** only (single-area MVP).
 
 ## Service boundaries

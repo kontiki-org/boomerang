@@ -48,7 +48,7 @@ delivery time.
 
 ## Integration tests (Behave)
 
-With RabbitMQ running (e.g. `make run-amqp`):
+With the local platform running (e.g. `make run-dev-platform`):
 
 ```bash
 make integration-test-earthquake-feed

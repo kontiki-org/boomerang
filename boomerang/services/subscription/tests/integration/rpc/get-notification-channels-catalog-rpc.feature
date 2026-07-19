@@ -31,9 +31,6 @@ Feature: Get aggregated notification channels catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels:
           - email-notifier-service
       """
@@ -93,9 +90,6 @@ Feature: Get aggregated notification channels catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels: []
       """
     When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
@@ -137,9 +131,6 @@ Feature: Get aggregated notification channels catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels:
           - " email-notifier-service "
           - ""

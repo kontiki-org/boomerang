@@ -31,22 +31,25 @@ make test
 On `main` and pull requests, GitHub Actions runs:
 
 - unit tests + lint (Python 3.11–3.13)
-- core Behave suites (`make integration-test-core`) with RabbitMQ + MailHog
+- core Behave suites (`make integration-test-core`) with RabbitMQ + MailHog +
+  kontiki-registry
 
 Earthquake feed Behave stays local-only for now (`make integration-test-earthquake-feed`).
 
 ## Integration tests (Behave)
 
-Needs RabbitMQ + MailHog. `make integration-test` starts them (`run-amqp`), then runs core + earthquake:
+Needs RabbitMQ + MailHog + `kontiki-registry` (heartbeats / degradation
+scenarios). `make integration-test` starts them (`run-dev-platform`), then runs
+core + earthquake:
 
 ```bash
 make integration-test
 ```
 
-Core only (same as CI; bus must already be up):
+Core only (same as CI; platform must already be up):
 
 ```bash
-make run-amqp
+make run-dev-platform
 make integration-test-core
 ```
 
@@ -57,11 +60,10 @@ make integration-test-subscription
 make integration-test-email-notifier
 ```
 
-If a scenario mocks the registry and races a real one:
+Tear down local deps:
 
 ```bash
-make run-dev-platform-no-registry
-make integration-test-subscription-tag TAG=...
+make down-dev-platform
 ```
 
 By contributing, you agree your contribution is licensed under the same terms as this project ([Apache License 2.0](LICENSE)).

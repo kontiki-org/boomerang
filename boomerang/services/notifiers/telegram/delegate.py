@@ -1,27 +1,20 @@
 import asyncio
 import json
-import re
 import urllib.error
 import urllib.request
 
 from boomerang_contracts.notification.channel_catalog import NotificationChannelCatalog
-from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang_contracts.notification.message import NotificationRequest
-from boomerang_contracts.notification.validation import (
-    endpoint_display,
-    validate_endpoint_fields,
-)
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang.core.exceptions import ValidationError
 from boomerang.services.notifiers.telegram.channel_catalog import (
     telegram_notification_channel_catalog,
 )
 from boomerang.services.notifiers.telegram.configured_endpoints import (
     load_configured_endpoints,
 )
-from boomerang.services.notifiers.telegram.database import Database
 from boomerang.services.notifiers.telegram.message_formatter import (
     format_telegram_notification,
 )
@@ -30,11 +23,6 @@ from boomerang.services.notifiers.telegram.message_formatter import (
 class TelegramNotifierDelegate(ServiceDelegate):
     async def setup(self) -> None:
         config = self.container.config
-        sqlite_path = get_parameter(
-            config, "app.storage.sqlite_path", "/data/telegram_notifier.sqlite3"
-        )
-        self._database = Database(sqlite_path)
-        self._database.setup()
         self._channel_catalog = telegram_notification_channel_catalog()
         configured_endpoints = get_parameter(config, "app.endpoints", None)
         self._configured_endpoints = load_configured_endpoints(
@@ -53,56 +41,6 @@ class TelegramNotifierDelegate(ServiceDelegate):
 
     async def get_notification_channel_catalog(self) -> NotificationChannelCatalog:
         return self._channel_catalog
-
-    async def create_endpoint(self, user_id: str, model: CreateEndpointRequest) -> dict:
-        if not isinstance(model, CreateEndpointRequest):
-            model = CreateEndpointRequest.model_validate(model)
-
-        fields = validate_endpoint_fields(self._channel_catalog, model.fields)
-        chat_id = fields["chat_id"]
-        if not re.fullmatch(r"-?\d+", chat_id):
-            raise ValidationError()
-        record = self._database.upsert_telegram_endpoint(
-            user_id=user_id,
-            endpoint_key=model.endpoint_key,
-            chat_id=chat_id,
-        )
-        return {"endpoint": self._endpoint_payload(record, fields)}
-
-    async def list_endpoints(self, user_id: str) -> dict:
-        endpoints = self._database.list_telegram_endpoints(user_id)
-        return {
-            "endpoints": [
-                self._endpoint_payload(
-                    endpoint,
-                    {"chat_id": endpoint["chat_id"]},
-                )
-                for endpoint in endpoints
-            ],
-        }
-
-    async def get_endpoint(self, user_id: str, endpoint_key: str) -> dict:
-        key = (endpoint_key or "").strip()
-        if not key:
-            raise ValidationError()
-        endpoint = self._database.get_telegram_endpoint(user_id, key)
-        if endpoint is None:
-            raise NotFoundError()
-        return {
-            "endpoint": self._endpoint_payload(
-                endpoint,
-                {"chat_id": endpoint["chat_id"]},
-            ),
-        }
-
-    async def delete_endpoint(self, user_id: str, endpoint_key: str) -> dict:
-        key = (endpoint_key or "").strip()
-        if not key:
-            raise ValidationError()
-        deleted = self._database.delete_telegram_endpoint(user_id, key)
-        if not deleted:
-            raise NotFoundError()
-        return {}
 
     async def send_notification_telegram(self, request: NotificationRequest) -> None:
         chat_id = self._resolve_chat_id(request)
@@ -124,35 +62,16 @@ class TelegramNotifierDelegate(ServiceDelegate):
         threshold = max(1, self._degraded_after_failures)
         return self._consecutive_api_failures >= threshold
 
-    def _endpoint_payload(self, record: dict, fields: dict[str, str]) -> dict:
-        return {
-            "user_id": record["user_id"],
-            "endpoint_key": record["endpoint_key"],
-            "fields": fields,
-            "display": endpoint_display(self._channel_catalog, fields),
-        }
-
     def _resolve_chat_id(self, request: NotificationRequest) -> str:
         endpoint_key = (request.endpoint_key or "").strip()
         if not endpoint_key:
             raise ValidationError()
 
         configured = self._configured_endpoints.get(endpoint_key)
-        if configured is not None:
-            chat_id = (configured.get("chat_id") or "").strip()
-            if not chat_id:
-                raise ValidationError()
-            return chat_id
-
-        user_id = (request.recipient_id or "").strip()
-        if not user_id:
+        if configured is None:
             raise ValidationError()
 
-        endpoint = self._database.get_telegram_endpoint(user_id, endpoint_key)
-        if endpoint is None:
-            raise ValidationError()
-
-        chat_id = (endpoint.get("chat_id") or "").strip()
+        chat_id = (configured.get("chat_id") or "").strip()
         if not chat_id:
             raise ValidationError()
         return chat_id

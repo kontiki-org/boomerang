@@ -129,8 +129,13 @@ services:
     ports:
       - "8005:8005"
     restart: unless-stopped
+    # Only HTTP route is POST /alerts (no OpenAPI docs page). GET → 405 means up.
     healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8005/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.error, urllib.request\ntry:\n  urllib.request.urlopen(\"http://127.0.0.1:8005/alerts\", timeout=2)\nexcept urllib.error.HTTPError as e:\n  raise SystemExit(0 if e.code == 405 else 1)\nraise SystemExit(1)'",
+        ]
       interval: 5s
       timeout: 3s
       retries: 30

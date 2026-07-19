@@ -36,13 +36,6 @@ def email_notifier_config_for_subscription_tests():
             "root": {"level": "DEBUG", "handlers": ["file"]},
         },
         "app": {
-            "storage": {
-                "backend": "sqlite",
-                "sqlite_path": (
-                    "boomerang/services/subscription/tests/integration/db/"
-                    "email_notifier.sqlite3"
-                ),
-            },
             "email": {
                 "smtp": {
                     "host": "smtp.example.org",

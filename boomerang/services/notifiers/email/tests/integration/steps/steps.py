@@ -1,16 +1,13 @@
 import asyncio
 import json
-import sqlite3
 import time
-from datetime import datetime, timezone
-from pathlib import Path
 
 import yaml
 from behave import given, then, when
-from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang_contracts.notification.message import NotificationRequest
-from kontiki.messaging import Messenger
+from kontiki.messaging import Messenger, RpcClientError
 from kontiki.registry.client.proxy import ServiceRegistryProxy
+from pydantic import BaseModel
 
 from boomerang.services.notifiers.email.tests.integration import mailhog
 from boomerang.services.notifiers.email.tests.integration.utils import (
@@ -26,15 +23,11 @@ def _last_response(context):
 def _resolve_placeholders(value, context):
     if not isinstance(value, str):
         return value
-
-    replacements = {
-        "[USER_ID]": getattr(context, "last_user_id", None),
-        "[LAST_ACCESS_TOKEN]": getattr(context, "last_access_token", None),
-    }
     resolved = value
-    for placeholder, actual in replacements.items():
-        if placeholder in resolved and isinstance(actual, str):
-            resolved = resolved.replace(placeholder, actual)
+    if context.last_user_id is not None:
+        resolved = resolved.replace("[USER_ID]", context.last_user_id)
+    if context.last_access_token is not None:
+        resolved = resolved.replace("[LAST_ACCESS_TOKEN]", context.last_access_token)
     return resolved
 
 
@@ -63,70 +56,21 @@ def _normalize_actual_for_placeholders(expected, actual):
     return actual
 
 
-def _assert_success_response(context):
-    expected = json.loads(context.text.strip()) if context.text else {}
-    status, body = _last_response(context)
-    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
-    normalized_body = _normalize_actual_for_placeholders(expected, body)
-    assert (
-        normalized_body == expected
-    ), f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
+def _as_jsonable(value):
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json")
+    return value
 
 
-def _sqlite_path_from_context(context):
-    config = getattr(context, "email_notifier_config", {}) or {}
-    return config.get("app", {}).get("storage", {}).get("sqlite_path")
-
-
-def _fetch_all_rows(sqlite_path: str, table_name: str):
-    with sqlite3.connect(sqlite_path) as connection:
-        connection.execute("PRAGMA foreign_keys = ON;")
-        cursor = connection.execute(f"SELECT * FROM {table_name}")
-        cols = [d[0] for d in cursor.description]
-        return [dict(zip(cols, row)) for row in cursor.fetchall()]
-
-
-def _rows_from_context_table(context):
-    if context.table is None:
-        raise AssertionError("This step requires a Gherkin data table.")
-    return [row.as_dict() for row in context.table]
-
-
-def _insert_rows(sqlite_path: str, table_name: str, rows: list[dict]) -> None:
-    if not rows:
-        return
-    prepared_rows = []
-    for row in rows:
-        prepared = dict(row)
-        if table_name == "email_endpoints":
-            now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            prepared.setdefault("created_at", now_iso)
-            prepared.setdefault("updated_at", now_iso)
-        prepared_rows.append(prepared)
-
-    columns = list(prepared_rows[0].keys())
-    placeholders = ", ".join(["?"] * len(columns))
-    sql = (
-        f"INSERT OR REPLACE INTO {table_name} "
-        f"({', '.join(columns)}) VALUES ({placeholders})"
-    )
-    with sqlite3.connect(sqlite_path) as connection:
-        connection.execute("PRAGMA foreign_keys = ON;")
-        for row in prepared_rows:
-            values = [row.get(col) for col in columns]
-            connection.execute(sql, values)
-        connection.commit()
-
-
-def _registry_amqp_url(context) -> str:
-    config = getattr(context, "email_notifier_config", {}) or {}
+def _registry_amqp_url(context):
+    config = context.email_notifier_config or {}
     return (
         config.get("kontiki", {}).get("amqp", {}).get("url")
         or "amqp://guest:guest@localhost/"
     )
 
 
-def _fetch_registry_services(amqp_url: str) -> dict:
+def _fetch_registry_services(amqp_url):
     async def _fetch():
         async with Messenger(amqp_url=amqp_url, standalone=True) as messenger:
             proxy = ServiceRegistryProxy(messenger)
@@ -135,7 +79,7 @@ def _fetch_registry_services(amqp_url: str) -> dict:
     return asyncio.run(_fetch())
 
 
-def _assert_event_published(context, event_type: str):
+def _assert_event_published(context, event_type):
     expected_payload = json.loads(context.text.strip()) if context.text else {}
     catcher_name = "notification-outcome-catcher"
     events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
@@ -146,9 +90,7 @@ def _assert_event_published(context, event_type: str):
             match = event
             break
     assert match is not None, f"Event {event_type} not found in {events}"
-    actual_payload = match.get("payload", {})
-    if hasattr(actual_payload, "model_dump"):
-        actual_payload = actual_payload.model_dump()
+    actual_payload = _as_jsonable(match.get("payload", {}))
     normalized_payload = _normalize_actual_for_placeholders(
         expected_payload, actual_payload
     )
@@ -164,14 +106,6 @@ def step_email_notifier_running_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
     context.email_notifier_config = config
-    sqlite_path = _sqlite_path_from_context(context)
-    context.email_notifier_sqlite_path = sqlite_path
-    if sqlite_path:
-        db_path = Path(sqlite_path)
-        if db_path.parent:
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-        if db_path.exists():
-            db_path.unlink()
 
     proc, config_path = start_email_notifier_subprocess(config)
     context.email_notifier_process = proc
@@ -184,14 +118,6 @@ def step_email_notifier_running_with_config(context):
         raise RuntimeError(
             "EmailNotifier subprocess exited before step. stderr:\n%s" % stderr
         )
-
-
-@given('the "email_endpoints" table contains')
-def step_given_email_endpoints_table_contains(context):
-    sqlite_path = _sqlite_path_from_context(context)
-    assert sqlite_path, "No sqlite path configured for email-notifier tests."
-    rows = _rows_from_context_table(context)
-    _insert_rows(sqlite_path, "email_endpoints", rows)
 
 
 @when('an "{event_type}" event is published with payload')
@@ -216,11 +142,9 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
     payload = json.loads(context.text.strip()) if context.text else {}
     headers = payload.get("headers")
     body = payload.get("payload")
-    # inject Authorization header when we have a last access token
-    token = getattr(context, "last_access_token", None)
-    if token:
+    if context.last_access_token is not None:
         headers = headers or {}
-        headers.setdefault("Authorization", f"Bearer {token}")
+        headers.setdefault("Authorization", f"Bearer {context.last_access_token}")
     status, resp_body = http_request(method, url, payload=body, headers=headers)
     context.last_http_status = status
     context.last_http_body = resp_body
@@ -232,10 +156,6 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
 def step_call_rpc_on_email_notifier_service(context, method_name):
     payload_text = _resolve_placeholders(context.text.strip(), context)
     payload = json.loads(payload_text) if payload_text else {}
-    if isinstance(payload, dict) and method_name == "create_endpoint":
-        body_dict = payload.get("body")
-        if isinstance(body_dict, dict):
-            payload["body"] = CreateEndpointRequest(**body_dict)
     extra_headers = None
     if isinstance(payload, dict) and "headers" in payload:
         extra_headers = payload.pop("headers")
@@ -252,41 +172,6 @@ def step_call_rpc_on_email_notifier_service(context, method_name):
         context.last_rpc_error = exc
 
 
-@then("the create-endpoint response is")
-def step_create_endpoint_success_response(context):
-    _assert_success_response(context)
-
-
-@then("the list-endpoints response is")
-def step_list_endpoints_success_response(context):
-    _assert_success_response(context)
-
-
-@then("the get-endpoint response is")
-def step_get_endpoint_success_response(context):
-    _assert_success_response(context)
-
-
-@then("the delete-endpoint response is")
-def step_delete_endpoint_success_response(context):
-    _assert_success_response(context)
-
-
-@then('the RPC call succeeds with status "{status}"')
-def step_rpc_call_succeeds_with_status(context, status):
-    if context.last_rpc_error is not None:
-        raise AssertionError(
-            f"Expected RPC success, got error: {context.last_rpc_error}"
-        )
-    assert isinstance(context.last_rpc_result, dict), (
-        "Expected RPC result to be a dict, " f"got {type(context.last_rpc_result)}"
-    )
-    actual_status = context.last_rpc_result.get("status")
-    assert (
-        actual_status == status
-    ), f"Expected status={status}, got status={actual_status} payload={context.last_rpc_result}"
-
-
 @then("the RPC response is")
 def step_rpc_response(context):
     expected = json.loads(context.text.strip()) if context.text else {}
@@ -294,7 +179,7 @@ def step_rpc_response(context):
         raise AssertionError(
             f"Expected RPC success, got error: {context.last_rpc_error}"
         )
-    actual = context.last_rpc_result
+    actual = _as_jsonable(context.last_rpc_result)
     normalized_actual = _normalize_actual_for_placeholders(expected, actual)
     assert (
         normalized_actual == expected
@@ -306,6 +191,7 @@ def step_rpc_validation_error(context):
     expected = json.loads(context.text.strip()) if context.text else {}
     error = context.last_rpc_error
     assert error is not None, "Expected RPC validation error, but call succeeded."
+    assert isinstance(error, RpcClientError)
     actual = {"code": error.code, "message": error.message}
     assert (
         actual == expected
@@ -317,13 +203,11 @@ def step_rpc_call_fails_with_error_code(context, error_code):
     expected = json.loads(context.text.strip()) if context.text else {}
     error = context.last_rpc_error
     assert error is not None, "Expected RPC error, but call succeeded."
-    actual = {
-        "code": getattr(error, "code", None),
-        "message": getattr(error, "message", None),
-    }
+    assert isinstance(error, RpcClientError)
+    actual = {"code": error.code, "message": error.message}
     assert (
-        actual.get("code") == error_code
-    ), f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual.get('code')}"
+        actual["code"] == error_code
+    ), f"RPC error code mismatch.\nExpected: {error_code}\nActual:   {actual['code']}"
     if expected:
         assert (
             actual == expected
@@ -381,7 +265,7 @@ def step_email_notifier_ignores_event(context):
 
 @then("the email-notifier service rejects the event as invalid payload")
 def step_email_notifier_rejects_invalid_payload(context):
-    _ = getattr(context, "last_published_event_payload", None)
+    _ = context.last_published_event_payload
     messages = mailhog.list_messages()
     assert not messages, f"Expected no email in MailHog, got {messages}"
 
@@ -391,15 +275,6 @@ def step_email_notifier_fails_to_start_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
     context.email_notifier_config = config
-
-    sqlite_path = _sqlite_path_from_context(context)
-    context.email_notifier_sqlite_path = sqlite_path
-    if sqlite_path:
-        db_path = Path(sqlite_path)
-        if db_path.parent:
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-        if db_path.exists():
-            db_path.unlink()
 
     proc, config_path = start_email_notifier_subprocess(config)
     context.email_notifier_config_path = config_path
@@ -420,7 +295,7 @@ def step_email_notifier_fails_to_start_with_config(context):
 
 @then("the email-notifier service startup error mentions endpoints")
 def step_email_notifier_startup_error_mentions_endpoints(context):
-    stderr = getattr(context, "email_notifier_startup_stderr", "") or ""
+    stderr = context.email_notifier_startup_stderr or ""
     lowered = stderr.lower()
     assert "endpoints" in lowered, (
         "Expected startup error to mention endpoints.\n" f"stderr:\n{stderr}"
@@ -447,63 +322,3 @@ def step_registry_eventually_reports_degraded(context):
         "Expected email-notifier-service to become degraded in service registry. "
         f"Last registry payload: {last_services}"
     )
-
-
-@then("the create-endpoint call is rejected with HTTP {status_code:d}")
-def step_create_endpoint_rejected_response(context, status_code):
-    status, body = _last_response(context)
-    assert (
-        status == status_code
-    ), f"Expected HTTP {status_code}, got {status} body={body}"
-    if context.text and context.text.strip():
-        expected = json.loads(context.text.strip())
-        normalized_body = _normalize_actual_for_placeholders(expected, body)
-        assert (
-            normalized_body == expected
-        ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-
-
-@then("the get-endpoint call is rejected with HTTP {status_code:d}")
-def step_get_endpoint_rejected_response(context, status_code):
-    status, body = _last_response(context)
-    assert (
-        status == status_code
-    ), f"Expected HTTP {status_code}, got {status} body={body}"
-    if context.text and context.text.strip():
-        expected = json.loads(context.text.strip())
-        normalized_body = _normalize_actual_for_placeholders(expected, body)
-        assert (
-            normalized_body == expected
-        ), f"Error body mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-
-
-@then('the "email_endpoints" table should contain')
-def step_email_endpoints_table_should_contain(context):
-    sqlite_path = _sqlite_path_from_context(context)
-    assert sqlite_path, "No sqlite path configured for email-notifier tests."
-    expected_rows = _rows_from_context_table(context)
-    actual_rows = _fetch_all_rows(sqlite_path, "email_endpoints")
-
-    # For each expected row, ensure there is at least one matching actual row.
-    for expected in expected_rows:
-        matched = False
-        for actual in actual_rows:
-            ok = True
-            for key, expected_value in expected.items():
-                actual_value = actual.get(key)
-                if (
-                    isinstance(expected_value, str)
-                    and expected_value.startswith("[")
-                    and expected_value.endswith("]")
-                ):
-                    # Placeholder: accept any actual value.
-                    continue
-                if actual_value != expected_value:
-                    ok = False
-                    break
-            if ok:
-                matched = True
-                break
-        assert (
-            matched
-        ), f"Expected row not found in email_endpoints: {expected}\nActual rows: {actual_rows}"

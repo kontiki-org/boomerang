@@ -31,9 +31,6 @@ Feature: Get aggregated notification channels catalog over HTTP
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels:
           - email-notifier-service
       """
@@ -92,9 +89,6 @@ Feature: Get aggregated notification channels catalog over HTTP
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels: []
       """
     When I call GET on the subscription service on http://127.0.0.1:8000/notification-channels/catalog with the following request
@@ -135,9 +129,6 @@ Feature: Get aggregated notification channels catalog over HTTP
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         notification_channels:
           - " email-notifier-service "
           - ""

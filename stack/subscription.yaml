@@ -9,12 +9,8 @@ logging:
       filename: /data/subscription_service.log
 
 app:
-  storage:
-    backend: sqlite
-    sqlite_path: /data/subscriptions.db
-
-  # Producers are listed only when present (see stack/subscription.demo.yaml).
-  alert_connectors: []
+  # Producers: omit here; add via stack/subscription.demo.yaml (Kontiki merge
+  # rejects overriding a key with a different value — empty list vs non-empty).
 
   notification_channels:
     - email-notifier-service

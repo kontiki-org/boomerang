@@ -14,10 +14,18 @@ def before_all(context):
     time.sleep(1)
     context.subscription_process = None
     context.subscription_config_path = None
-    context.subscription_sqlite_path = None
+    context.subscription_config = None
+    context.subscription_startup_stderr = None
     context.email_notifier_process = None
     context.email_notifier_config_path = None
-    context.email_notifier_sqlite_path = None
+    context.last_http_status = None
+    context.last_http_body = None
+    context.last_rpc_result = None
+    context.last_rpc_error = None
+    context.last_code = None
+    context.last_access_token = None
+    context.last_subscription_id = None
+    context.last_user_id = None
 
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
@@ -48,11 +56,16 @@ def after_scenario(context, scenario):
     safe_unlink(context.email_notifier_config_path)
     context.email_notifier_config_path = None
 
-    safe_unlink(context.subscription_sqlite_path)
-    context.subscription_sqlite_path = None
-
-    safe_unlink(context.email_notifier_sqlite_path)
-    context.email_notifier_sqlite_path = None
+    context.subscription_config = None
+    context.subscription_startup_stderr = None
+    context.last_http_status = None
+    context.last_http_body = None
+    context.last_rpc_result = None
+    context.last_rpc_error = None
+    context.last_code = None
+    context.last_access_token = None
+    context.last_subscription_id = None
+    context.last_user_id = None
 
     context.manager.clean_events("notification-event-catcher")
 

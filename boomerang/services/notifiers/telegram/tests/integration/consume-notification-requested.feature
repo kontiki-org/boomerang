@@ -31,18 +31,15 @@ Feature: Consume notification delivery requests
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/telegram/tests/integration/db/telegram_notifier.sqlite3
         telegram:
           bot_token: test-bot-token
           api_base_url: http://127.0.0.1:9999
+        endpoints:
+          telegram_primary:
+            chat_id: "123456789"
       """
 
   Scenario: Consume a valid telegram notification request
-    Given the "telegram_endpoints" table contains
-      | user_id | endpoint_key      | chat_id   |
-      | usr_1   | telegram_primary  | 123456789 |
     When an "telegram.alerting.notification.requested" event is published with payload
       """
       {
@@ -81,9 +78,6 @@ Feature: Consume notification delivery requests
       """
 
   Scenario: Format a structured earthquake alert notification
-    Given the "telegram_endpoints" table contains
-      | user_id | endpoint_key      | chat_id   |
-      | usr_1   | telegram_primary  | 123456789 |
     When an "telegram.alerting.notification.requested" event is published with payload
       """
       {

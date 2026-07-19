@@ -31,9 +31,6 @@ Feature: Expose telegram notification channel catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/telegram/tests/integration/db/telegram_notifier.sqlite3
         telegram:
           bot_token: test-bot-token
           api_base_url: http://127.0.0.1:9999

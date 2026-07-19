@@ -6,9 +6,8 @@ Feature: Configured endpoints loaded from email-notifier service configuration
 
   Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of owner.
   Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions.
-  SQLite endpoints remain for seeded / legacy rows; YAML is the primary OSS path.
 
-  Scenario: Deliver notification using configured endpoint when SQLite is empty
+  Scenario: Deliver notification using configured endpoint
     Given the email-notifier service is running with the following configuration
       """
       kontiki:
@@ -35,9 +34,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/email/tests/integration/db/email_notifier.sqlite3
         email:
           smtp:
             host: 127.0.0.1
@@ -90,7 +86,7 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       }
       """
 
-  Scenario: Coexist configured and SQLite endpoints for different owners
+  Scenario: Deliver to multiple configured endpoints
     Given the email-notifier service is running with the following configuration
       """
       kontiki:
@@ -117,9 +113,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/email/tests/integration/db/email_notifier.sqlite3
         email:
           smtp:
             host: 127.0.0.1
@@ -132,10 +125,9 @@ Feature: Configured endpoints loaded from email-notifier service configuration
         endpoints:
           oncall:
             address: ops@example.org
+          email_primary:
+            address: user@example.org
       """
-    And the "email_endpoints" table contains
-      | user_id | endpoint_key  | address          |
-      | usr_ui  | email_primary | user@example.org |
     When an "email.alerting.notification.requested" event is published with payload
       """
       {
@@ -175,7 +167,7 @@ Feature: Configured endpoints loaded from email-notifier service configuration
         "endpoint_key": "email_primary",
         "message": {
           "title": "UI alert",
-          "body": "SQLite endpoint delivery.",
+          "body": "Second configured endpoint delivery.",
           "context": {
             "kind": "alert",
             "data": {
@@ -194,7 +186,7 @@ Feature: Configured endpoints loaded from email-notifier service configuration
         "to": ["user@example.org"],
         "subject": "UI alert",
         "body_contains": [
-          "SQLite endpoint delivery."
+          "Second configured endpoint delivery."
         ]
       }
       """
@@ -226,9 +218,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/email/tests/integration/db/email_notifier.sqlite3
         email:
           smtp:
             host: 127.0.0.1

@@ -9,9 +9,6 @@ logging:
       filename: /data/email_notifier_service.log
 
 app:
-  storage:
-    sqlite_path: /data/email_notifier.sqlite3
-
   email:
     smtp:
       host: mailhog
@@ -21,4 +18,3 @@ app:
       password: ""
     from:
       address: "boomerang@localhost"
-

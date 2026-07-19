@@ -31,9 +31,6 @@ Feature: Get aggregated alert subscription catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alert_connectors:
           - earthquake-feed-service
           - weather-alert-service
@@ -133,9 +130,6 @@ Feature: Get aggregated alert subscription catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alert_connectors: []
       """
     When I call the RPC get_alert_subscription_catalog on the subscription service with the following arguments

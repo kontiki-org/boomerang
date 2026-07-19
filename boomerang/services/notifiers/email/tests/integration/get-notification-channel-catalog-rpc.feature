@@ -31,9 +31,6 @@ Feature: Expose email notification channel catalog via RPC
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/email/tests/integration/db/email_notifier.sqlite3
         email:
           smtp:
             host: smtp.example.org

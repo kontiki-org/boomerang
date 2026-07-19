@@ -6,8 +6,7 @@
 	integration-test-telegram-notifier integration-test-telegram-notifier-tag \
 	integration-test-alert-engine integration-test-alert-engine-tag \
 	integration-test-earthquake-feed integration-test-earthquake-feed-tag \
-	run-amqp down-amqp \
-	run-dev-platform run-dev-platform-no-registry down-dev-platform \
+	run-dev-platform down-dev-platform \
 	stack-up stack-up-demo stack-down stack-build stack-rebuild \
 	run-service
 
@@ -40,67 +39,56 @@ clean:
 	rm -rf .venv .mypy_cache .pytest_cache .ruff_cache .coverage dist build htmlcov
 
 # -----------------------------------------------------------------------------
-# AMQP / local deps for Behave (Kontiki-style)
+# Local deps for Behave (RabbitMQ + MailHog + kontiki-registry)
 # -----------------------------------------------------------------------------
-run-amqp:
-	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog
-
-down-amqp:
-	docker compose -f $(COMPOSE_FILE) down
-
 run-dev-platform:
 	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog kontiki-registry
 
-# Bus only (no kontiki-registry). Needed when Behave owns ServiceRegistry via mock.
-run-dev-platform-no-registry:
-	docker compose -f $(COMPOSE_FILE) stop kontiki-registry 2>/dev/null || true
-	docker compose -f $(COMPOSE_FILE) rm -f kontiki-registry 2>/dev/null || true
-	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog
-
-down-dev-platform: down-amqp
+down-dev-platform:
+	docker compose -f $(COMPOSE_FILE) down
 
 # -----------------------------------------------------------------------------
 # Integration tests (Behave)
 # -----------------------------------------------------------------------------
-# Core suites (CI). Expect RabbitMQ (:5672) + MailHog (:1025/:8025) already up.
+# Core suites (CI). Expect run-dev-platform deps already up.
 integration-test-core:
 	poetry run behave boomerang/services/subscription/tests/integration --stop
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/email/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop
 
-integration-test: run-amqp
+integration-test: run-dev-platform
 	@$(MAKE) integration-test-core
 	@$(MAKE) integration-test-earthquake-feed
 
-integration-test-subscription: run-amqp
+integration-test-subscription: run-dev-platform
 	poetry run behave boomerang/services/subscription/tests/integration --stop
 
-integration-test-subscription-tag: run-amqp
+integration-test-subscription-tag: run-dev-platform
 	poetry run behave boomerang/services/subscription/tests/integration --stop --tags "$(TAG)"
 
-integration-test-email-notifier: run-amqp
+integration-test-email-notifier: run-dev-platform
 	poetry run behave boomerang/services/notifiers/email/tests/integration --stop
 
-integration-test-email-notifier-tag: run-amqp
+integration-test-email-notifier-tag: run-dev-platform
 	poetry run behave boomerang/services/notifiers/email/tests/integration --stop --tags "$(TAG)"
 
-integration-test-telegram-notifier: run-amqp
+integration-test-telegram-notifier: run-dev-platform
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop
 
-integration-test-telegram-notifier-tag: run-amqp
+integration-test-telegram-notifier-tag: run-dev-platform
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop --tags "$(TAG)"
 
-integration-test-alert-engine: run-amqp
+integration-test-alert-engine: run-dev-platform
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop
 
-integration-test-alert-engine-tag: run-amqp
+integration-test-alert-engine-tag: run-dev-platform
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop --tags "$(TAG)"
 
-integration-test-earthquake-feed: run-amqp
+integration-test-earthquake-feed: run-dev-platform
 	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop
 
-integration-test-earthquake-feed-tag: run-amqp
+integration-test-earthquake-feed-tag: run-dev-platform
 	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
 
 # -----------------------------------------------------------------------------

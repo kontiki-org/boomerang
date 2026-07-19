@@ -6,9 +6,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
 
   Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of owner.
   Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions.
-  SQLite endpoints remain for seeded / legacy rows; YAML is the primary OSS path.
 
-  Scenario: Deliver notification using configured endpoint when SQLite is empty
+  Scenario: Deliver notification using configured endpoint
     Given the telegram-notifier service is running with the following configuration
       """
       kontiki:
@@ -35,9 +34,6 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/telegram/tests/integration/db/telegram_notifier.sqlite3
         telegram:
           bot_token: test-bot-token
           api_base_url: http://127.0.0.1:9999
@@ -83,7 +79,7 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       }
       """
 
-  Scenario: Coexist configured and SQLite endpoints for different owners
+  Scenario: Deliver to multiple configured endpoints
     Given the telegram-notifier service is running with the following configuration
       """
       kontiki:
@@ -110,19 +106,15 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/telegram/tests/integration/db/telegram_notifier.sqlite3
         telegram:
           bot_token: test-bot-token
           api_base_url: http://127.0.0.1:9999
         endpoints:
           ops_alerts:
             chat_id: "111222333"
+          telegram_primary:
+            chat_id: "987654321"
       """
-    And the "telegram_endpoints" table contains
-      | user_id | endpoint_key     | chat_id   |
-      | usr_ui  | telegram_primary | 987654321 |
     When an "telegram.alerting.notification.requested" event is published with payload
       """
       {
@@ -161,7 +153,7 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "UI alert",
-          "body": "SQLite endpoint delivery.",
+          "body": "Second configured endpoint delivery.",
           "context": {
             "kind": "alert",
             "data": {
@@ -179,7 +171,7 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
         "chat_id": "987654321",
         "text_contains": [
           "UI alert",
-          "SQLite endpoint delivery."
+          "Second configured endpoint delivery."
         ]
       }
       """
@@ -211,9 +203,6 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/telegram/tests/integration/db/telegram_notifier.sqlite3
         telegram:
           bot_token: test-bot-token
           api_base_url: http://127.0.0.1:9999

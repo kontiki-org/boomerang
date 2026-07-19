@@ -65,23 +65,6 @@ def rule_matches_alert(
     return rule_event_type == "*" or rule_event_type == event_type
 
 
-def merge_recipients(*recipient_lists: list[dict]) -> list[dict]:
-    seen: set[tuple[str, str, str]] = set()
-    targets: list[dict] = []
-    for recipients in recipient_lists:
-        for item in recipients:
-            key = (
-                item["recipient_id"],
-                item["channel"],
-                item["endpoint_key"],
-            )
-            if key in seen:
-                continue
-            seen.add(key)
-            targets.append(item)
-    return sort_recipients(targets)
-
-
 def sort_recipients(targets: list[dict]) -> list[dict]:
     return sorted(
         targets,

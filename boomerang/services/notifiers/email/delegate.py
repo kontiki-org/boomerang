@@ -3,33 +3,22 @@ import smtplib
 from email.message import EmailMessage
 
 from boomerang_contracts.notification.channel_catalog import NotificationChannelCatalog
-from boomerang_contracts.notification.endpoint import CreateEndpointRequest
 from boomerang_contracts.notification.message import NotificationRequest
-from boomerang_contracts.notification.validation import (
-    endpoint_display,
-    validate_endpoint_fields,
-)
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
-from boomerang.core.exceptions import NotFoundError, ValidationError
+from boomerang.core.exceptions import ValidationError
 from boomerang.services.notifiers.email.channel_catalog import (
     email_notification_channel_catalog,
 )
 from boomerang.services.notifiers.email.configured_endpoints import (
     load_configured_endpoints,
 )
-from boomerang.services.notifiers.email.database import Database
 
 
 class EmailNotifierDelegate(ServiceDelegate):
     async def setup(self) -> None:
         config = self.container.config
-        sqlite_path = get_parameter(
-            config, "app.storage.sqlite_path", "/data/email_notifier.sqlite3"
-        )
-        self._database = Database(sqlite_path)
-        self._database.setup()
         self._channel_catalog = email_notification_channel_catalog()
         configured_endpoints = get_parameter(config, "app.endpoints", None)
         self._configured_endpoints = load_configured_endpoints(
@@ -55,54 +44,6 @@ class EmailNotifierDelegate(ServiceDelegate):
     async def get_notification_channel_catalog(self) -> NotificationChannelCatalog:
         return self._channel_catalog
 
-    async def create_endpoint(self, user_id: str, model: CreateEndpointRequest) -> dict:
-        if not isinstance(model, CreateEndpointRequest):
-            model = CreateEndpointRequest.model_validate(model)
-
-        fields = validate_endpoint_fields(self._channel_catalog, model.fields)
-        address = fields["address"]
-        record = self._database.upsert_email_endpoint(
-            user_id=user_id,
-            endpoint_key=model.endpoint_key,
-            address=address,
-        )
-        return {"endpoint": self._endpoint_payload(record, fields)}
-
-    async def list_endpoints(self, user_id: str) -> dict:
-        endpoints = self._database.list_email_endpoints(user_id)
-        return {
-            "endpoints": [
-                self._endpoint_payload(
-                    endpoint,
-                    {"address": endpoint["address"]},
-                )
-                for endpoint in endpoints
-            ],
-        }
-
-    async def get_endpoint(self, user_id: str, endpoint_key: str) -> dict:
-        key = (endpoint_key or "").strip()
-        if not key:
-            raise ValidationError()
-        endpoint = self._database.get_email_endpoint(user_id, key)
-        if endpoint is None:
-            raise NotFoundError()
-        return {
-            "endpoint": self._endpoint_payload(
-                endpoint,
-                {"address": endpoint["address"]},
-            ),
-        }
-
-    async def delete_endpoint(self, user_id: str, endpoint_key: str) -> dict:
-        key = (endpoint_key or "").strip()
-        if not key:
-            raise ValidationError()
-        deleted = self._database.delete_email_endpoint(user_id, key)
-        if not deleted:
-            raise NotFoundError()
-        return {}
-
     async def send_notification_email(self, request: NotificationRequest) -> None:
         destination_value = self._resolve_destination_address(request)
         subject = request.message.title.strip()
@@ -126,35 +67,16 @@ class EmailNotifierDelegate(ServiceDelegate):
         threshold = max(1, self._degraded_after_failures)
         return self._consecutive_smtp_failures >= threshold
 
-    def _endpoint_payload(self, record: dict, fields: dict[str, str]) -> dict:
-        return {
-            "user_id": record["user_id"],
-            "endpoint_key": record["endpoint_key"],
-            "fields": fields,
-            "display": endpoint_display(self._channel_catalog, fields),
-        }
-
     def _resolve_destination_address(self, request: NotificationRequest) -> str:
         endpoint_key = (request.endpoint_key or "").strip()
         if not endpoint_key:
             raise ValidationError()
 
         configured = self._configured_endpoints.get(endpoint_key)
-        if configured is not None:
-            address = (configured.get("address") or "").strip().lower()
-            if not address:
-                raise ValidationError()
-            return address
-
-        user_id = (request.recipient_id or "").strip()
-        if not user_id:
+        if configured is None:
             raise ValidationError()
 
-        endpoint = self._database.get_email_endpoint(user_id, endpoint_key)
-        if endpoint is None:
-            raise ValidationError()
-
-        address = (endpoint.get("address") or "").strip().lower()
+        address = (configured.get("address") or "").strip().lower()
         if not address:
             raise ValidationError()
         return address

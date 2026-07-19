@@ -8,7 +8,8 @@ Alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
 - **Two ingest paths**: AMQP event `alert.normalized`, or HTTP
   `POST /alerts` on alert-engine (Bearer token).
 - **Configuration-driven targeting**: subscriptions and notification endpoints
-  live in YAML; catalogues expose what producers and channels support.
+  live in YAML only (no SQLite); catalogues expose what producers and channels
+  support.
 - **Contracts package**: shared Pydantic models in `boomerang-contracts`
   (`packages/boomerang-contracts`).
 
@@ -67,10 +68,10 @@ Stop everything:
 make stack-down
 ```
 
-> Boomerang relies on RabbitMQ. For Behave / local bus-only deps:
+> Local Behave deps (RabbitMQ, MailHog, kontiki-registry):
 >
 > ```bash
-> make run-amqp
+> make run-dev-platform
 > ```
 
 ---

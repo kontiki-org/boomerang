@@ -1,21 +1,11 @@
-from .models import (
-    CreateSubscriptionRequest,
+from boomerang.core.service_contracts.subscription.models import (
     CriteriaExpression,
     Criterion,
-    EndpointRef,
     RuleDefinition,
-    SubscriptionDefinition,
-    UpdateSubscriptionRequest,
 )
-from .service import SubscriptionRpcProxy
 
 __all__ = [
-    "CreateSubscriptionRequest",
-    "UpdateSubscriptionRequest",
-    "EndpointRef",
-    "Criterion",
     "CriteriaExpression",
+    "Criterion",
     "RuleDefinition",
-    "SubscriptionDefinition",
-    "SubscriptionRpcProxy",
 ]

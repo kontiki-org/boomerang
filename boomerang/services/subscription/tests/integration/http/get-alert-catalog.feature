@@ -31,9 +31,6 @@ Feature: Get aggregated alert subscription catalog over HTTP
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alert_connectors:
           - earthquake-feed-service
           - weather-alert-service
@@ -132,9 +129,6 @@ Feature: Get aggregated alert subscription catalog over HTTP
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         alert_connectors: []
       """
     When I call GET on the subscription service on http://127.0.0.1:8000/alert-catalog with the following request

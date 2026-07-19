@@ -2,13 +2,13 @@
 Feature: Configured subscriptions loaded from service configuration
   In order to deploy Boomerang without UI for Infrastructure-as-Code workflows
   As an operator
-  I want subscriptions declared in service configuration to be evaluated alongside SQLite subscriptions
+  I want subscriptions declared in service configuration to resolve recipients
 
   Configured entries are keyed by owner_id, then rule name (opaque, operator-chosen).
   recipient_id in dispatch equals owner_id — not the rule name.
   Configured endpoints use qualified refs "<channel>.<endpoint_id>" (e.g. telegram.ops_alerts); the loader resolves them to channel + endpoint_key at dispatch.
 
-  Scenario: Match recipients from configured subscriptions when SQLite is empty
+  Scenario: Match recipients from configured subscriptions
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -35,9 +35,6 @@ Feature: Configured subscriptions loaded from service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         subscriptions:
           platform-ops:
             payment-degraded:
@@ -88,7 +85,7 @@ Feature: Configured subscriptions loaded from service configuration
       ]
       """
 
-  Scenario: Coexist configured and SQLite subscriptions for the same alert
+  Scenario: Match recipients from multiple configured owners for the same alert
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -115,9 +112,6 @@ Feature: Configured subscriptions loaded from service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         subscriptions:
           platform-ops:
             earthquake-alerts:
@@ -133,10 +127,21 @@ Feature: Configured subscriptions loaded from service configuration
                         value: 4
                 endpoints:
                   - telegram.ops_alerts
+          usr_ui:
+            earthquake-email:
+              status: active
+              subscription:
+                rule:
+                  category: natural.earthquake
+                  event_type: earthquake
+                  criteria:
+                    all_of:
+                      - key: magnitude
+                        operator: gte
+                        value: 4
+                endpoints:
+                  - email.email_primary
       """
-    And the "subscriptions" table contains
-      | subscription_id | user_id | category           | event_type | criteria_json                                                      | endpoints_json                                  | status | created_at           | updated_at           |
-      | sub_sqlite_1    | usr_ui  | natural.earthquake | earthquake | {"all_of":[{"key":"magnitude","operator":"gte","value":4}]}      | [{"kind":"email","endpoint_key":"email_primary"}] | active | 2026-01-01T00:00:00Z | 2026-01-01T00:00:00Z |
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
       {
@@ -201,9 +206,6 @@ Feature: Configured subscriptions loaded from service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         subscriptions:
           platform-ops:
             registry-catch-all:
@@ -271,9 +273,6 @@ Feature: Configured subscriptions loaded from service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         subscriptions:
           platform-ops:
             registry-catch-all:
@@ -347,9 +346,6 @@ Feature: Configured subscriptions loaded from service configuration
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/subscription/tests/integration/db/subscriptions.sqlite3
         subscriptions:
           platform-ops:
             payment-degraded:

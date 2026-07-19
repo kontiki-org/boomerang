@@ -33,9 +33,6 @@ Feature: Report degraded state for email-notifier service
           handlers:
             - file
       app:
-        storage:
-          backend: sqlite
-          sqlite_path: boomerang/services/notifiers/email/tests/integration/db/email_notifier.sqlite3
         email:
           smtp:
             host: 127.0.0.1
@@ -45,12 +42,12 @@ Feature: Report degraded state for email-notifier service
             password: ""
           from:
             address: no-reply@example.org
+        endpoints:
+          email_primary:
+            address: user@example.org
       """
 
   Scenario: Service becomes degraded after repeated SMTP failures
-    Given the "email_endpoints" table contains
-      | user_id | endpoint_key  | address          |
-      | usr_1   | email_primary | user@example.org |
     When an "email.alerting.notification.requested" event is published with payload
       """
       {

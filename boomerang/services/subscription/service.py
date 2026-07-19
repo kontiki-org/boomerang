@@ -17,21 +17,6 @@ class SubscriptionService:
         return await self.delegate.get_recipients_for_alert(alert=alert)
 
     @rpc
-    async def attach_channel_endpoint(
-        self,
-        user_id: str,
-        channel: str,
-        endpoint_key: str,
-        is_default: bool = False,
-    ):
-        return await self.delegate.attach_channel_endpoint(
-            user_id=user_id,
-            channel=channel,
-            endpoint_key=endpoint_key,
-            is_default=is_default,
-        )
-
-    @rpc
     async def get_alert_subscription_catalog(self):
         catalog = await self.delegate.get_alert_subscription_catalog(self.messenger)
         return catalog.model_dump(mode="json")

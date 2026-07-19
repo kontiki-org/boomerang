@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  tests:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,9 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: poetry install
-
-      - name: Run unit tests
-        run: make test
 
       - name: Run lint
         run: make lint

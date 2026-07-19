@@ -21,9 +21,13 @@ htmlcov/
 # IDE / editor
 .vscode/
 .idea/
+.cursor/
 
 # Local Python version (pyenv)
 .python-version
+
+# Maintainer-only notes (roadmaps, brainstorms) — keep local, do not publish
+docs/boomerang/
 
 # Runtime data / logs (local stack volumes)
 data/

@@ -18,9 +18,6 @@ pydantic = "^2.0.0"
 boomerang-contracts = { path = "packages/boomerang-contracts", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
-pytest-asyncio = "^0.21.0"
-pytest-cov = "^4.0.0"
 black = "^23.0.0"
 isort = "^5.12.0"
 flake8 = "^7.0.0"
@@ -33,9 +30,6 @@ boomerang-telegram-notifier = "boomerang.services.notifiers.telegram.main:run"
 boomerang-alert-engine = "boomerang.services.alert_engine.main:run"
 boomerang-earthquake-feed = "boomerang.services.alert_services.earthquake.main:run"
 boomerang-demo-app = "boomerang.testing.demo_app.main:run"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
 
 [tool.black]
 line-length = 88

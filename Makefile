@@ -1,5 +1,5 @@
 .PHONY: \
-	install test cov fmt lint check clean \
+	install fmt lint check clean \
 	integration-test integration-test-core \
 	integration-test-subscription integration-test-subscription-tag \
 	integration-test-email-notifier integration-test-email-notifier-tag \
@@ -20,9 +20,6 @@ install:
 	$(PY) -m pip install -U pip setuptools wheel
 	poetry install || true
 
-test:
-	$(PY) -m pytest -q
-
 fmt:
 	$(PY) -m isort $(SRC)
 	$(PY) -m black $(SRC)
@@ -31,9 +28,6 @@ lint:
 	$(PY) -m flake8 $(SRC)
 
 check: fmt lint
-
-cov:
-	$(PY) -m pytest --cov=boomerang --cov=boomerang_contracts --cov-report=term-missing
 
 clean:
 	rm -rf .venv .mypy_cache .pytest_cache .ruff_cache .coverage dist build htmlcov

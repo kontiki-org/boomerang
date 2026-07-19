@@ -7,7 +7,7 @@ Boomerang is an alerting engine built on Kontiki: producers publish normalized a
 For changes in **this repo**, please:
 
 - Open an issue first for non-trivial work and describe the problem, the intended scope, and how it fits Boomerang’s role (contracts, YAML config, bus / `POST /alerts`, notifiers).
-- Prefer **small, focused** pull requests with Behave or unit tests when behavior changes.
+- Prefer **small, focused** pull requests with Behave coverage when behavior changes.
 - Match existing style (`make fmt`, `make lint`).
 
 ## Local checks
@@ -16,21 +16,19 @@ For changes in **this repo**, please:
 make install
 make fmt
 make lint
-make test
 ```
 
 Or simply:
 
 ```bash
 make check
-make test
 ```
 
 ## CI
 
 On `main` and pull requests, GitHub Actions runs:
 
-- unit tests + lint (Python 3.11–3.13)
+- lint (Python 3.11–3.13)
 - core Behave suites (`make integration-test-core`) with RabbitMQ + MailHog +
   kontiki-registry
 

@@ -35,8 +35,8 @@ Demo overlay registers the connector on subscription via
 
 Today **`app.earthquake.subscription_area`** (`type` + `value`) is **operator
 configuration**, not derived from USGS coordinates. Every normalized alert uses
-that single **`areas[0]`** so the **subscription store** can match the same
-`(area_type, area_value)` as in user subscriptions. In practice you can align
+that single **`areas[0]`** so **YAML subscriptions** can match the same
+`(area_type, area_value)`. In practice you can align
 subscriptions with one logical “bucket” and receive **all qualifying events from
 the configured feed** (still subject to feed scope, **`min_magnitude`**, and
 dedupe)—not true geographic targeting yet.

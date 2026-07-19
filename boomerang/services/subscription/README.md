@@ -1,6 +1,7 @@
 # Subscription Service
 
-`subscription-service` stores subscription preferences and resolves recipients for alerts.
+`subscription-service` loads subscription preferences from YAML and resolves
+recipients for alerts.
 
 It is domain-agnostic: it does not produce alerts and it does not send
 notifications.

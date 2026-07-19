@@ -21,8 +21,9 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 
 - Config: `stack/notifiers/email.yaml`
 - Local SMTP: MailHog (`mailhog:1025`, UI http://127.0.0.1:8025)
-- Declare endpoints under `app.endpoints` in that YAML (and matching
-  subscriptions in `stack/subscription.yaml`).
+- Declare endpoints under `app.endpoints` in that YAML (stock file has SMTP
+  only — add endpoints for delivery) and matching subscriptions in
+  `stack/subscription.yaml`.
 
 ## Event flow
 

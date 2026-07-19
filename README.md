@@ -53,8 +53,9 @@ curl -sS -X POST http://127.0.0.1:8005/alerts \
   }'
 ```
 
-Delivery only happens when subscriptions and channel endpoints match the alert
-(see `stack/*.yaml` and notifier READMEs).
+Delivery only happens when you also declare matching `app.subscriptions`
+(subscription service) and `app.endpoints` (notifiers). The stock stack YAML
+does not include sample targeting — see `docs/features.md`.
 
 Optional earthquake demo producer:
 
@@ -78,6 +79,7 @@ make stack-down
 
 ## Documentation
 
+- Index: `docs/README.md`
 - Features: `docs/features.md`
 - Contracts (payloads & events): `docs/contracts.md`
 - Example stack config: `stack/`

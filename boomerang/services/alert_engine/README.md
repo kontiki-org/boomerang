@@ -17,7 +17,8 @@
 ## Stack
 
 - Config: `stack/alert_engine.yaml`
-- HTTP: port **8005** → `POST /alerts` (docs at `/api/v1/docs`)
+- HTTP: port **8005** → `POST /alerts` only (no auto OpenAPI page unless the
+  route sets `version=` — Kontiki docs are version-scoped)
 - Token: `app.http.token` (default in stack: `change-me`)
 
 ## Payload and contract notes

@@ -1,0 +1,4 @@
+# Copy to telegram_bot_token.yaml (gitignored) and set your BotFather token.
+app:
+  telegram:
+    bot_token: "123456789:REPLACE_WITH_YOUR_BOT_TOKEN"

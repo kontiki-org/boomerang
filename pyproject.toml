@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "boomerang"
+name = "kontiki-boomerang"
 version = "0.1.0"
 description = "Alerting engine built on Kontiki."
 authors = ["Julien Weber <jpkwbr@protonmail.com>"]

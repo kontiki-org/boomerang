@@ -26,25 +26,19 @@ poetry run boomerang-earthquake-feed --config /path/to/config.yaml
 
 Example config: `stack/earthquake.yaml` (merged with `stack/common.services.yaml`
 in Compose). Keys under `app.earthquake.*` cover feed URL, `min_magnitude`,
-`subscription_area`, category, TTL, and HTTP timeout.
+category, TTL, and HTTP timeout.
 
 Demo overlay registers the connector on subscription via
 `stack/subscription.demo.yaml` (`app.alert_connectors`).
 
-## Subscription area vs geolocation (MVP)
+## Subscription matching (demo)
 
-Today **`app.earthquake.subscription_area`** (`type` + `value`) is **operator
-configuration**, not derived from USGS coordinates. Every normalized alert uses
-that single **`areas[0]`** so **YAML subscriptions** can match the same
-`(area_type, area_value)`. In practice you can align
-subscriptions with one logical “bucket” and receive **all qualifying events from
-the configured feed** (still subject to feed scope, **`min_magnitude`**, and
-dedupe)—not true geographic targeting yet.
+Alerts ship with **empty `areas`**. Demo subscriptions typically match
+`category` / `event_type` (catch-all criteria) and optionally **`magnitude`**
+(`gte`). Feed-level filtering uses **`min_magnitude`**.
 
-**If you want real zones**, add a geo matching layer somewhere in the pipeline
-(connector enrichment, core spatial matching, or a dedicated geozone service).
-Filtering belongs when resolving subscribers (or before publish), not at notifier
-delivery time.
+True geographic targeting (USGS coordinates → zones) is future work: enrich
+alerts or match at subscription time — not at notifier delivery.
 
 ## Integration tests (Behave)
 

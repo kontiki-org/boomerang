@@ -79,9 +79,9 @@ app:
             event_type: earthquake
             criteria:
               all_of:
-                - key: area_value
-                  operator: eq
-                  value: DEMO-EARTHQUAKE-1
+                - key: magnitude
+                  operator: gte
+                  value: 4.5
           endpoints:
             - telegram.alerts
 ```

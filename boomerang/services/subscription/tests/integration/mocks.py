@@ -32,12 +32,6 @@ def _earthquake_connector_catalog():
                                 operators=["gte"],
                                 value_kind="number",
                             ),
-                            AlertCriterionDescriptor(
-                                key="area.region",
-                                label="Region",
-                                operators=["eq", "contains"],
-                                value_kind="string",
-                            ),
                         ],
                     )
                 ],

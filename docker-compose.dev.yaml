@@ -36,14 +36,11 @@ services:
       - ./stack:/stack:ro
       - ./logs:/logs
     restart: unless-stopped
-    # PID 1 is kontiki_registry; start_period covers AMQP connect after rabbitmq-healthy.
     healthcheck:
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "from pathlib import Path; raise SystemExit(0 if b'kontiki_registry' in Path('/proc/1/cmdline').read_bytes() else 1)",
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8080/live/ServiceRegistry\", timeout=2).read()'",
         ]
       interval: 5s
       timeout: 5s

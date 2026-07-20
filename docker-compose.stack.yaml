@@ -31,10 +31,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "from pathlib import Path; raise SystemExit(0 if b'kontiki_registry' in Path('/proc/1/cmdline').read_bytes() else 1)",
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8080/live/ServiceRegistry\", timeout=2).read()'",
         ]
       interval: 5s
       timeout: 5s
@@ -69,10 +67,15 @@ services:
       - "8002:8002"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8002/api/v1/docs\", timeout=2).read(); print(\"ok\")'"]
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/subscription-service\", timeout=2).read()'",
+        ]
       interval: 5s
       timeout: 3s
       retries: 30
+      start_period: 30s
 
   email-notifier-service:
     build:
@@ -93,8 +96,16 @@ services:
       - ./stack:/stack:ro
       - ./data:/data
     restart: unless-stopped
-    # No HTTP surface (bus-only). Healthcheck via registry GET /live/{service}
-    # once Kontiki exposes it — see kontiki FEATURES.md.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/email-notifier-service\", timeout=2).read()'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
 
   telegram-notifier-service:
     build:
@@ -112,7 +123,16 @@ services:
       - ./stack:/stack:ro
       - ./data:/data
     restart: unless-stopped
-    # No HTTP surface (bus-only). Same as email-notifier-service.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/telegram-notifier-service\", timeout=2).read()'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
 
   alert-engine-service:
     build:
@@ -128,20 +148,20 @@ services:
       kontiki-registry:
         condition: service_healthy
       subscription-service:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
     ports:
       - "8005:8005"
     restart: unless-stopped
-    # Only HTTP route is POST /alerts (no OpenAPI docs page). GET → 405 means up.
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "python -c 'import urllib.error, urllib.request\ntry:\n  urllib.request.urlopen(\"http://127.0.0.1:8005/alerts\", timeout=2)\nexcept urllib.error.HTTPError as e:\n  raise SystemExit(0 if e.code == 405 else 1)\nraise SystemExit(1)'",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/alert-engine-service\", timeout=2).read()'",
         ]
       interval: 5s
       timeout: 3s
       retries: 30
+      start_period: 30s

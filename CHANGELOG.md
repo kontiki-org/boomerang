@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0]
+## [0.2.0] - 2026-07-21
 
 - Requires Kontiki `>=1.3.0`. Compose healthchecks use the registry live probe
   `GET /live/{service}` (including bus-only notifiers), instead of process cmdline

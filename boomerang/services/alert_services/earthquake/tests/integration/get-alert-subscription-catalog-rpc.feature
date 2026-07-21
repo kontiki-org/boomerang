@@ -30,9 +30,6 @@ Feature: Expose earthquake subscription catalog via RPC
       app:
         earthquake:
           category: "natural.earthquake"
-          subscription_area:
-            type: "region"
-            value: "DEMO-EARTHQUAKE-1"
       """
     When I call the RPC get_alert_subscription_catalog on the earthquake-feed service with the following arguments
       """
@@ -58,13 +55,6 @@ Feature: Expose earthquake subscription catalog via RPC
                     "operators": ["gte"],
                     "value_kind": "number",
                     "attribute_key": "magnitude"
-                  },
-                  {
-                    "key": "area.region",
-                    "label": "Region",
-                    "operators": ["eq", "contains"],
-                    "value_kind": "string",
-                    "attribute_key": "area.region"
                   }
                 ]
               }

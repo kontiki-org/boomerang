@@ -10,7 +10,4 @@ app:
       feed_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.geojson"
     min_magnitude: 2
     alert_ttl_hours: 6
-    subscription_area:
-      type: "region"
-      value: "DEMO-EARTHQUAKE-1"
     category: "natural.earthquake"

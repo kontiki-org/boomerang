@@ -96,7 +96,9 @@ class ConfiguredSubscriptionStore:
                 rule.category, rule.event_type, category, event_type
             ):
                 continue
-            if not criteria_matches(rule.criteria.model_dump(), facts):
+            if rule.criteria is not None and not criteria_matches(
+                rule.criteria.model_dump(), facts
+            ):
                 continue
             for endpoint in record.subscription.endpoints:
                 targets.append(

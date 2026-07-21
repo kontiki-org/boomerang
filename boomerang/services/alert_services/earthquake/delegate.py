@@ -12,7 +12,7 @@ from boomerang_contracts.alert.catalog import (
     AlertCriterionDescriptor,
     AlertEventTypeCatalog,
 )
-from boomerang_contracts.alert.normalized import AlertArea, NormalizedAlert
+from boomerang_contracts.alert.normalized import NormalizedAlert
 from kontiki.configuration.parameter import get_parameter
 from kontiki.delegate import ServiceDelegate
 
@@ -60,24 +60,16 @@ class EarthquakeFeedDelegate(ServiceDelegate):
         self._http_timeout = float(
             get_parameter(config, "app.earthquake.http_timeout_seconds", 30)
         )
-        self._area_type = get_parameter(
-            config, "app.earthquake.subscription_area.type", "region"
-        )
-        self._area_value = get_parameter(
-            config, "app.earthquake.subscription_area.value", "DEMO-EARTHQUAKE-1"
-        )
         self._category = get_parameter(
             config, "app.earthquake.category", "natural.earthquake"
         )
         self._seen_ids: set[str] = set()
         logging.info(
             "EarthquakeFeedDelegate configured feed_url=%s min_magnitude=%s"
-            " category=%s area=%s/%s ttl_hours=%s dedupe_max_ids=%s",
+            " category=%s ttl_hours=%s dedupe_max_ids=%s",
             self._feed_url,
             self._min_magnitude,
             self._category,
-            self._area_type,
-            self._area_value,
             self._ttl_hours,
             self._dedupe_max,
         )
@@ -99,12 +91,6 @@ class EarthquakeFeedDelegate(ServiceDelegate):
                                     label="Minimum magnitude",
                                     operators=["gte"],
                                     value_kind="number",
-                                ),
-                                AlertCriterionDescriptor(
-                                    key="area.region",
-                                    label="Region",
-                                    operators=["eq", "contains"],
-                                    value_kind="string",
                                 ),
                             ],
                         )
@@ -162,9 +148,7 @@ class EarthquakeFeedDelegate(ServiceDelegate):
             occurred_at=occurred_at,
             title=title,
             body=body,
-            areas=[
-                AlertArea(type=self._area_type, value=self._area_value),
-            ],
+            areas=[],
             attributes={
                 "magnitude": mag_f,
                 "place": place,

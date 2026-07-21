@@ -56,9 +56,6 @@ Feature: Publish earthquake feed as normalized alerts
           usgs:
             feed_url: "http://127.0.0.1:18181/feeds/test.geojson"
           min_magnitude: 4.5
-          subscription_area:
-            type: "region"
-            value: "DEMO-EARTHQUAKE-1"
           category: "natural.earthquake"
       """
     When the earthquake feed completes a poll cycle
@@ -73,9 +70,7 @@ Feature: Publish earthquake feed as normalized alerts
         "occurred_at": "2024-03-09T16:00:00Z",
         "title": "M 5.0 - Near Testville",
         "body": "M 5.0 - Near Testville. Detail: https://earthquake.usgs.gov/earthquakes/eventpage/ci_fixture_001",
-        "areas": [
-          {"type": "region", "value": "DEMO-EARTHQUAKE-1"}
-        ],
+        "areas": [],
         "attributes": {
           "magnitude": 5.0,
           "place": "Near Testville",
@@ -133,9 +128,6 @@ Feature: Publish earthquake feed as normalized alerts
           usgs:
             feed_url: "http://127.0.0.1:18181/feeds/test.geojson"
           min_magnitude: 4.5
-          subscription_area:
-            type: "region"
-            value: "DEMO-EARTHQUAKE-1"
           category: "natural.earthquake"
       """
     When the earthquake feed completes a poll cycle

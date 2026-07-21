@@ -24,8 +24,18 @@ services:
       kontiki-registry:
         condition: service_healthy
       alert-engine-service:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./stack:/stack:ro
       - ./data:/data
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/earthquake-feed-service\", timeout=2).read()'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s

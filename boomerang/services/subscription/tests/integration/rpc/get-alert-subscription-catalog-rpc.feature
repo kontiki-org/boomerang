@@ -61,13 +61,6 @@ Feature: Get aggregated alert subscription catalog via RPC
                         "operators": ["gte"],
                         "value_kind": "number",
                         "attribute_key": "magnitude"
-                      },
-                      {
-                        "key": "area.region",
-                        "label": "Region",
-                        "operators": ["eq", "contains"],
-                        "value_kind": "string",
-                        "attribute_key": "area.region"
                       }
                     ]
                   }

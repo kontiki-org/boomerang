@@ -47,9 +47,6 @@ Publish event type `alert.normalized` with a `NormalizedAlert` payload
 - Auth: `Authorization: Bearer <app.http.token>`
 - Body: JSON `NormalizedAlert`
 - Same processing path as the AMQP event
-- OpenAPI/Swagger is **not** registered for this service unless the route
-  declares `version=` (Kontiki docs are version-scoped). Use the curl example
-  in the root README.
 
 Local stack: port `8005`, token in `stack/alert_engine.yaml`.
 
@@ -66,10 +63,6 @@ Subscription aggregates:
 
 Connectors are listed under `app.alert_connectors`; notifiers under
 `app.notification_channels` (see `stack/subscription.yaml`).
-
-Kontiki **does not deep-merge** list keys across config files: omit
-`app.alert_connectors` in the base file and add it only in an overlay
-(e.g. `stack/subscription.demo.yaml`), or keep a single source of truth.
 
 ---
 
@@ -121,7 +114,9 @@ app:
 ```
 
 Endpoint refs in subscriptions are qualified as `<channel>.<endpoint_id>`
-(e.g. `email.inbox`, `telegram.ops_alerts`). Matching currently uses
+(e.g. `email.inbox`, `telegram.ops_alerts`). Matching uses `category` +
+`event_type` first; `criteria` is optional — omit it for a catch-all on
+attributes (when present, `all_of` must be non-empty). Matching currently uses
 **`areas[0]`** only when area criteria are present (single-area MVP).
 
 ---

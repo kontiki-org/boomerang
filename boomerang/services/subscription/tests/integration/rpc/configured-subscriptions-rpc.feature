@@ -214,11 +214,6 @@ Feature: Configured subscriptions loaded from service configuration
                 rule:
                   category: kontiki.registry
                   event_type: "*"
-                  criteria:
-                    all_of:
-                      - key: "*"
-                        operator: eq
-                        value: "*"
                 endpoints:
                   - telegram.ops_alerts
       """
@@ -281,11 +276,6 @@ Feature: Configured subscriptions loaded from service configuration
                 rule:
                   category: kontiki.registry
                   event_type: "*"
-                  criteria:
-                    all_of:
-                      - key: "*"
-                        operator: eq
-                        value: "*"
                 endpoints:
                   - telegram.missing_endpoint_key
       """

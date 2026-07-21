@@ -40,7 +40,7 @@ class RuleDefinition(BaseModel):
 
     category: str = Field(min_length=1)
     event_type: str = Field(default="*")
-    criteria: CriteriaExpression
+    criteria: CriteriaExpression | None = None
 
     @model_validator(mode="after")
     def _normalize(self) -> "RuleDefinition":

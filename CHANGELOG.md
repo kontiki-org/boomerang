@@ -9,6 +9,9 @@
   alerts use empty `areas`; catalog criterion is magnitude only. README demo
   subscription filters on `magnitude >= 4.5`.
 - README: adds Install (`kontiki-boomerang` / `boomerang-contracts`).
+- Subscription rules: `criteria` is optional; omit it for attribute catch-all
+  (no more `key: "*"` / `value: "*"` no-op). When present, `all_of` must be
+  non-empty. Legacy `*/*` criteria still match.
 
 ## [0.1.0] - 2026-07-19
 

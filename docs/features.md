@@ -114,7 +114,9 @@ app:
 ```
 
 Endpoint refs in subscriptions are qualified as `<channel>.<endpoint_id>`
-(e.g. `email.inbox`, `telegram.ops_alerts`). Matching currently uses
+(e.g. `email.inbox`, `telegram.ops_alerts`). Matching uses `category` +
+`event_type` first; `criteria` is optional — omit it for a catch-all on
+attributes (when present, `all_of` must be non-empty). Matching currently uses
 **`areas[0]`** only when area criteria are present (single-area MVP).
 
 ---

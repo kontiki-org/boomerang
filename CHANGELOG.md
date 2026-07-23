@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.3.0] - 2026-07-23
+
 - Docs: subscription YAML keys described as **audience** then **rule id**
   (not end-user / not sent to notifiers); examples use `ops` / `quakes`.
 - Docs: adds `docs/configuration.md` and `docs/boomerang-config.example.yaml`

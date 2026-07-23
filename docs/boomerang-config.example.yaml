@@ -1,0 +1,90 @@
+# Example Boomerang application configuration (app.*).
+# Each service loads its own YAML — copy the relevant block into that service's
+# config (Compose merges stack/common.services.yaml + stack/<service>.yaml).
+# Framework keys (kontiki.*) are documented in Kontiki's docs/configuration.md.
+# Full reference: docs/configuration.md
+
+# =============================================================================
+# subscription-service
+# =============================================================================
+# app:
+#   subscriptions:
+#     # audience (team/role) → recipient_id; not an end-user
+#     ops:
+#       # rule id under this audience (pause/enable independently; not sent to notifiers)
+#       quakes:
+#         status: active   # or paused
+#         subscription:
+#           rule:
+#             category: natural.earthquake
+#             event_type: "*"
+#             # criteria:            # omit for attribute catch-all
+#             #   all_of:
+#             #     - key: magnitude
+#             #       operator: gte  # eq | gte | lte | contains
+#             #       value: 4.5
+#           endpoints:
+#             - telegram.ops_alerts
+#             - email.inbox
+#
+# Optional catalogue lists (TUI / discovery only — not required for delivery):
+#   alert_connectors: []       # producer service names for alert-catalog aggregation
+#   notification_channels: []  # notifier service names for channels-catalog aggregation
+
+# =============================================================================
+# alert-engine-service
+# =============================================================================
+# app:
+#   http:
+#     token: "change-me"   # Authorization: Bearer <token> on POST /alerts
+
+# =============================================================================
+# email-notifier-service
+# =============================================================================
+# app:
+#   email:
+#     smtp:
+#       host: localhost
+#       port: 25
+#       use_starttls: true
+#       username: ""
+#       password: ""
+#     from:
+#       address: "no-reply@example.org"
+#     degraded_after_failures: 3
+#   endpoints:
+#     inbox:
+#       address: you@example.org
+
+# =============================================================================
+# telegram-notifier-service
+# =============================================================================
+# app:
+#   telegram:
+#     bot_token: "123456789:YOUR_BOT_TOKEN_FROM_BOTFATHER"
+#     api_base_url: https://api.telegram.org
+#     degraded_after_failures: 3
+#     category_icons:
+#       natural.earthquake: "🌍"
+#       weather: "🌧"
+#       wildfire: "🔥"
+#       safety.fire: "🔥"
+#       website: "🌐"
+#       kontiki.registry: "⚙️"
+#       certificate: "🔒"
+#   endpoints:
+#     ops_alerts:
+#       chat_id: "123456789"
+
+# =============================================================================
+# earthquake-feed-service (demo producer)
+# =============================================================================
+# app:
+#   earthquake:
+#     usgs:
+#       feed_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson"
+#     min_magnitude: 2.5
+#     dedupe_max_ids: 5000
+#     alert_ttl_hours: 6
+#     http_timeout_seconds: 30
+#     category: natural.earthquake

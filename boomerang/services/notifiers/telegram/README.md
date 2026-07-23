@@ -48,9 +48,20 @@ Events:
 
 Alert notifications are rendered as structured HTML messages for Telegram:
 
-- category icon and label (e.g. 🌍 Earthquake)
+- optional category icon from config + auto label (last category segment, title-case)
 - severity icon (🟢 low → 🔴 critical)
-- optional metadata from `context.data.attributes` (magnitude, location, etc.)
+- metadata from `context.data.attributes` in producer insertion order
+  (keys humanized: `response_time` → `Response Time`)
+- body shown as `Message:` when it differs from the title
 - clickable details link when a URL is available
 
 Non-alert messages stay plain text.
+
+### Category icons (`app.telegram.category_icons`)
+
+Optional map of category key → emoji. Matching is exact, then prefix
+(e.g. `weather` matches `weather.wind`). When unset or unmatched, the banner
+has no domain emoji (severity icon only).
+
+See [`docs/configuration.md`](../../../../docs/configuration.md) and
+[`docs/boomerang-config.example.yaml`](../../../../docs/boomerang-config.example.yaml).

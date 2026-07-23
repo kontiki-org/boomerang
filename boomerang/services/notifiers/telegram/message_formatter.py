@@ -5,21 +5,6 @@ from boomerang_contracts.notification.message import NotificationMessage
 
 _URL_RE = re.compile(r"https?://[^\s]+")
 
-_CATEGORY_DISPLAY: dict[str, tuple[str, str]] = {
-    "natural.earthquake": ("🌍", "Earthquake"),
-    "weather": ("🌧", "Weather"),
-    "wildfire": ("🔥", "Wildfire"),
-    "safety.fire": ("🔥", "Wildfire"),
-    "website": ("🌐", "Website"),
-    "kontiki.registry": ("⚙️", "Kontiki Registry"),
-    "certificate": ("🔒", "Certificate"),
-}
-
-_EVENT_TYPE_DISPLAY: dict[str, tuple[str, str]] = {
-    "earthquake": ("🌍", "Earthquake"),
-    "wildfire": ("🔥", "Wildfire"),
-}
-
 _SEVERITY_ICONS: dict[str, str] = {
     "low": "🟢",
     "moderate": "🟡",
@@ -28,36 +13,30 @@ _SEVERITY_ICONS: dict[str, str] = {
     "unknown": "⚪",
 }
 
-_ATTRIBUTE_LABELS: dict[str, str] = {
-    "magnitude": "Magnitude",
-    "place": "Location",
-    "region": "Region",
-    "response_time": "Response time",
-    "status_code": "Status code",
-    "service": "Service",
-    "previous_state": "Previous state",
-    "new_state": "New state",
-}
 
-_ATTRIBUTE_ORDER: tuple[str, ...] = (
-    "magnitude",
-    "place",
-    "region",
-    "response_time",
-    "status_code",
-    "service",
-    "previous_state",
-    "new_state",
-)
+def normalize_category_icons(raw: Any) -> dict[str, str]:
+    if not isinstance(raw, dict):
+        return {}
+    normalized = {}
+    for key, value in raw.items():
+        if not isinstance(key, str):
+            continue
+        normalized_key = key.strip().lower()
+        icon = "" if value is None else str(value).strip()
+        if normalized_key and icon:
+            normalized[normalized_key] = icon
+    return normalized
 
 
 def format_telegram_notification(
     message: NotificationMessage,
+    category_icons: dict[str, str] | None = None,
 ) -> tuple[str, str | None]:
     title = message.title.strip()
     body = message.body.strip()
     context = message.context
     data = context.data if context is not None else {}
+    icons = category_icons if category_icons is not None else {}
 
     category = _as_text(data.get("category")).lower()
     if category or (context is not None and context.kind.strip().lower() == "alert"):
@@ -68,6 +47,7 @@ def format_telegram_notification(
             event_type=_as_text(data.get("event_type")).lower(),
             severity=_as_text(data.get("severity")).lower() or "unknown",
             attributes=_normalize_attributes(data.get("attributes")),
+            category_icons=icons,
         )
 
     if title and body:
@@ -83,14 +63,15 @@ def _format_structured_alert(
     event_type: str,
     severity: str,
     attributes: dict[str, Any],
+    category_icons: dict[str, str],
 ) -> tuple[str, str | None]:
-    category_icon, category_label = _resolve_category_display(category, event_type)
+    category_icon = _resolve_category_icon(category, category_icons)
+    category_label = _resolve_category_label(category, event_type)
     severity_icon = _SEVERITY_ICONS.get(severity, _SEVERITY_ICONS["unknown"])
 
-    lines = [
-        f"{category_icon} {severity_icon} <b>{_escape_html(category_label)}</b>",
-        "",
-    ]
+    banner_parts = [part for part in (category_icon, severity_icon) if part]
+    banner_parts.append(f"<b>{_escape_html(category_label)}</b>")
+    lines = [" ".join(banner_parts), ""]
 
     metadata_lines = _metadata_lines(attributes)
     if metadata_lines:
@@ -100,11 +81,14 @@ def _format_structured_alert(
         lines.append(_escape_html(title))
         lines.append("")
 
-    if not metadata_lines:
-        summary = _summary_without_url(body, attributes)
-        if summary and summary != title:
-            lines.append(_escape_html(summary))
-            lines.append("")
+    # Always surface body when it adds information (not only when attributes
+    # are empty — otherwise exception messages and similar text are dropped).
+    summary = _summary_without_url(body, attributes)
+    if summary and summary != title:
+        lines.append(
+            f"<b>{_escape_html('Message')}:</b> {_escape_html(_format_value(summary))}"
+        )
+        lines.append("")
 
     detail_url = _detail_url(attributes, body)
     if detail_url:
@@ -120,50 +104,34 @@ def _metadata_lines(attributes: dict[str, Any]) -> list[str]:
         return []
 
     lines = []
-    seen = set()
-    for key in _ATTRIBUTE_ORDER:
-        if key not in attributes or key == "url":
+    for key, value in attributes.items():
+        if key == "url" or value is None or value == "":
             continue
-        value = attributes[key]
-        if value is None or value == "":
-            continue
-        label = _ATTRIBUTE_LABELS.get(key, _humanize_key(key))
+        label = _humanize_key(key)
         lines.append(
             f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}"
         )
-        seen.add(key)
-
-    for key in sorted(attributes):
-        if key in seen or key == "url":
-            continue
-        value = attributes[key]
-        if value is None or value == "":
-            continue
-        label = _ATTRIBUTE_LABELS.get(key, _humanize_key(key))
-        lines.append(
-            f"<b>{_escape_html(label)}:</b> {_escape_html(_format_value(value))}"
-        )
-
     return lines
 
 
-def _resolve_category_display(category: str, event_type: str) -> tuple[str, str]:
-    if category in _CATEGORY_DISPLAY:
-        return _CATEGORY_DISPLAY[category]
+def _resolve_category_icon(category: str, category_icons: dict[str, str]) -> str:
+    if not category or not category_icons:
+        return ""
+    if category in category_icons:
+        return category_icons[category]
 
-    for prefix, display in _CATEGORY_DISPLAY.items():
+    for prefix, icon in category_icons.items():
         if category.startswith(f"{prefix}.") or category.startswith(prefix):
-            return display
+            return icon
+    return ""
 
-    if event_type in _EVENT_TYPE_DISPLAY:
-        return _EVENT_TYPE_DISPLAY[event_type]
 
+def _resolve_category_label(category: str, event_type: str) -> str:
     if category:
-        label = category.split(".")[-1].replace("_", " ").title()
-        return "📢", label
+        return category.split(".")[-1].replace("_", " ").title()
     if event_type and event_type != "*":
-        return "📢", event_type.replace("_", " ").title()
-    return "📢", "Alert"
+        return event_type.replace("_", " ").title()
+    return "Alert"
 
 
 def _detail_url(attributes: dict[str, Any], body: str) -> str:

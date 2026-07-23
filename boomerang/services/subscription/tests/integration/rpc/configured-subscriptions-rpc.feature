@@ -4,8 +4,10 @@ Feature: Configured subscriptions loaded from service configuration
   As an operator
   I want subscriptions declared in service configuration to resolve recipients
 
-  Configured entries are keyed by owner_id, then rule name (opaque, operator-chosen).
-  recipient_id in dispatch equals owner_id — not the rule name.
+  Configured entries are keyed by audience (operator-chosen label such as
+  platform-ops / oncall — not an end-user), then rule id (opaque name for one
+  targeting rule under that audience; not sent to notifiers).
+  recipient_id in dispatch equals that audience key — not the rule id.
   Configured endpoints use qualified refs "<channel>.<endpoint_id>" (e.g. telegram.ops_alerts); the loader resolves them to channel + endpoint_key at dispatch.
 
   Scenario: Match recipients from configured subscriptions

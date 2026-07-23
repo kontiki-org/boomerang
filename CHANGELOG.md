@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Docs: subscription YAML keys described as **audience** then **rule id**
+  (not end-user / not sent to notifiers); examples use `ops` / `quakes`.
+- Docs: adds `docs/configuration.md` and `docs/boomerang-config.example.yaml`
+  (Boomerang `app.*` reference, Kontiki-style).
+- Telegram notifier: generic structured alert rendering — category emojis come
+  from optional `app.telegram.category_icons` (YAML); attribute labels are
+  auto-humanized; attribute order follows the producer dict. Removes hardcoded
+  domain display tables from the formatter.
+- Telegram structured alerts: always show the alert **body** as a `Message:` line
+  when it adds information beyond the title (including when attributes are
+  present). Fixes dropped exception text and similar free-form bodies.
+
 ## [0.2.0] - 2026-07-21
 
 - Requires Kontiki `>=1.3.0`. Compose healthchecks use the registry live probe

@@ -25,6 +25,12 @@ notifications.
 Subscriptions are YAML-only (`app.subscriptions`). There is no SQLite store and
 no interactive CRUD HTTP/RPC surface on this service.
 
+Entries are keyed by **audience** then **rule id**. Audience is an
+operator-chosen label such as `ops` or `oncall` (not an end-user) and becomes
+`recipient_id` at dispatch. Rule id names one targeting rule under that
+audience (independent `status`; not sent to notifiers). Delivery still resolves
+via notifier `endpoint_key`.
+
 ## Architecture notes
 
 - Subscriptions are declared in YAML (`app.subscriptions`).

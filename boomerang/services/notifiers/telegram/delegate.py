@@ -17,6 +17,7 @@ from boomerang.services.notifiers.telegram.configured_endpoints import (
 )
 from boomerang.services.notifiers.telegram.message_formatter import (
     format_telegram_notification,
+    normalize_category_icons,
 )
 
 
@@ -37,6 +38,9 @@ class TelegramNotifierDelegate(ServiceDelegate):
         self._degraded_after_failures = int(
             get_parameter(config, "app.telegram.degraded_after_failures", 3)
         )
+        self._category_icons = normalize_category_icons(
+            get_parameter(config, "app.telegram.category_icons", None)
+        )
         self._consecutive_api_failures = 0
 
     async def get_notification_channel_catalog(self) -> NotificationChannelCatalog:
@@ -44,7 +48,10 @@ class TelegramNotifierDelegate(ServiceDelegate):
 
     async def send_notification_telegram(self, request: NotificationRequest) -> None:
         chat_id = self._resolve_chat_id(request)
-        text, parse_mode = format_telegram_notification(request.message)
+        text, parse_mode = format_telegram_notification(
+            request.message,
+            category_icons=self._category_icons,
+        )
 
         try:
             await asyncio.to_thread(

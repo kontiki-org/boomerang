@@ -6,6 +6,8 @@ Public docs (safe to publish with the OSS repo):
 |-----|----------|
 | [features.md](features.md) | Product overview, pipeline, YAML targeting |
 | [contracts.md](contracts.md) | Events and shared Pydantic models |
+| [configuration.md](configuration.md) | `app.*` keys per service (reference) |
+| [boomerang-config.example.yaml](boomerang-config.example.yaml) | Annotated YAML covering every `app.*` option |
 
 Service-level notes live next to each service under `boomerang/services/*/README.md`
 (and `notifiers/*/README.md`).

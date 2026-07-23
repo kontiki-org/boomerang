@@ -4,8 +4,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
   As an operator
   I want Telegram endpoints declared in service configuration to be used at notification dispatch
 
-  Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of owner.
-  Dispatch resolves endpoint_key against this registry; recipient_id (owner) comes from subscriptions.
+  Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of audience.
+  Dispatch resolves endpoint_key against this registry; recipient_id (audience from subscriptions) is opaque to the notifier.
 
   Scenario: Deliver notification using configured endpoint
     Given the telegram-notifier service is running with the following configuration
@@ -65,10 +65,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       """
       {
         "chat_id": "123456789",
-        "text_contains": [
-          "Registry alert",
-          "payment-service degraded."
-        ]
+        "text": "🟠 <b>Registry</b>\n\nRegistry alert\n\n<b>Message:</b> payment-service degraded.",
+        "parse_mode": "HTML"
       }
       """
     And a "alerting.notification.delivered" event is published
@@ -139,10 +137,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       """
       {
         "chat_id": "111222333",
-        "text_contains": [
-          "Ops alert",
-          "Configured endpoint delivery."
-        ]
+        "text": "🟢 <b>Registry</b>\n\nOps alert\n\n<b>Message:</b> Configured endpoint delivery.",
+        "parse_mode": "HTML"
       }
       """
     When an "telegram.alerting.notification.requested" event is published with payload
@@ -169,10 +165,8 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       """
       {
         "chat_id": "987654321",
-        "text_contains": [
-          "UI alert",
-          "Second configured endpoint delivery."
-        ]
+        "text": "🟡 <b>Earthquake</b>\n\nUI alert\n\n<b>Message:</b> Second configured endpoint delivery.",
+        "parse_mode": "HTML"
       }
       """
 

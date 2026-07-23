@@ -9,10 +9,11 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
       interval: 5s
-      timeout: 3s
-      retries: 20
+      timeout: 5s
+      retries: 30
+      start_period: 20s
 
   kontiki-registry:
     build:

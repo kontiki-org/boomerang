@@ -39,14 +39,9 @@ class AlertEngineDelegate(ServiceDelegate):
         except Exception as exc:
             raise ValidationError() from exc
         try:
-            return self._normalized_alert(payload)
+            return NormalizedAlert.model_validate(payload)
         except (PydanticValidationError, ValueError, TypeError) as exc:
             raise ValidationError() from exc
-
-    def _normalized_alert(self, payload) -> NormalizedAlert:
-        if isinstance(payload, NormalizedAlert):
-            return payload
-        return NormalizedAlert.model_validate(payload)
 
     def _notification_requests_for_recipients(self, alert: NormalizedAlert, recipients):
         message = NotificationMessage(
@@ -89,10 +84,9 @@ class AlertEngineDelegate(ServiceDelegate):
         return out
 
     async def process_normalized_alert(self, messenger, payload):
-        alert = self._normalized_alert(payload)
         recipients = await SubscriptionRpcProxy(messenger).get_recipients_for_alert(
-            alert=alert
+            alert=payload
         )
         if not recipients:
             return []
-        return self._notification_requests_for_recipients(alert, recipients)
+        return self._notification_requests_for_recipients(payload, recipients)

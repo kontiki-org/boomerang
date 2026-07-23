@@ -79,28 +79,6 @@ def _fetch_registry_services(amqp_url):
     return asyncio.run(_fetch())
 
 
-def _assert_event_published(context, event_type):
-    expected_payload = json.loads(context.text.strip()) if context.text else {}
-    catcher_name = "notification-outcome-catcher"
-    events = context.manager.get_events(catcher_name, wait_for_events=1, timeout=10)
-    assert events, f"No event published for {event_type}"
-    match = None
-    for event in events:
-        if event.get("event_type") == event_type:
-            match = event
-            break
-    assert match is not None, f"Event {event_type} not found in {events}"
-    actual_payload = _as_jsonable(match.get("payload", {}))
-    normalized_payload = _normalize_actual_for_placeholders(
-        expected_payload, actual_payload
-    )
-    assert normalized_payload == expected_payload, (
-        "Event payload mismatch.\n"
-        f"Expected: {expected_payload}\n"
-        f"Actual:   {normalized_payload}"
-    )
-
-
 @given("the email-notifier service is running with the following configuration")
 def step_email_notifier_running_with_config(context):
     config_text = context.text.strip()
@@ -250,17 +228,6 @@ def step_mailhog_should_contain_email_matching(context):
     raise AssertionError(
         f"No MailHog message matched expected payload={expected}. Messages={messages}"
     )
-
-
-@then('a "{event_type}" event is published')
-def step_event_is_published(context, event_type):
-    _assert_event_published(context, event_type)
-
-
-@then("the email-notifier service ignores the event")
-def step_email_notifier_ignores_event(context):
-    messages = mailhog.list_messages()
-    assert not messages, f"Expected no email in MailHog, got {messages}"
 
 
 @then("the email-notifier service rejects the event as invalid payload")

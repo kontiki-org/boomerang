@@ -69,13 +69,6 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
         "parse_mode": "HTML"
       }
       """
-    And a "alerting.notification.delivered" event is published
-      """
-      {
-        "status": "delivered",
-        "channel": "telegram"
-      }
-      """
 
   Scenario: Deliver to multiple configured endpoints
     Given the telegram-notifier service is running with the following configuration

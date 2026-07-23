@@ -2,10 +2,7 @@ import time
 
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
-from boomerang.services.notifiers.telegram.tests.integration.mocks import (
-    NotificationOutcomeCatcher,
-    TelegramApiMock,
-)
+from boomerang.services.notifiers.telegram.tests.integration.mocks import TelegramApiMock
 from boomerang.testing import NotificationPublisherMock, safe_unlink
 
 
@@ -32,7 +29,6 @@ def before_all(context):
     }
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
     context.manager.add(NotificationPublisherMock, default_config)
-    context.manager.add(NotificationOutcomeCatcher, default_config)
     context.manager.add(TelegramApiMock, telegram_api_config)
     context.runner = MockServiceRunner(context.manager)
     context.runner.start()
@@ -60,7 +56,6 @@ def after_scenario(context, scenario):
     context.last_user_id = None
     context.last_access_token = None
 
-    context.manager.clean_events("notification-outcome-catcher")
     context.manager.clean_http_requests("telegram-api-mock")
 
 

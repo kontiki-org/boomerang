@@ -140,7 +140,9 @@ app:
 ```
 
 Structured messages also use built-in severity icons (`low` → 🟢 … `critical` → 🔴).
-Attribute labels are auto-humanized; order follows the producer’s attribute dict.
+The banner title is the humanized `event_type` when present, otherwise the last
+category segment. Attribute labels are auto-humanized; order follows the
+producer’s attribute dict.
 See [`boomerang/services/notifiers/telegram/README.md`](../boomerang/services/notifiers/telegram/README.md).
 
 ---

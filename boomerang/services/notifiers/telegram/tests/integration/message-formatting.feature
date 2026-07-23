@@ -267,3 +267,71 @@ Feature: Telegram structured message formatting
         "parse_mode": "HTML"
       }
       """
+
+  Scenario: Banner title prefers humanized event_type over category
+    Given the telegram-notifier service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8004
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/telegram-notifier.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        telegram:
+          bot_token: test-bot-token
+          api_base_url: http://127.0.0.1:9999
+          category_icons:
+            kontiki.registry: "⚙️"
+        endpoints:
+          telegram_primary:
+            chat_id: "123456789"
+      """
+    When an "telegram.alerting.notification.requested" event is published with payload
+      """
+      {
+        "channel": "telegram",
+        "recipient_id": "usr_1",
+        "endpoint_key": "telegram_primary",
+        "message": {
+          "title": "demo-app-service exception recorded",
+          "body": "Uncaught exception in demo-app-service",
+          "context": {
+            "kind": "alert",
+            "data": {
+              "category": "kontiki.registry",
+              "event_type": "exception_recorded",
+              "severity": "severe",
+              "attributes": {
+                "service_name": "demo-app-service"
+              }
+            }
+          }
+        }
+      }
+      """
+    Then the Telegram API should contain a sendMessage matching
+      """
+      {
+        "chat_id": "123456789",
+        "text": "⚙️ 🟠 <b>Exception Recorded</b>\n\n<b>Service Name:</b> demo-app-service\n\n<b>Message:</b> Uncaught exception in demo-app-service",
+        "parse_mode": "HTML"
+      }
+      """

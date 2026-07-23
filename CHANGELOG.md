@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] - 2026-07-23
+
+- Telegram structured alerts: banner title prefers humanized `event_type`
+  (falls back to last category segment when missing). Category icons stay
+  from `app.telegram.category_icons`.
+
 ## [0.3.0] - 2026-07-23
 
 - Docs: subscription YAML keys described as **audience** then **rule id**

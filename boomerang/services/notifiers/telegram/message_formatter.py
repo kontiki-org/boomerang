@@ -66,11 +66,11 @@ def _format_structured_alert(
     category_icons: dict[str, str],
 ) -> tuple[str, str | None]:
     category_icon = _resolve_category_icon(category, category_icons)
-    category_label = _resolve_category_label(category, event_type)
+    banner_label = _resolve_banner_label(category, event_type)
     severity_icon = _SEVERITY_ICONS.get(severity, _SEVERITY_ICONS["unknown"])
 
     banner_parts = [part for part in (category_icon, severity_icon) if part]
-    banner_parts.append(f"<b>{_escape_html(category_label)}</b>")
+    banner_parts.append(f"<b>{_escape_html(banner_label)}</b>")
     lines = [" ".join(banner_parts), ""]
 
     metadata_lines = _metadata_lines(attributes)
@@ -126,11 +126,12 @@ def _resolve_category_icon(category: str, category_icons: dict[str, str]) -> str
     return ""
 
 
-def _resolve_category_label(category: str, event_type: str) -> str:
-    if category:
-        return category.split(".")[-1].replace("_", " ").title()
+def _resolve_banner_label(category: str, event_type: str) -> str:
+    # Prefer alert type (event_type); fall back to last category segment.
     if event_type and event_type != "*":
-        return event_type.replace("_", " ").title()
+        return _humanize_key(event_type)
+    if category:
+        return _humanize_key(category.split(".")[-1])
     return "Alert"
 
 

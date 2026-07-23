@@ -22,7 +22,7 @@ Producers ──► NormalizedAlert ──► subscription + alert-engine ──
 - **Middle**: who gets notified is declared in YAML (`app.subscriptions` +
   notifier `app.endpoints`).
 
-More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](docs/contracts.md).
+More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](docs/contracts.md) · [`docs/configuration.md`](docs/configuration.md).
 
 ---
 
@@ -70,8 +70,8 @@ make stack-up-demo
 # stack/subscription.yaml (excerpt)
 app:
   subscriptions:
-    demo:
-      earthquakes:
+    ops:                 # audience → recipient_id
+      earthquakes:       # rule id
         status: active
         subscription:
           rule:
@@ -115,6 +115,7 @@ Details (pipeline, HTTP ingest, catalogues, contracts): [`docs/features.md`](doc
 - Index: [`docs/README.md`](docs/README.md)
 - Features: [`docs/features.md`](docs/features.md)
 - Contracts: [`docs/contracts.md`](docs/contracts.md)
+- Configuration: [`docs/configuration.md`](docs/configuration.md) · [`docs/boomerang-config.example.yaml`](docs/boomerang-config.example.yaml)
 - Stack config: [`stack/`](stack/)
 - Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - License: [`LICENSE`](LICENSE) (Apache-2.0)

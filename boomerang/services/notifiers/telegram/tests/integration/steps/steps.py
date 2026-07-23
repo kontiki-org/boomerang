@@ -212,25 +212,19 @@ def step_rpc_call_fails_with_error_code(context, error_code):
 @then("the Telegram API should contain a sendMessage matching")
 def step_telegram_api_should_contain_send_message_matching(context):
     expected = json.loads(context.text.strip()) if context.text else {}
-    expected_chat_id = expected.get("chat_id", "")
-    expected_text_contains = expected.get("text_contains", [])
-    expected_parse_mode = expected.get("parse_mode")
     time.sleep(1)
     requests = context.manager.get_http_requests("telegram-api-mock") or []
     assert requests, "No Telegram API call captured."
     for payload in requests:
-        actual_chat_id = str(payload.get("chat_id", ""))
-        actual_text = payload.get("text", "")
-        if expected_chat_id and actual_chat_id != expected_chat_id:
-            continue
-        if (
-            expected_parse_mode is not None
-            and payload.get("parse_mode") != expected_parse_mode
-        ):
-            continue
-        if any(fragment not in actual_text for fragment in expected_text_contains):
-            continue
-        return
+        actual = {
+            "chat_id": str(payload.get("chat_id", "")),
+            "text": payload.get("text", ""),
+        }
+        parse_mode = payload.get("parse_mode")
+        if parse_mode:
+            actual["parse_mode"] = parse_mode
+        if actual == expected:
+            return
     raise AssertionError(
         f"No Telegram API call matched expected={expected}. requests={requests}"
     )

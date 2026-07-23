@@ -56,7 +56,7 @@ from boomerang_contracts.notification.message import NotificationRequest
 | Field | Notes |
 |-------|--------|
 | `channel` | e.g. `email`, `telegram` |
-| `recipient_id` | subscription owner (`owner_id` in YAML) |
+| `recipient_id` | Audience label from YAML subscriptions (first-level key under `app.subscriptions`); not an end-user account. Notifiers route by `endpoint_key`. |
 | `endpoint_key` | notifier endpoint id (from qualified ref `<channel>.<endpoint_id>`) |
 | `message` | `title`, `body`, `context` (`kind` + `data`) |
 

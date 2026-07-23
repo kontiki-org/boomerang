@@ -54,15 +54,16 @@ Local stack: port `8005`, token in `stack/alert_engine.yaml`.
 
 ## Catalogues
 
-Subscription aggregates:
+Subscription can aggregate discovery catalogues (optional — mainly for a TUI):
 
 | Surface | Purpose |
 |---------|---------|
 | `GET /alert-catalog` (and RPC) | What producers expose (categories, event types, criteria) |
 | `GET /notification-channels/catalog` (and RPC) | What channels / endpoint shapes notifiers support |
 
-Connectors are listed under `app.alert_connectors`; notifiers under
-`app.notification_channels` (see `stack/subscription.yaml`).
+Configured via optional `app.alert_connectors` / `app.notification_channels`
+(see [`configuration.md`](configuration.md)). Not required for YAML targeting
+or delivery.
 
 ---
 
@@ -71,14 +72,18 @@ Connectors are listed under `app.alert_connectors`; notifiers under
 OSS core is **YAML-only** (no SQLite / interactive CRUD). Declare targeting in
 stack config and **restart** services to apply changes.
 
-Stock Compose files list channels and SMTP defaults; they do **not** ship sample
+Full `app.*` reference: [`docs/configuration.md`](configuration.md) and
+[`docs/boomerang-config.example.yaml`](boomerang-config.example.yaml).
+Framework (`kontiki.*`) options are documented in Kontiki.
+
+Stock Compose files list SMTP defaults; they do **not** ship sample
 subscriptions or notifier endpoints. Without those, ingest succeeds but nothing
 is delivered.
 
 | File | Role |
 |------|------|
-| `stack/subscription.yaml` | `app.notification_channels` (+ optional `app.subscriptions`) |
-| `stack/subscription.demo.yaml` | demo overlay: `app.alert_connectors` |
+| `stack/subscription.yaml` | optional `app.subscriptions` (+ optional catalogue lists) |
+| `stack/subscription.demo.yaml` | demo overlay (optional catalogue wiring) |
 | `stack/alert_engine.yaml` | ingest token, HTTP |
 | `stack/notifiers/email.yaml` | SMTP + optional `app.endpoints` |
 | `stack/notifiers/telegram.yaml` | optional `app.endpoints` |
@@ -90,10 +95,8 @@ Subscription (`stack/subscription.yaml`):
 
 ```yaml
 app:
-  notification_channels:
-    - email-notifier-service
   subscriptions:
-    demo-owner:
+    ops:
       hello:
         status: active
         subscription:
@@ -113,11 +116,17 @@ app:
       address: you@example.org
 ```
 
-Endpoint refs in subscriptions are qualified as `<channel>.<endpoint_id>`
-(e.g. `email.inbox`, `telegram.ops_alerts`). Matching uses `category` +
-`event_type` first; `criteria` is optional — omit it for a catch-all on
-attributes (when present, `all_of` must be non-empty). Matching currently uses
-**`areas[0]`** only when area criteria are present (single-area MVP).
+The map under `subscriptions` is **audience → rule id → entry**:
+- **audience** (e.g. `ops`) becomes `recipient_id` at dispatch — not an end-user
+  account;
+- **rule id** (e.g. `hello`) names one targeting rule under that audience (pause
+  / enable independently; not sent to notifiers).
+
+Endpoint refs are qualified as `<channel>.<endpoint_id>` (e.g. `email.inbox`,
+`telegram.ops_alerts`). Matching uses `category` + `event_type` first;
+`criteria` is optional — omit it for a catch-all on attributes (when present,
+`all_of` must be non-empty). Matching currently uses **`areas[0]`** only when
+area criteria are present (single-area MVP).
 
 ---
 

@@ -12,3 +12,12 @@ app:
   telegram:
     api_base_url: https://api.telegram.org
     # bot_token: stack/notifiers/telegram_bot_token.yaml (gitignored, merged at startup).
+    # Optional domain icons for structured alert banners (exact key, then prefix).
+    category_icons:
+      natural.earthquake: "🌍"
+      weather: "🌧"
+      wildfire: "🔥"
+      safety.fire: "🔥"
+      website: "🌐"
+      kontiki.registry: "⚙️"
+      certificate: "🔒"

@@ -63,10 +63,8 @@ Feature: Consume notification delivery requests
       """
       {
         "chat_id": "123456789",
-        "text_contains": [
-          "Weather alert",
-          "Storm warning for your area."
-        ]
+        "text": "🟠 <b>Wind</b>\n\nWeather alert\n\n<b>Message:</b> Storm warning for your area.",
+        "parse_mode": "HTML"
       }
       """
     And a "alerting.notification.delivered" event is published
@@ -77,7 +75,7 @@ Feature: Consume notification delivery requests
       }
       """
 
-  Scenario: Format a structured earthquake alert notification
+  Scenario: Format a structured earthquake alert without category icons
     When an "telegram.alerting.notification.requested" event is published with payload
       """
       {
@@ -108,14 +106,7 @@ Feature: Consume notification delivery requests
       """
       {
         "chat_id": "123456789",
-        "text_contains": [
-          "Earthquake",
-          "Magnitude",
-          "2.3",
-          "Honey Lake",
-          "Details",
-          "earthquake.usgs.gov"
-        ],
+        "text": "🟢 <b>Earthquake</b>\n\n<b>Magnitude:</b> 2.3\n<b>Place:</b> 24 km ENE of Honey Lake, CA\n\n🔗 <a href=\"https://earthquake.usgs.gov/earthquakes/eventpage/nc75395766\">Details</a>",
         "parse_mode": "HTML"
       }
       """

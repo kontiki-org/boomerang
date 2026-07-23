@@ -65,7 +65,7 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       """
       {
         "chat_id": "123456789",
-        "text": "🟠 <b>Registry</b>\n\nRegistry alert\n\n<b>Message:</b> payment-service degraded.",
+        "text": "🟠 <b>State Changed</b>\n\nRegistry alert\n\n<b>Message:</b> payment-service degraded.",
         "parse_mode": "HTML"
       }
       """
@@ -137,7 +137,7 @@ Feature: Configured endpoints loaded from telegram-notifier service configuratio
       """
       {
         "chat_id": "111222333",
-        "text": "🟢 <b>Registry</b>\n\nOps alert\n\n<b>Message:</b> Configured endpoint delivery.",
+        "text": "🟢 <b>State Changed</b>\n\nOps alert\n\n<b>Message:</b> Configured endpoint delivery.",
         "parse_mode": "HTML"
       }
       """

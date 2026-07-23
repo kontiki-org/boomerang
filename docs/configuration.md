@@ -43,8 +43,8 @@ Map **audience → rule_id → entry**. Restart the service after changes.
 | `subscription.rule.criteria.all_of[]` | if criteria set | List of `{key, operator, value}` with `operator` in `eq`, `gte`, `lte`, `contains`. |
 | `subscription.endpoints` | yes | Non-empty list of qualified refs `<channel>.<endpoint_id>` (e.g. `telegram.ops_alerts`, `email.inbox`). |
 
-Matching uses category + event type first, then criteria against alert attributes
-(and `areas[0]` when area criteria are present — single-area MVP).
+Matching uses category + event type first, then criteria against alert facts
+(`severity`, `area.<type>` for each entry in `areas`, and keys from `attributes`).
 
 Example:
 

@@ -3,6 +3,7 @@ import time
 
 import yaml
 from behave import given, then, when
+from boomerang_contracts.alert.normalized import NormalizedAlert
 
 from boomerang.services.alert_engine.tests.integration.utils import (
     start_alert_engine_subprocess,
@@ -87,7 +88,7 @@ def step_publish_event_with_payload(context, event_type):
         "notification-publisher",
         "publish_event",
         event_type=event_type,
-        payload=payload,
+        payload=NormalizedAlert.model_validate(payload),
     )
     time.sleep(1)
 

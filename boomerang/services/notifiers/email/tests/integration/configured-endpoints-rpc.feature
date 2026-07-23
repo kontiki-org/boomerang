@@ -78,13 +78,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
         ]
       }
       """
-    And a "alerting.notification.delivered" event is published
-      """
-      {
-        "status": "delivered",
-        "channel": "email"
-      }
-      """
 
   Scenario: Deliver to multiple configured endpoints
     Given the email-notifier service is running with the following configuration

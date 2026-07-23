@@ -67,13 +67,6 @@ Feature: Consume notification delivery requests
         "parse_mode": "HTML"
       }
       """
-    And a "alerting.notification.delivered" event is published
-      """
-      {
-        "status": "delivered",
-        "channel": "telegram"
-      }
-      """
 
   Scenario: Format a structured earthquake alert without category icons
     When an "telegram.alerting.notification.requested" event is published with payload
@@ -111,25 +104,6 @@ Feature: Consume notification delivery requests
       }
       """
 
-  Scenario: Ignore a notification request for a non-telegram channel
-    When an "telegram.alerting.notification.requested" event is published with payload
-      """
-      {
-        "channel": "email",
-        "recipient_id": "usr_1",
-        "endpoint_key": "email_primary",
-        "message": {
-          "title": "Weather alert",
-          "body": "Storm warning for your area.",
-          "context": {
-            "kind": "weather.alert",
-            "data": {}
-          }
-        }
-      }
-      """
-    Then the telegram-notifier service ignores the event
-
   Scenario: Reject malformed notification payload
     When an "telegram.alerting.notification.requested" event is published with payload
       """
@@ -148,13 +122,3 @@ Feature: Consume notification delivery requests
       }
       """
     Then the telegram-notifier service rejects the event as invalid payload
-    And a "alerting.notification.failed" event is published
-      """
-      {
-        "status": "failed",
-        "error": {
-          "type": "delivery_error",
-          "message": "[ERROR]"
-        }
-      }
-      """

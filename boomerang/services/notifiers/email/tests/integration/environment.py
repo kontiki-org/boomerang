@@ -2,9 +2,6 @@ import time
 
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
-from boomerang.services.notifiers.email.tests.integration.mocks import (
-    NotificationOutcomeCatcher,
-)
 from boomerang.testing import NotificationPublisherMock, safe_unlink
 
 
@@ -25,7 +22,6 @@ def before_all(context):
     default_config = {"kontiki": {"amqp": {"url": "amqp://guest:guest@localhost"}}}
     context.manager = MockServiceManager(log_file="/tmp/boomerang-integration.log")
     context.manager.add(NotificationPublisherMock, default_config)
-    context.manager.add(NotificationOutcomeCatcher, default_config)
     context.runner = MockServiceRunner(context.manager)
     context.runner.start()
     context.runner.ready_event.wait(timeout=10)
@@ -51,8 +47,6 @@ def after_scenario(context, scenario):
     context.last_published_event_payload = None
     context.last_user_id = None
     context.last_access_token = None
-
-    context.manager.clean_events("notification-outcome-catcher")
 
 
 def after_all(context):

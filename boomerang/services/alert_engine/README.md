@@ -30,17 +30,3 @@
   `context.data` carries `alert_id`, `category`, `event_type`, `severity`,
   `attributes`.
 - The full alert is sent to `get_recipients_for_alert` for subscription matching.
-
-## Current MVP limitations
-
-- Area matching lives in subscription-service and uses only `areas[0]`.
-- Rows missing `recipient_id` / `channel` / `endpoint_key` are skipped.
-
-## Service boundaries
-
-This service does **not**:
-
-- fetch domain data,
-- normalize source payloads from upstream APIs,
-- send notifications directly (handled by notifier services),
-- manage user endpoints (handled by notifiers + subscription config).

@@ -42,7 +42,6 @@ via notifier `endpoint_key`.
   notification channel catalog.
 - Channel endpoint credentials are not stored here; notifier services own
   `app.endpoints` and delivery.
-- Recipient matching currently uses **`areas[0]`** only (single-area MVP).
 
 ## Service boundaries
 

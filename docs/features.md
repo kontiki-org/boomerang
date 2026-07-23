@@ -125,8 +125,8 @@ The map under `subscriptions` is **audience → rule id → entry**:
 Endpoint refs are qualified as `<channel>.<endpoint_id>` (e.g. `email.inbox`,
 `telegram.ops_alerts`). Matching uses `category` + `event_type` first;
 `criteria` is optional — omit it for a catch-all on attributes (when present,
-`all_of` must be non-empty). Matching currently uses **`areas[0]`** only when
-area criteria are present (single-area MVP).
+`all_of` must be non-empty). Area criteria use keys `area.<type>` (e.g.
+`area.zone`) against every entry in `alert.areas`.
 
 ---
 

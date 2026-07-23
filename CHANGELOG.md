@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+- Notifiers (email, telegram): handlers reduced to delivery only; drop
+  `alerting.notification.delivered` / `.failed` events (failures surface through
+  Kontiki exception / alerting).
+- Alert-engine: trust the bus contract (`NormalizedAlert`) and subscription RPC
+  recipient rows (no defensive skip of incomplete fields).
+- Subscription: area criteria only via `area.<type>` (remove unused `area_type` /
+  `area_value` facts); docs aligned.
+
 ## [0.3.1] - 2026-07-23
 
 - Telegram structured alerts: banner title prefers humanized `event_type`

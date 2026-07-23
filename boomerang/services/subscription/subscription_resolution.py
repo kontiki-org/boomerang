@@ -2,9 +2,6 @@ def build_facts_from_alert(alert: dict) -> tuple[str, str, dict[str, list[str]]]
     category = str(alert.get("category", "")).strip().lower()
     event_type = str(alert.get("event_type", "")).strip().lower()
     areas = alert.get("areas", [])
-    first_area = areas[0] if isinstance(areas, list) and areas else {}
-    area_type = str(first_area.get("type", "")).strip().lower()
-    area_value = str(first_area.get("value", "")).strip()
     severity = str(alert.get("severity", "")).strip().lower()
     attributes = alert.get("attributes", {})
     attributes = attributes if isinstance(attributes, dict) else {}
@@ -12,8 +9,6 @@ def build_facts_from_alert(alert: dict) -> tuple[str, str, dict[str, list[str]]]
         "category": [category] if category else [],
         "event_type": [event_type] if event_type else [],
         "severity": [severity] if severity else [],
-        "area_type": [area_type] if area_type else [],
-        "area_value": [area_value] if area_value else [],
     }
     for area in areas if isinstance(areas, list) else []:
         if not isinstance(area, dict):

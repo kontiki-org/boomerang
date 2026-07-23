@@ -1,7 +1,5 @@
 # Changelog
 
-## Unreleased
-
 ## [0.3.0] - 2026-07-23
 
 - Docs: subscription YAML keys described as **audience** then **rule id**

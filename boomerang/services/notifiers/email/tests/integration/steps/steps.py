@@ -206,7 +206,7 @@ def step_mailhog_should_contain_email_matching(context):
     for message in messages:
         content = message.get("Content", {})
         headers = content.get("Headers", {})
-        raw_body = content.get("Body", "")
+        body = mailhog.searchable_body(message)
         to_values = headers.get("To", [])
         from_values = headers.get("From", [])
         subject_values = headers.get("Subject", [])
@@ -221,7 +221,7 @@ def step_mailhog_should_contain_email_matching(context):
             continue
         if expected_subject and actual_subject != expected_subject:
             continue
-        if any(fragment not in raw_body for fragment in expected_body_contains):
+        if any(fragment not in body for fragment in expected_body_contains):
             continue
         return
 

@@ -2,7 +2,9 @@ import time
 
 from kontiki.testing import MockServiceManager, MockServiceRunner
 
-from boomerang.services.notifiers.telegram.tests.integration.mocks import TelegramApiMock
+from boomerang.services.notifiers.telegram.tests.integration.mocks import (
+    TelegramApiMock,
+)
 from boomerang.testing import NotificationPublisherMock, safe_unlink
 
 

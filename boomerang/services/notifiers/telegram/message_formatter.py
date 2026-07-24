@@ -35,18 +35,14 @@ def _format_structured_html(parts, category_icons: dict[str, str]) -> str:
 
     if parts.attributes:
         for label, value in parts.attributes:
-            lines.append(
-                f"<b>{escape_html(label)}:</b> {escape_html(value)}"
-            )
+            lines.append(f"<b>{escape_html(label)}:</b> {escape_html(value)}")
         lines.append("")
     elif parts.title:
         lines.append(escape_html(parts.title))
         lines.append("")
 
     if parts.message:
-        lines.append(
-            f"<b>{escape_html('Message')}:</b> {escape_html(parts.message)}"
-        )
+        lines.append(f"<b>{escape_html('Message')}:</b> {escape_html(parts.message)}")
         lines.append("")
 
     if parts.detail_url:

@@ -1,6 +1,7 @@
 # Changelog
 
-## [Unreleased]
+
+## [0.4.0] - 2026-07-24
 
 - Email notifier: structured alerts as multipart plain+HTML (event_type
   subject/banner, humanized attributes, Message when body ≠ title), aligned

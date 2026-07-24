@@ -21,10 +21,7 @@ def format_email_notification(message: NotificationMessage):
     body = message.body.strip()
     if title and body and title != body:
         plain = f"{title}\n\n{body}"
-        html = (
-            f"<p><b>{escape_html(title)}</b></p>"
-            f"<p>{escape_html(body)}</p>"
-        )
+        html = f"<p><b>{escape_html(title)}</b></p>" f"<p>{escape_html(body)}</p>"
         return title, plain, html
     text = title or body
     return text, text, f"<p>{escape_html(text)}</p>" if text else ""
@@ -56,17 +53,14 @@ def _format_structured_html(parts):
     if parts.attributes:
         rows = []
         for label, value in parts.attributes:
-            rows.append(
-                f"<li><b>{escape_html(label)}:</b> {escape_html(value)}</li>"
-            )
+            rows.append(f"<li><b>{escape_html(label)}:</b> {escape_html(value)}</li>")
         lines.append("<ul>" + "".join(rows) + "</ul>")
     elif parts.title:
         lines.append(f"<p>{escape_html(parts.title)}</p>")
 
     if parts.message:
         lines.append(
-            f"<p><b>{escape_html('Message')}:</b> "
-            f"{escape_html(parts.message)}</p>"
+            f"<p><b>{escape_html('Message')}:</b> " f"{escape_html(parts.message)}</p>"
         )
 
     if parts.detail_url:

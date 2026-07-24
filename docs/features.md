@@ -22,14 +22,16 @@ Producer ──► alert.normalized (AMQP)
                     ▼                               ▼
               email-notifier                 telegram-notifier
                     │                               │
-                    └─► alerting.notification.delivered / .failed
+                    SMTP / Bot API            (delivery only)
 ```
 
 - **subscription-service** loads subscriptions from YAML, aggregates catalogues,
   and resolves recipients for a given `NormalizedAlert`.
 - **alert-engine-service** turns one alert into one `NotificationRequest` per
   `(recipient_id, channel, endpoint_key)`.
-- **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot API).
+- **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot
+  API). Failures surface through Kontiki exception / alerting (no separate
+  `alerting.notification.delivered` / `.failed` events).
 
 ---
 
@@ -76,17 +78,19 @@ Full `app.*` reference: [`docs/configuration.md`](configuration.md) and
 [`docs/boomerang-config.example.yaml`](boomerang-config.example.yaml).
 Framework (`kontiki.*`) options are documented in Kontiki.
 
-Stock Compose files list SMTP defaults; they do **not** ship sample
-subscriptions or notifier endpoints. Without those, ingest succeeds but nothing
-is delivered.
+Core Compose (`make stack-up`) has SMTP defaults and catalogue wiring, but **no**
+`app.subscriptions` — ingest succeeds and nothing is delivered until you add
+targeting. The demo overlay (`make stack-up-demo`) ships a sample earthquake
+subscription plus an email inbox endpoint (MailHog); Telegram still needs a
+`chat_id` and bot token.
 
 | File | Role |
 |------|------|
 | `stack/subscription.yaml` | optional `app.subscriptions` (+ optional catalogue lists) |
-| `stack/subscription.demo.yaml` | demo overlay (optional catalogue wiring) |
+| `stack/subscription.demo.yaml` | demo: connector + sample earthquake subscription |
 | `stack/alert_engine.yaml` | ingest token, HTTP |
-| `stack/notifiers/email.yaml` | SMTP + optional `app.endpoints` |
-| `stack/notifiers/telegram.yaml` | optional `app.endpoints` |
+| `stack/notifiers/email.yaml` | SMTP + optional `app.endpoints` (demo ships `inbox`) |
+| `stack/notifiers/telegram.yaml` | optional `app.endpoints` (`alerts.chat_id` for demo) |
 | `stack/notifiers/telegram_bot_token.yaml` | bot token (gitignored; copy from `.example`) |
 
 ### Minimal targeting example
@@ -133,8 +137,10 @@ Endpoint refs are qualified as `<channel>.<endpoint_id>` (e.g. `email.inbox`,
 ## Demo producer
 
 `earthquake-feed-service` polls USGS and publishes `alert.normalized`.
-Start with `make stack-up-demo` (merges `stack/subscription.demo.yaml` to
-register the connector).
+Start with `make stack-up-demo` (merges `stack/subscription.demo.yaml`).
 
-Delivery still requires matching `app.subscriptions` plus notifier
-`app.endpoints` (and a Telegram bot token for that channel).
+That overlay registers the connector and an active subscription
+(`natural.earthquake` / `earthquake`, `magnitude >= 2`) targeting
+`telegram.alerts` and `email.inbox`. Email goes to MailHog via the stock
+`inbox` endpoint. For Telegram, set `app.endpoints.alerts.chat_id` and the
+bot token overlay.

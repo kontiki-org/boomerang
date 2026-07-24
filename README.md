@@ -46,9 +46,11 @@ The quickstart below uses Docker Compose instead of a local pip install.
 
 ---
 
-## Quickstart — earthquake → Telegram
+## Quickstart — earthquake → Telegram / MailHog
 
-The demo stack polls USGS, normalizes quakes, and notifies a Telegram chat.
+The demo stack polls USGS, normalizes quakes, and notifies Telegram plus email
+(MailHog). Targeting lives in `stack/subscription.demo.yaml`
+(`magnitude >= 2` → `telegram.alerts` and `email.inbox`).
 
 **1. Bot token** (once):
 
@@ -58,43 +60,23 @@ cp stack/notifiers/telegram_bot_token.yaml.example \
 # set app.telegram.bot_token from BotFather
 ```
 
-**2. Start the demo:**
-
-```bash
-make stack-up-demo
-```
-
-**3. Target a chat** — subscription excerpt (operator config):
+**2. Telegram chat** in `stack/notifiers/telegram.yaml`:
 
 ```yaml
-# stack/subscription.yaml (excerpt)
-app:
-  subscriptions:
-    ops:                 # audience → recipient_id
-      earthquakes:       # rule id
-        status: active
-        subscription:
-          rule:
-            category: natural.earthquake
-            event_type: earthquake
-            criteria:
-              all_of:
-                - key: magnitude
-                  operator: gte
-                  value: 4.5
-          endpoints:
-            - telegram.alerts
-```
-
-```yaml
-# stack/notifiers/telegram.yaml (excerpt)
 app:
   endpoints:
     alerts:
       chat_id: "YOUR_CHAT_ID"
 ```
 
-When a matching quake arrives, Telegram looks like this:
+**3. Start the demo:**
+
+```bash
+make stack-up-demo
+```
+
+Email copies land in MailHog (http://127.0.0.1:8025). When a matching quake
+arrives, Telegram looks like this:
 
 <p align="center">
   <img src="./assets/telegram-earthquake-alert.png" alt="Telegram notification from Boomerang earthquake demo" width="420">

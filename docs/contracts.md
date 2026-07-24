@@ -11,8 +11,10 @@ Shared models live in the `boomerang-contracts` package
 |-------|---------|------|
 | `alert.normalized` | `NormalizedAlert` | Producer → alert-engine |
 | `{channel}.alerting.notification.requested` | `NotificationRequest` | alert-engine → notifier (`email`, `telegram`, …) |
-| `alerting.notification.delivered` | outcome | Notifier success |
-| `alerting.notification.failed` | outcome | Notifier failure |
+
+Notifiers deliver only (SMTP / Bot API). Delivery failures surface through
+Kontiki exception / alerting — there are no `alerting.notification.delivered` /
+`.failed` outcome events.
 
 Constant for the ingest event:
 

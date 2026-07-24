@@ -11,11 +11,11 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 - Expose the telegram channel catalog (RPC `get_notification_channel_catalog`).
 - Consume `telegram.alerting.notification.requested`.
 - Resolve destination using configured `endpoint_key`.
+- Format alert notifications as structured HTML (shared parsing with email via
+  `notifiers.common.structured_alert`).
 - Send via Telegram Bot API.
-- Publish delivery outcomes:
-  - `alerting.notification.delivered`
-  - `alerting.notification.failed`
-- Mark the instance degraded on repeated API failures (`@degraded_on`).
+- Mark the instance degraded on repeated API failures (`@degraded_on`);
+  delivery failures surface through Kontiki exception / alerting.
 
 ## Stack E2E
 
@@ -31,18 +31,20 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
    That file is merged on top of `stack/notifiers/telegram.yaml` at startup.
 
 2. Declare endpoints in `stack/notifiers/telegram.yaml` (`app.endpoints`) and
-   subscriptions in `stack/subscription.yaml`.
+   subscriptions (core: `stack/subscription.yaml`; demo overlay:
+   `stack/subscription.demo.yaml`).
 
 3. Start the stack:
 
    ```bash
    make stack-up
+   # or make stack-up-demo for the earthquake producer + sample subscription
    ```
 
 Events:
 
 - consume `telegram.alerting.notification.requested`
-- publish `alerting.notification.delivered` / `alerting.notification.failed`
+- send via Bot API (failures propagate as Kontiki exceptions)
 
 ## Message formatting
 

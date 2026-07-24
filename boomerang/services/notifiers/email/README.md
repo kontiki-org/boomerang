@@ -20,11 +20,10 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 
 ## Stack
 
-- Config: `stack/notifiers/email.yaml`
+- Config: `stack/notifiers/email.yaml` (demo ships `app.endpoints.inbox` → MailHog)
 - Local SMTP: MailHog (`mailhog:1025`, UI http://127.0.0.1:8025)
-- Declare endpoints under `app.endpoints` in that YAML (stock file has SMTP
-  only — add endpoints for delivery) and matching subscriptions in
-  `stack/subscription.yaml`.
+- Matching subscriptions: `stack/subscription.yaml` (core) or
+  `stack/subscription.demo.yaml` (demo).
 
 ## Message formatting
 
@@ -32,9 +31,9 @@ Alert notifications (`context.kind` = `alert` or a non-empty `category`) are
 rendered as `multipart/alternative`:
 
 - **Subject**: humanized `event_type` (falls back to last category segment)
-- **text/plain** and **text/html**: severity icon + banner, attribute rows in
-  producer insertion order, optional `Message:` when body differs from title,
-  optional Details link
+- **text/plain**: banner, attribute rows in producer insertion order, optional
+  `Message:` when body differs from title, optional Details link
+- **text/html**: same layout plus severity icon on the banner
 
 Non-alert messages keep title as subject and title/body as content.
 

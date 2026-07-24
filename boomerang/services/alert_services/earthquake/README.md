@@ -28,14 +28,16 @@ Example config: `stack/earthquake.yaml` (merged with `stack/common.services.yaml
 in Compose). Keys under `app.earthquake.*` cover feed URL, `min_magnitude`,
 category, TTL, and HTTP timeout.
 
-Demo overlay registers the connector on subscription via
-`stack/subscription.demo.yaml` (`app.alert_connectors`).
+Demo overlay (`stack/subscription.demo.yaml`) registers the connector
+(`app.alert_connectors`) and ships an active subscription:
+`natural.earthquake` / `earthquake`, `magnitude >= 2`, endpoints
+`telegram.alerts` and `email.inbox`.
 
 ## Subscription matching (demo)
 
-Alerts ship with **empty `areas`**. Demo subscriptions typically match
-`category` / `event_type` (catch-all criteria) and optionally **`magnitude`**
-(`gte`). Feed-level filtering uses **`min_magnitude`**.
+Alerts ship with **empty `areas`**. The sample rule matches category /
+event_type and **`magnitude` `gte` 2**. Feed-level filtering uses
+`app.earthquake.min_magnitude` (stock: `2`).
 
 True geographic targeting (USGS coordinates → zones) is future work: enrich
 alerts or match at subscription time — not at notifier delivery.

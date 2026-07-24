@@ -7,7 +7,9 @@
   with Telegram. Shared parsing in `notifiers.common.structured_alert`.
 - Notifiers (email, telegram): handlers reduced to delivery only; drop
   `alerting.notification.delivered` / `.failed` events (failures surface through
-  Kontiki exception / alerting).
+  Kontiki exception / alerting). Docs (features, contracts, READMEs, quickstart)
+  aligned; demo overlay ships earthquake subscription (`magnitude >= 2`) to
+  Telegram + MailHog email.
 - Alert-engine: trust the bus contract (`NormalizedAlert`) and subscription RPC
   recipient rows (no defensive skip of incomplete fields).
 - Subscription: area criteria only via `area.<type>` (remove unused `area_type` /

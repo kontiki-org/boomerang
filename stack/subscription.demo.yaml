@@ -2,3 +2,20 @@
 app:
   alert_connectors:
     - earthquake-feed-service
+
+  subscriptions:
+    ops:
+      earthquakes:
+        status: active
+        subscription:
+          rule:
+            category: natural.earthquake
+            event_type: earthquake
+            criteria:
+              all_of:
+                - key: magnitude
+                  operator: gte
+                  value: 2
+          endpoints:
+            - telegram.alerts
+            - email.inbox

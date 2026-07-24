@@ -11,11 +11,12 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 - Expose the email channel catalog (RPC `get_notification_channel_catalog`).
 - Consume `email.alerting.notification.requested`.
 - Resolve destination using configured `endpoint_key`.
+- Format alert notifications as multipart **plain + HTML** (same structured
+  layout as Telegram: event_type banner, humanized attributes, Message when
+  body adds info). Subject is the banner label.
 - Send email through configured SMTP.
-- Publish delivery outcomes:
-  - `alerting.notification.delivered`
-  - `alerting.notification.failed`
-- Mark the instance degraded on repeated SMTP failures (`@degraded_on`).
+- Mark the instance degraded on repeated SMTP failures (`@degraded_on`);
+  delivery failures surface through Kontiki exception / alerting.
 
 ## Stack
 
@@ -24,6 +25,21 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 - Declare endpoints under `app.endpoints` in that YAML (stock file has SMTP
   only — add endpoints for delivery) and matching subscriptions in
   `stack/subscription.yaml`.
+
+## Message formatting
+
+Alert notifications (`context.kind` = `alert` or a non-empty `category`) are
+rendered as `multipart/alternative`:
+
+- **Subject**: humanized `event_type` (falls back to last category segment)
+- **text/plain** and **text/html**: severity icon + banner, attribute rows in
+  producer insertion order, optional `Message:` when body differs from title,
+  optional Details link
+
+Non-alert messages keep title as subject and title/body as content.
+
+Shared parsing lives in `boomerang.services.notifiers.common.structured_alert`
+(also used by the Telegram notifier).
 
 ## Event flow
 
@@ -35,5 +51,5 @@ Behavior:
 
 - parse payload as `NotificationRequest`,
 - resolve address from configured endpoint,
-- send via SMTP,
-- publish delivered or failed outcome.
+- format plain + HTML body,
+- send via SMTP (failures propagate as Kontiki exceptions).

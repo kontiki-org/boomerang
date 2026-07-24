@@ -104,6 +104,10 @@ app:
       address: you@example.org
 ```
 
+Alert notifications are sent as multipart plain+HTML with an `event_type` (or
+category) subject/banner and humanized attributes — same structured layout as
+Telegram (see the email notifier README).
+
 ---
 
 ## telegram-notifier-service

@@ -2,3 +2,7 @@
 app:
   telegram:
     bot_token: "123456789:REPLACE_WITH_YOUR_BOT_TOKEN"
+
+  endpoints:
+    alerts:
+      chat_id: "YOUR_CHAT_ID"

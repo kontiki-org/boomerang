@@ -49,7 +49,8 @@ Events:
 Alert notifications are rendered as structured HTML messages for Telegram:
 
 - optional category icon from config + banner label from `event_type`
-  (humanized; falls back to last category segment when event_type is absent)
+  (humanized; falls back to last category segment when event_type is absent;
+  shared with email via `notifiers.common.structured_alert`)
 - severity icon (🟢 low → 🔴 critical)
 - metadata from `context.data.attributes` in producer insertion order
   (keys humanized: `response_time` → `Response Time`)

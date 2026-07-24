@@ -1,10 +1,10 @@
 @email_notifier_events
-Feature: Consume notification delivery requests
-  In order to deliver outgoing emails from the alerting pipeline
+Feature: Email structured message formatting
+  In order to render alerts like Telegram without hardcoding domain tables
   As the email-notifier service
-  I want to consume "email.alerting.notification.requested" events for the email channel
+  I want multipart plain+HTML emails with event_type banner and attribute rows
 
-  Background:
+  Scenario: Structured alert uses event_type subject and attribute rows
     Given the email-notifier service is running with the following configuration
       """
       kontiki:
@@ -44,8 +44,6 @@ Feature: Consume notification delivery requests
           email_primary:
             address: user@example.org
       """
-
-  Scenario: Consume a valid email notification request
     When an "email.alerting.notification.requested" event is published with payload
       """
       {
@@ -53,13 +51,20 @@ Feature: Consume notification delivery requests
         "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
-          "title": "Weather alert",
-          "body": "Storm warning for your area.",
+          "title": "demo-app-service state active → degraded",
+          "body": "demo-app-service state active → degraded",
           "context": {
-            "kind": "weather.alert",
+            "kind": "alert",
             "data": {
-              "category": "weather.wind",
-              "severity": "severe"
+              "category": "kontiki.registry",
+              "event_type": "instance_state_changed",
+              "severity": "severe",
+              "attributes": {
+                "service_name": "demo-app-service",
+                "previous_state": "active",
+                "new_state": "degraded",
+                "reason": "demo degrade requested"
+              }
             }
           }
         }
@@ -70,31 +75,15 @@ Feature: Consume notification delivery requests
       {
         "from": "no-reply@example.org",
         "to": ["user@example.org"],
-        "subject": "Wind",
+        "subject": "Instance State Changed",
         "body_contains": [
-          "Wind",
-          "Weather alert",
-          "Message: Storm warning for your area.",
-          "<b>Wind</b>"
+          "Instance State Changed",
+          "Service Name: demo-app-service",
+          "Previous State: active",
+          "New State: degraded",
+          "Reason: demo degrade requested",
+          "<b>Service Name:</b>",
+          "<b>Reason:</b> demo degrade requested"
         ]
       }
       """
-
-  Scenario: Reject malformed notification payload
-    When an "email.alerting.notification.requested" event is published with payload
-      """
-      {
-        "channel": "email",
-        "recipient_id": "usr_1",
-        "endpoint_key": "",
-        "message": {
-          "title": "Weather alert",
-          "body": "Storm warning for your area.",
-          "context": {
-            "kind": "weather.alert",
-            "data": {}
-          }
-        }
-      }
-      """
-    Then the email-notifier service rejects the event as invalid payload

@@ -14,6 +14,9 @@ from boomerang.services.notifiers.email.channel_catalog import (
 from boomerang.services.notifiers.email.configured_endpoints import (
     load_configured_endpoints,
 )
+from boomerang.services.notifiers.email.message_formatter import (
+    format_email_notification,
+)
 
 
 class EmailNotifierDelegate(ServiceDelegate):
@@ -46,8 +49,7 @@ class EmailNotifierDelegate(ServiceDelegate):
 
     async def send_notification_email(self, request: NotificationRequest) -> None:
         destination_value = self._resolve_destination_address(request)
-        subject = request.message.title.strip()
-        body = request.message.body.strip()
+        subject, plain_body, html_body = format_email_notification(request.message)
         from_address = (self._from_address or "").strip()
 
         try:
@@ -56,7 +58,8 @@ class EmailNotifierDelegate(ServiceDelegate):
                 from_address=from_address,
                 to_address=destination_value,
                 subject=subject,
-                body=body,
+                plain_body=plain_body,
+                html_body=html_body,
             )
         except Exception:
             self._consecutive_smtp_failures += 1
@@ -87,13 +90,16 @@ class EmailNotifierDelegate(ServiceDelegate):
         from_address: str,
         to_address: str,
         subject: str,
-        body: str,
+        plain_body: str,
+        html_body: str,
     ) -> None:
         message = EmailMessage()
         message["From"] = from_address
         message["To"] = to_address
         message["Subject"] = subject
-        message.set_content(body)
+        message.set_content(plain_body or "")
+        if html_body:
+            message.add_alternative(html_body, subtype="html")
 
         with smtplib.SMTP(self._smtp_host, self._smtp_port, timeout=10) as smtp:
             if self._smtp_use_starttls:

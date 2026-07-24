@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Email notifier: structured alerts as multipart plain+HTML (event_type
+  subject/banner, humanized attributes, Message when body ≠ title), aligned
+  with Telegram. Shared parsing in `notifiers.common.structured_alert`.
 - Notifiers (email, telegram): handlers reduced to delivery only; drop
   `alerting.notification.delivered` / `.failed` events (failures surface through
   Kontiki exception / alerting).

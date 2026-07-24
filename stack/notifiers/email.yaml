@@ -18,3 +18,7 @@ app:
       password: ""
     from:
       address: "boomerang@localhost"
+
+  endpoints:
+    inbox:
+      address: admin@kontiki.ai

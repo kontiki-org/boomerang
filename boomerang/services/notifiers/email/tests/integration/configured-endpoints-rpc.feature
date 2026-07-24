@@ -72,9 +72,12 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       {
         "from": "no-reply@example.org",
         "to": ["ops@example.org"],
-        "subject": "Registry alert",
+        "subject": "State Changed",
         "body_contains": [
-          "payment-service degraded."
+          "State Changed",
+          "Registry alert",
+          "Message: payment-service degraded.",
+          "<b>State Changed</b>"
         ]
       }
       """
@@ -146,9 +149,12 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       {
         "from": "no-reply@example.org",
         "to": ["ops@example.org"],
-        "subject": "Ops alert",
+        "subject": "State Changed",
         "body_contains": [
-          "Configured endpoint delivery."
+          "State Changed",
+          "Ops alert",
+          "Message: Configured endpoint delivery.",
+          "<b>State Changed</b>"
         ]
       }
       """
@@ -177,9 +183,12 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       {
         "from": "no-reply@example.org",
         "to": ["user@example.org"],
-        "subject": "UI alert",
+        "subject": "Earthquake",
         "body_contains": [
-          "Second configured endpoint delivery."
+          "Earthquake",
+          "UI alert",
+          "Message: Second configured endpoint delivery.",
+          "<b>Earthquake</b>"
         ]
       }
       """

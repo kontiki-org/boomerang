@@ -30,8 +30,7 @@ Producer ──► alert.normalized (AMQP)
 - **alert-engine-service** turns one alert into one `NotificationRequest` per
   `(recipient_id, channel, endpoint_key)`.
 - **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot
-  API). Failures surface through Kontiki exception / alerting (no separate
-  `alerting.notification.delivered` / `.failed` events).
+  API). Failures surface through Kontiki exception / alerting
 
 ---
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+
+- Requires Kontiki `>=1.5.0`.
 
 ## [0.4.0] - 2026-07-24
 

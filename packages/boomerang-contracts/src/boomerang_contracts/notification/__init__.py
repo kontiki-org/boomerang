@@ -6,15 +6,9 @@ from boomerang_contracts.notification.channel_catalog import (
     NotificationChannelCatalog,
     NotificationChannelsCatalog,
 )
-from boomerang_contracts.notification.endpoint import (
-    CreateChannelEndpointRequest,
-    CreateEndpointRequest,
-)
 from boomerang_contracts.notification.message import (
     NotificationContext,
-    NotificationError,
     NotificationMessage,
-    NotificationOutcome,
     NotificationRequest,
 )
 from boomerang_contracts.notification.validation import (
@@ -25,16 +19,12 @@ from boomerang_contracts.notification.validation import (
 __all__ = [
     "ChannelFieldChoice",
     "ChannelFieldDescriptor",
-    "CreateChannelEndpointRequest",
-    "CreateEndpointRequest",
     "GET_NOTIFICATION_CHANNEL_CATALOG_RPC",
     "GET_NOTIFICATION_CHANNELS_CATALOG_RPC",
     "NotificationChannelCatalog",
     "NotificationChannelsCatalog",
     "NotificationContext",
-    "NotificationError",
     "NotificationMessage",
-    "NotificationOutcome",
     "NotificationRequest",
     "endpoint_display",
     "validate_endpoint_fields",

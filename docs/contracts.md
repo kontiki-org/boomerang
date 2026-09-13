@@ -91,11 +91,12 @@ packages/boomerang-contracts/
     alert/catalog.py
     notification/message.py
     notification/channel_catalog.py
+    notification/validation.py
 ```
 
-The root app depends on `boomerang-contracts` from PyPI
-(`pip install boomerang-contracts`).
+Stable surface: `NormalizedAlert`, catalogues, `NotificationRequest`,
+`validate_endpoint_fields`, `endpoint_display`. Targeting is YAML-only
+(`app.subscriptions`, notifier `app.endpoints`).
 
-> Note: the package may still export unused CRUD-oriented request models under
-> `notification/endpoint.py`. They are **not** part of the OSS YAML targeting
-> path; prefer catalogues + YAML config.
+Published `kontiki-boomerang` depends on `boomerang-contracts` from PyPI
+(`pip install boomerang-contracts`).

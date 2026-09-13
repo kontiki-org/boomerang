@@ -15,7 +15,7 @@ pip install boomerang-contracts
 |------|--------|------|
 | Ingest | `NormalizedAlert`, `ALERT_NORMALIZED_EVENT` | Producer → alert-engine |
 | Catalogues | `AlertConnectorCatalog`, `NotificationChannelCatalog`, … | RPC catalogue payloads |
-| Delivery | `NotificationRequest`, outcomes | alert-engine → notifier |
+| Delivery | `NotificationRequest` | alert-engine → notifier |
 
 ```python
 from boomerang_contracts import (

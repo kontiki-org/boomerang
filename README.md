@@ -8,8 +8,8 @@
 Producers publish alerts; the core matches **YAML subscriptions**; notifiers deliver
 (email, Telegram, …).
 
-The pipeline stays stable because both ends speak shared contracts
-(`boomerang-contracts`):
+**1.0.0** freezes YAML targeting (`app.subscriptions`, notifier `app.endpoints`)
+and the bus contracts. Both ends speak shared contracts (`boomerang-contracts`):
 
 ```text
 Producers ──► NormalizedAlert ──► subscription + alert-engine ──► NotificationRequest ──► Notifiers

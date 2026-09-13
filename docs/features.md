@@ -3,6 +3,9 @@
 Boomerang is an alerting engine on top of Kontiki. Producers emit normalized
 alerts; the core resolves recipients and asks notifiers to deliver.
 
+**1.0.0** freezes YAML targeting (`app.subscriptions`, notifier `app.endpoints`)
+and the bus contracts (`NormalizedAlert`, `NotificationRequest`).
+
 ---
 
 ## Pipeline

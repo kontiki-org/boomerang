@@ -2,7 +2,15 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-13
+
+First stable release. YAML targeting and bus contracts
+(`NormalizedAlert`, `NotificationRequest`) are unchanged.
+
 - Requires Kontiki `>=1.5.0`.
+- `boomerang-contracts` 1.0.0: public surface is catalogues, ingest/delivery
+  models, and endpoint field helpers. Drops unused CRUD endpoint request
+  models and notification outcome/error types. Both packages: Production/Stable.
 
 ## [0.4.0] - 2026-07-24
 

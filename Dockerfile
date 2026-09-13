@@ -14,3 +14,4 @@ COPY boomerang ./boomerang
 
 # Install the service package (includes kontiki dependency via pyproject).
 RUN pip install --no-cache-dir .
+

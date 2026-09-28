@@ -1,5 +1,5 @@
 from aiohttp.web import HTTPUnprocessableEntity
-from boomerang_contracts.alert.normalized import ALERT_NORMALIZED_EVENT
+from boomerang_contracts.alert.normalized import ALERT_NORMALIZED_EVENT, NormalizedAlert
 from kontiki.messaging import Messenger, on_event
 from kontiki.web import http
 
@@ -37,5 +37,5 @@ class AlertEngineService:
     # AMQP API
 
     @on_event(ALERT_NORMALIZED_EVENT)
-    async def on_alert_normalized(self, payload):
+    async def on_alert_normalized(self, payload: NormalizedAlert):
         await self.handle_normalized_alert(payload)

@@ -91,8 +91,5 @@ class SubscriptionDelegate(ServiceDelegate):
             channels.append(_channel_catalog_from_rpc_result(raw))
         return NotificationChannelsCatalog(channels=channels)
 
-    async def get_recipients_for_alert(self, alert):
-        if not isinstance(alert, NormalizedAlert):
-            alert = NormalizedAlert.model_validate(alert)
-        alert_payload = alert.model_dump(mode="json")
+    async def get_recipients_for_alert(self, alert_payload):
         return self._configured_subscriptions.get_recipients_for_alert(alert_payload)

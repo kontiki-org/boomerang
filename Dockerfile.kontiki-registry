@@ -5,10 +5,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir -U pip \
-    && pip install --no-cache-dir "kontiki @ git+https://github.com/kontiki-org/kontiki.git@f538f75a2c9322a3fc8901aba3fcfd3a96ec2231"
+RUN pip install --no-cache-dir -U pip \
+    && pip install --no-cache-dir "kontiki>=2.0.0,<3.0.0"
 
 CMD ["kontiki_registry", "--help"]

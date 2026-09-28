@@ -28,7 +28,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-kontiki = { git = "https://github.com/kontiki-org/kontiki.git", rev = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231" }
+kontiki = ">=2.0.0,<3.0.0"
 pydantic = "^2.0.0"
 boomerang-contracts = ">=1.0.0,<2.0.0"
 

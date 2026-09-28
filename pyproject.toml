@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "kontiki-boomerang"
-version = "1.0.0"
+version = "2.0.0"
 description = "Alerting engine built on Kontiki."
 authors = ["Julien Weber <jpkwbr@protonmail.com>"]
 readme = "README.md"
@@ -17,7 +17,7 @@ exclude = [
     "boomerang/**/tests/**",
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
@@ -28,7 +28,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-kontiki = ">=1.5.0"
+kontiki = { git = "https://github.com/kontiki-org/kontiki.git", rev = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231" }
 pydantic = "^2.0.0"
 boomerang-contracts = ">=1.0.0,<2.0.0"
 

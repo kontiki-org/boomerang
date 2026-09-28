@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.0.0] - 2026-09-28
+
+Breaking runtime upgrade to Kontiki 2. YAML targeting and bus contracts
+(`NormalizedAlert`, `NotificationRequest`) are unchanged. `boomerang-contracts`
+stays 1.0.0. Development status: Beta.
+
+- Requires Kontiki 2 and RabbitMQ `>=4.3` (quorum queues). Kontiki `2.0.0` is
+  not on PyPI yet; this release tracks `2.0.0a2` at
+  `f538f75a2c9322a3fc8901aba3fcfd3a96ec2231` (`2.0.0_alpha`). Compose image
+  `rabbitmq:3.13-management` → `4.3-management`. Before the first start, delete
+  existing classic `{service}.{event}.queue` queues: they cannot be redeclared
+  as quorum.
+- Event handlers reconstruct `NormalizedAlert` and `NotificationRequest` from
+  their type hints. `get_recipients_for_alert` still takes the JSON object
+  under the RPC keyword `alert`.
+- Stack logging uses `logging.directory` and a `RotatingFileHandler` (Kontiki
+  file naming `{service_name}-{short_instance_id}.log`). Per-service
+  `logging.handlers.file.filename` entries removed.
+- Registry stack config: `event_tracker.*` → `activity_tracker.*`.
+
 ## [1.0.0] - 2026-09-13
 
 First stable release. YAML targeting and bus contracts

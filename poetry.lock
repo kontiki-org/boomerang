@@ -340,6 +340,21 @@ files = [
 ]
 
 [[package]]
+name = "croniter"
+version = "6.2.4"
+description = "croniter provides iteration for datetime object with cron like format"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "croniter-6.2.4-py3-none-any.whl", hash = "sha256:8ef3d544107a5c05a150a2d78f8bf5a8eb9c5c4d93405a736b824109574e3f4d"},
+    {file = "croniter-6.2.4.tar.gz", hash = "sha256:fc124f751b1b04805c2a04b061898b436b45ab2320b045e1e052ea895de65189"},
+]
+
+[package.dependencies]
+python-dateutil = "*"
+
+[[package]]
 name = "cucumber-expressions"
 version = "19.0.0"
 description = "Cucumber Expressions - a simpler alternative to Regular Expressions"
@@ -552,21 +567,26 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kontiki"
-version = "1.5.0"
+version = "2.0.0a2"
 description = "Microservices framework in Python."
 optional = false
-python-versions = "<4.0,>=3.11"
+python-versions = ">=3.11,<4.0"
 groups = ["main"]
-files = [
-    {file = "kontiki-1.5.0-py3-none-any.whl", hash = "sha256:1e211d66f053654fcab7434e7b187814fef5a239418c2c1fac15b38edc03c282"},
-    {file = "kontiki-1.5.0.tar.gz", hash = "sha256:4ae589f09a3b57320892156c2fccaacd8fdffb62d5813bb534579e2dc42de495"},
-]
+files = []
+develop = false
 
 [package.dependencies]
-aio-pika = ">=9.0.0,<10.0.0"
-aiohttp = ">=3.11.0,<4.0.0"
-pydantic = ">=2.0.0,<3.0.0"
-PyYAML = ">=6.0,<7.0"
+aio-pika = "^9.0.0"
+aiohttp = "^3.11.0"
+croniter = "^6.0.0"
+pydantic = "^2.0.0"
+PyYAML = "^6.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/kontiki-org/kontiki.git"
+reference = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231"
+resolved_reference = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231"
 
 [[package]]
 name = "mccabe"
@@ -1151,6 +1171,21 @@ files = [
 ]
 
 [[package]]
+name = "python-dateutil"
+version = "2.9.0.post0"
+description = "Extensions to the standard Python datetime module"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+groups = ["main"]
+files = [
+    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
+    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
+]
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 description = "YAML parser and emitter for Python"
@@ -1239,7 +1274,7 @@ version = "1.17.0"
 description = "Python 2 and 3 compatibility utilities"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
@@ -1418,4 +1453,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "ff02d2bf992169924923627561d3f8480ae2dd5d09243c747232c98af57e1d3d"
+content-hash = "30affaa7ae00c6c37c8b7b2c0818c18f2fc91bc0a4ba534d3a86f2b0bf605dbd"

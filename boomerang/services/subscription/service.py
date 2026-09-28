@@ -1,7 +1,6 @@
 from kontiki.messaging import Messenger, rpc
 from kontiki.web import http
 
-from boomerang_contracts.alert import NormalizedAlert
 from boomerang.core.service_contracts.subscription.service import (
     SUBSCRIPTION_SERVICE_NAME,
 )
@@ -14,8 +13,8 @@ class SubscriptionService:
     messenger = Messenger()
 
     @rpc
-    async def get_recipients_for_alert(self, alert_payload):
-        return await self.delegate.get_recipients_for_alert(alert_payload=alert_payload)
+    async def get_recipients_for_alert(self, alert):
+        return await self.delegate.get_recipients_for_alert(alert)
 
     @rpc
     async def get_alert_subscription_catalog(self):

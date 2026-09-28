@@ -4,7 +4,6 @@ from boomerang_contracts.alert.catalog import (
     AlertConnectorCatalog,
     AlertSubscriptionCatalog,
 )
-from boomerang_contracts.alert.normalized import NormalizedAlert
 from boomerang_contracts.notification.channel_catalog import (
     NotificationChannelCatalog,
     NotificationChannelsCatalog,

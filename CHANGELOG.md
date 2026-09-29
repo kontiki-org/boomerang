@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] - 2026-09-28
+## [2.0.0] - 2026-09-29
 
 Breaking runtime upgrade to Kontiki 2. Development status: Beta.
 

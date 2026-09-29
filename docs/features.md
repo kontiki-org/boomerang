@@ -32,7 +32,7 @@ Producer ──► alert.normalized (AMQP)
 - **subscription-service** loads subscriptions from YAML, aggregates catalogues,
   and resolves recipients for a given `NormalizedAlert`.
 - **alert-engine-service** turns one alert into one `NotificationRequest` per
-  `(recipient_id, channel, endpoint_key)`.
+  `(channel, endpoint_key)`.
 - **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot
   API). Failures surface through Kontiki exception / alerting
 
@@ -103,15 +103,11 @@ Subscription (`stack/subscription.yaml`):
 ```yaml
 app:
   subscriptions:
-    ops:
-      hello:
-        status: active
-        subscription:
-          rule:
-            category: demo
-            event_type: "*"
-          endpoints:
-            - email.inbox
+    hello:
+      category: demo
+      event_type: "*"
+      endpoints:
+        - email.inbox
 ```
 
 Email endpoints (`stack/notifiers/email.yaml`):
@@ -123,16 +119,14 @@ app:
       address: you@example.org
 ```
 
-The map under `subscriptions` is **audience → rule id → entry**:
-- **audience** (e.g. `ops`) becomes `recipient_id` at dispatch — not an end-user
-  account;
-- **rule id** (e.g. `hello`) names one targeting rule under that audience (pause
-  / enable independently; not sent to notifiers).
+The map under `subscriptions` is **rule id → entry**. The rule id (e.g.
+`hello`) names one targeting rule. It is not sent to notifiers.
 
 Endpoint refs are qualified as `<channel>.<endpoint_id>` (e.g. `email.inbox`,
 `telegram.ops_alerts`). Matching uses `category` + `event_type` first;
-`criteria` is optional — omit it for a catch-all on attributes (when present,
-`all_of` must be non-empty). Area criteria use keys `area.<type>` (e.g.
+`criteria` is optional — omit it for a catch-all on attributes. When present,
+it is a non-empty list of `{key, operator, value}`; every entry must match.
+Area criteria use keys `area.<type>` (e.g.
 `area.zone`) against every entry in `alert.areas`.
 
 ---

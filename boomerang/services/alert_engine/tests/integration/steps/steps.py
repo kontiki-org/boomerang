@@ -133,7 +133,7 @@ def _dispatch_match_signature(event_type, payload):
         return (event_type, None, None)
     return (
         event_type,
-        payload.get("recipient_id"),
+        payload.get("channel"),
         payload.get("endpoint_key"),
     )
 

@@ -2,10 +2,12 @@
 
 ## [2.0.0] - 2026-09-28
 
-Breaking runtime upgrade to Kontiki 2. YAML targeting and bus contracts
-(`NormalizedAlert`, `NotificationRequest`) are unchanged. Development status:
-Beta.
+Breaking runtime upgrade to Kontiki 2. Development status: Beta.
 
+- `boomerang-contracts` 2.0.0: `NotificationRequest` is `channel`,
+  `endpoint_key`, and `message`.
+- Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`. Matching
+  endpoints are deduplicated on `(channel, endpoint_key)`.
 - Requires Kontiki `>=2.0.0,<3.0.0` and RabbitMQ `>=4.3` (quorum queues).
   Compose image `rabbitmq:4.3-management`. Before the first start, delete
   existing classic `{service}.{event}.queue` queues: they cannot be redeclared

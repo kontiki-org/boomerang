@@ -9,8 +9,9 @@ Producers publish alerts; the core matches **YAML subscriptions**; notifiers del
 (email, Telegram, …).
 
 **2.0.0** runs on Kontiki 2 (JSON AMQP, RabbitMQ ≥ 4.3).
-YAML targeting (`app.subscriptions`, notifier `app.endpoints`) and the bus
-contracts are unchanged. Both ends speak shared contracts (`boomerang-contracts`):
+Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`.
+`NotificationRequest` carries `channel`, `endpoint_key`, and `message`
+(`boomerang-contracts` 2.0.0). Both ends speak shared contracts:
 
 ```text
 Producers ──► NormalizedAlert ──► subscription + alert-engine ──► NotificationRequest ──► Notifiers

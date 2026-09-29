@@ -9,7 +9,7 @@
   - AMQP event `alert.normalized`
   - HTTP `POST /alerts` (Bearer token = `app.http.token`)
 - Resolve recipients via RPC `subscription-service.get_recipients_for_alert`.
-- Build one `NotificationRequest` per `(recipient_id, channel, endpoint_key)`.
+- Build one `NotificationRequest` per `(channel, endpoint_key)`.
 - Publish `{channel}.alerting.notification.requested` (e.g.
   `email.alerting.notification.requested`,
   `telegram.alerting.notification.requested`).

@@ -50,7 +50,6 @@ Feature: Consume notification delivery requests
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",
@@ -85,7 +84,6 @@ Feature: Consume notification delivery requests
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "",
         "message": {
           "title": "Weather alert",

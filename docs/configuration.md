@@ -24,24 +24,18 @@ files live under [`stack/`](../stack/).
 
 ### `app.subscriptions`
 
-Map **audience → rule_id → entry**. Restart the service after changes.
+Map **rule id → entry**. Restart the service after changes.
 
-- **Audience** (first-level key): operator-chosen label for a team / role /
-  target group (e.g. `ops`, `oncall`) — not an end-user account. Becomes
-  `recipient_id` on notification requests. Notifiers route by `endpoint_key`,
-  not by audience.
-- **Rule id** (second-level key): opaque name for one targeting rule under that
-  audience (e.g. `quakes`, `registry-down`). Lets you pause/enable rules
-  independently and keep several rules per audience. Not sent to notifiers.
+The rule id (e.g. `quakes`, `registry-down`) names one targeting rule. It is not
+sent to notifiers. Two rules that resolve to the same endpoint produce one
+notification.
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `status` | yes | `active` or `paused` (per rule id). |
-| `subscription.rule.category` | yes | Alert category to match (case-insensitive). |
-| `subscription.rule.event_type` | no | Default `*`. |
-| `subscription.rule.criteria` | no | Optional filter. Omit for attribute catch-all. When present, `all_of` must be non-empty. |
-| `subscription.rule.criteria.all_of[]` | if criteria set | List of `{key, operator, value}` with `operator` in `eq`, `gte`, `lte`, `contains`. |
-| `subscription.endpoints` | yes | Non-empty list of qualified refs `<channel>.<endpoint_id>` (e.g. `telegram.ops_alerts`, `email.inbox`). |
+| `category` | yes | Alert category to match (case-insensitive). |
+| `event_type` | no | Default `*`. |
+| `criteria` | no | Optional list of `{key, operator, value}`. Omit for attribute catch-all. When present, the list must be non-empty. Every entry must match. `operator` is `eq`, `gte`, `lte`, or `contains`. |
+| `endpoints` | yes | Non-empty list of qualified refs `<channel>.<endpoint_id>` (e.g. `telegram.ops_alerts`, `email.inbox`). |
 
 Matching uses category + event type first, then criteria against alert facts
 (`severity`, `area.<type>` for each entry in `areas`, and keys from `attributes`).
@@ -51,20 +45,15 @@ Example:
 ```yaml
 app:
   subscriptions:
-    ops:                    # audience → recipient_id
-      quakes:               # rule id (local to this audience)
-        status: active
-        subscription:
-          rule:
-            category: natural.earthquake
-            event_type: "*"
-            criteria:
-              all_of:
-                - key: magnitude
-                  operator: gte
-                  value: 4.5
-          endpoints:
-            - telegram.ops_alerts
+    quakes:
+      category: natural.earthquake
+      event_type: "*"
+      criteria:
+        - key: magnitude
+          operator: gte
+          value: 4.5
+      endpoints:
+        - telegram.ops_alerts
 ```
 
 ---

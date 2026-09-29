@@ -63,7 +63,6 @@ class AlertEngineDelegate(ServiceDelegate):
             out.append(
                 NotificationRequest(
                     channel=row["channel"],
-                    recipient_id=row["recipient_id"],
                     endpoint_key=row["endpoint_key"],
                     message=message,
                 )

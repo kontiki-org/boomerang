@@ -73,17 +73,14 @@ Feature: Process normalized alerts
       """
       [
         {
-          "recipient_id": "usr_1",
           "channel": "email",
           "endpoint_key": "email_primary"
         },
         {
-          "recipient_id": "usr_1",
           "channel": "sms",
           "endpoint_key": "sms_primary"
         },
         {
-          "recipient_id": "usr_2",
           "channel": "sms",
           "endpoint_key": "sms_backup"
         }
@@ -93,7 +90,6 @@ Feature: Process normalized alerts
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "Wildfire emergency warning",
@@ -115,7 +111,6 @@ Feature: Process normalized alerts
       """
       {
         "channel": "sms",
-        "recipient_id": "usr_1",
         "endpoint_key": "sms_primary",
         "message": {
           "title": "Wildfire emergency warning",
@@ -137,7 +132,6 @@ Feature: Process normalized alerts
       """
       {
         "channel": "sms",
-        "recipient_id": "usr_2",
         "endpoint_key": "sms_backup",
         "message": {
           "title": "Wildfire emergency warning",

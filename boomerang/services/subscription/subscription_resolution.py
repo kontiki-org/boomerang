@@ -28,11 +28,10 @@ def build_facts_from_alert(alert: dict) -> tuple[str, str, dict[str, list[str]]]
     return category, event_type, facts
 
 
-def criteria_matches(criteria: dict, facts: dict[str, list[str]]) -> bool:
-    all_of = criteria.get("all_of", [])
-    if not isinstance(all_of, list):
+def criteria_matches(criteria: list, facts: dict[str, list[str]]) -> bool:
+    if not isinstance(criteria, list):
         return False
-    for item in all_of:
+    for item in criteria:
         if not isinstance(item, dict):
             return False
         key = str(item.get("key", "")).strip().lower()
@@ -64,7 +63,6 @@ def sort_recipients(targets: list[dict]) -> list[dict]:
     return sorted(
         targets,
         key=lambda item: (
-            item["recipient_id"],
             item["channel"],
             item["endpoint_key"],
         ),

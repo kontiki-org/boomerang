@@ -52,7 +52,6 @@ Feature: Report degraded state for email-notifier service
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",
@@ -68,7 +67,6 @@ Feature: Report degraded state for email-notifier service
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",
@@ -84,7 +82,6 @@ Feature: Report degraded state for email-notifier service
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "Weather alert",

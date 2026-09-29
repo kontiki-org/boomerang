@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.0.0] - 2026-09-29
+
+Breaking runtime upgrade to Kontiki 2. Development status: Beta.
+
+- `boomerang-contracts` 2.0.0: `NotificationRequest` is `channel`,
+  `endpoint_key`, and `message`.
+- Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`. Matching
+  endpoints are deduplicated on `(channel, endpoint_key)`.
+- Requires Kontiki `>=2.0.0,<3.0.0` and RabbitMQ `>=4.3` (quorum queues).
+  Compose image `rabbitmq:4.3-management`. Before the first start, delete
+  existing classic `{service}.{event}.queue` queues: they cannot be redeclared
+  as quorum.
+- Event handlers reconstruct `NormalizedAlert` and `NotificationRequest` from
+  their type hints. `get_recipients_for_alert` still takes the JSON object
+  under the RPC keyword `alert`.
+- Stack logging uses `logging.directory` and a `RotatingFileHandler` (Kontiki
+  file naming `{service_name}-{short_instance_id}.log`). Per-service
+  `logging.handlers.file.filename` entries removed.
+- Registry stack config: `event_tracker.*` → `activity_tracker.*`.
+
 ## [1.0.0] - 2026-09-13
 
 First stable release. YAML targeting and bus contracts

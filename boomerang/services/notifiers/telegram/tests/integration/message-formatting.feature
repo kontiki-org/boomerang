@@ -45,7 +45,6 @@ Feature: Telegram structured message formatting
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "M 2.3 - Honey Lake",
@@ -112,7 +111,6 @@ Feature: Telegram structured message formatting
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Wind alert",
@@ -174,7 +172,6 @@ Feature: Telegram structured message formatting
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Website down",
@@ -241,7 +238,6 @@ Feature: Telegram structured message formatting
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Certificate expiry",
@@ -308,7 +304,6 @@ Feature: Telegram structured message formatting
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "demo-app-service exception recorded",

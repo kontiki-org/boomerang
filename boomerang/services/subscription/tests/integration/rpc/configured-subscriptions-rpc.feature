@@ -4,10 +4,8 @@ Feature: Configured subscriptions loaded from service configuration
   As an operator
   I want subscriptions declared in service configuration to resolve recipients
 
-  Configured entries are keyed by audience (operator-chosen label such as
-  platform-ops / oncall — not an end-user), then rule id (opaque name for one
-  targeting rule under that audience; not sent to notifiers).
-  recipient_id in dispatch equals that audience key — not the rule id.
+  Configured entries are keyed by rule id (opaque name for one targeting rule;
+  not sent to notifiers).
   Configured endpoints use qualified refs "<channel>.<endpoint_id>" (e.g. telegram.ops_alerts); the loader resolves them to channel + endpoint_key at dispatch.
 
   Scenario: Match recipients from configured subscriptions
@@ -38,20 +36,15 @@ Feature: Configured subscriptions loaded from service configuration
             - file
       app:
         subscriptions:
-          platform-ops:
-            payment-degraded:
-              status: active
-              subscription:
-                rule:
-                  category: kontiki.registry
-                  event_type: instance_state_changed
-                  criteria:
-                    all_of:
-                      - key: service_name
-                        operator: eq
-                        value: payment-service
-                endpoints:
-                  - telegram.ops_alerts
+          payment-degraded:
+            category: kontiki.registry
+            event_type: instance_state_changed
+            criteria:
+              - key: service_name
+                operator: eq
+                value: payment-service
+            endpoints:
+              - telegram.ops_alerts
       """
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
@@ -80,14 +73,13 @@ Feature: Configured subscriptions loaded from service configuration
       """
       [
         {
-          "recipient_id": "platform-ops",
           "channel": "telegram",
           "endpoint_key": "ops_alerts"
         }
       ]
       """
 
-  Scenario: Match recipients from multiple configured owners for the same alert
+  Scenario: Match recipients from multiple configured rules for the same alert
     Given the subscription service is running with the following configuration
       """
       kontiki:
@@ -115,34 +107,24 @@ Feature: Configured subscriptions loaded from service configuration
             - file
       app:
         subscriptions:
-          platform-ops:
-            earthquake-alerts:
-              status: active
-              subscription:
-                rule:
-                  category: natural.earthquake
-                  event_type: earthquake
-                  criteria:
-                    all_of:
-                      - key: magnitude
-                        operator: gte
-                        value: 4
-                endpoints:
-                  - telegram.ops_alerts
-          usr_ui:
-            earthquake-email:
-              status: active
-              subscription:
-                rule:
-                  category: natural.earthquake
-                  event_type: earthquake
-                  criteria:
-                    all_of:
-                      - key: magnitude
-                        operator: gte
-                        value: 4
-                endpoints:
-                  - email.email_primary
+          earthquake-alerts:
+            category: natural.earthquake
+            event_type: earthquake
+            criteria:
+              - key: magnitude
+                operator: gte
+                value: 4
+            endpoints:
+              - telegram.ops_alerts
+          earthquake-email:
+            category: natural.earthquake
+            event_type: earthquake
+            criteria:
+              - key: magnitude
+                operator: gte
+                value: 4
+            endpoints:
+              - email.email_primary
       """
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
@@ -169,78 +151,14 @@ Feature: Configured subscriptions loaded from service configuration
       """
       [
         {
-          "recipient_id": "platform-ops",
-          "channel": "telegram",
-          "endpoint_key": "ops_alerts"
-        },
-        {
-          "recipient_id": "usr_ui",
           "channel": "email",
           "endpoint_key": "email_primary"
+        },
+        {
+          "channel": "telegram",
+          "endpoint_key": "ops_alerts"
         }
       ]
-      """
-
-  Scenario: Ignore paused configured subscriptions
-    Given the subscription service is running with the following configuration
-      """
-      kontiki:
-        amqp:
-          url: amqp://guest:guest@localhost/
-        http:
-          address: 127.0.0.1
-          port: 8000
-      logging:
-        version: 1
-        disable_existing_loggers: false
-        formatters:
-          default:
-            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            datefmt: "%Y-%m-%d %H:%M:%S"
-        handlers:
-          file:
-            class: logging.FileHandler
-            formatter: default
-            filename: /tmp/subscription.log
-            level: INFO
-        root:
-          level: DEBUG
-          handlers:
-            - file
-      app:
-        subscriptions:
-          platform-ops:
-            registry-catch-all:
-              status: paused
-              subscription:
-                rule:
-                  category: kontiki.registry
-                  event_type: "*"
-                endpoints:
-                  - telegram.ops_alerts
-      """
-    When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
-      """
-      {
-        "alert": {
-          "schema_version": "1.0",
-          "alert_id": "reg_any",
-          "source": "kontiki-registry-alert-service",
-          "category": "kontiki.registry",
-          "event_type": "exception_recorded",
-          "severity": "critical",
-          "occurred_at": "2026-07-15T12:00:00Z",
-          "title": "Registry exception",
-          "body": "Unhandled exception recorded.",
-          "areas": [],
-          "attributes": {}
-        }
-      }
-      """
-    Then the RPC call succeeds
-    And the RPC response is
-      """
-      []
       """
 
   Scenario: Return recipients even when configured endpoint is not known to subscription-service
@@ -271,15 +189,11 @@ Feature: Configured subscriptions loaded from service configuration
             - file
       app:
         subscriptions:
-          platform-ops:
-            registry-catch-all:
-              status: active
-              subscription:
-                rule:
-                  category: kontiki.registry
-                  event_type: "*"
-                endpoints:
-                  - telegram.missing_endpoint_key
+          registry-catch-all:
+            category: kontiki.registry
+            event_type: "*"
+            endpoints:
+              - telegram.missing_endpoint_key
       """
     When I call the RPC get_recipients_for_alert on the subscription service with the following arguments
       """
@@ -304,7 +218,6 @@ Feature: Configured subscriptions loaded from service configuration
       """
       [
         {
-          "recipient_id": "platform-ops",
           "channel": "telegram",
           "endpoint_key": "missing_endpoint_key"
         }
@@ -339,15 +252,10 @@ Feature: Configured subscriptions loaded from service configuration
             - file
       app:
         subscriptions:
-          platform-ops:
-            payment-degraded:
-              status: active
-              subscription:
-                rule:
-                  category: kontiki.registry
-                  event_type: instance_state_changed
-                  criteria:
-                    all_of: []
-                endpoints: []
+          payment-degraded:
+            category: kontiki.registry
+            event_type: instance_state_changed
+            criteria: []
+            endpoints: []
       """
     Then the subscription service startup error mentions subscriptions

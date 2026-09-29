@@ -9,23 +9,17 @@
 # =============================================================================
 # app:
 #   subscriptions:
-#     # audience (team/role) → recipient_id; not an end-user
-#     ops:
-#       # rule id under this audience (pause/enable independently; not sent to notifiers)
-#       quakes:
-#         status: active   # or paused
-#         subscription:
-#           rule:
-#             category: natural.earthquake
-#             event_type: "*"
-#             # criteria:            # omit for attribute catch-all
-#             #   all_of:
-#             #     - key: magnitude
-#             #       operator: gte  # eq | gte | lte | contains
-#             #       value: 4.5
-#           endpoints:
-#             - telegram.ops_alerts
-#             - email.inbox
+#     # rule id (not sent to notifiers)
+#     quakes:
+#       category: natural.earthquake
+#       event_type: "*"
+#       # criteria:            # omit for attribute catch-all; list is AND
+#       #   - key: magnitude
+#       #     operator: gte  # eq | gte | lte | contains
+#       #     value: 4.5
+#       endpoints:
+#         - telegram.ops_alerts
+#         - email.inbox
 #
 # Optional catalogue lists (TUI / discovery only — not required for delivery):
 #   alert_connectors: []       # producer service names for alert-catalog aggregation

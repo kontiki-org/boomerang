@@ -48,7 +48,6 @@ Feature: Email structured message formatting
       """
       {
         "channel": "email",
-        "recipient_id": "usr_1",
         "endpoint_key": "email_primary",
         "message": {
           "title": "demo-app-service state active → degraded",

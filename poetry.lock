@@ -299,14 +299,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boomerang-contracts"
-version = "1.0.0"
+version = "2.0.0"
 description = "Shared Boomerang alert and notification contracts."
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "boomerang_contracts-1.0.0-py3-none-any.whl", hash = "sha256:0922eaf9ee840751dff06d55014cb4c926e1f06bc270dfc586743da053a73e39"},
-    {file = "boomerang_contracts-1.0.0.tar.gz", hash = "sha256:ad046100ec8dec0f378dc9ef59840d88fcd35806cfda13a93b7c709c3bc04ba2"},
+    {file = "boomerang_contracts-2.0.0-py3-none-any.whl", hash = "sha256:9456e97d5fe2db69d3060f79a7613d5b0ba49bb5e3d92f1e0f15d9f3114fbde6"},
+    {file = "boomerang_contracts-2.0.0.tar.gz", hash = "sha256:9e13baadc5da85ae95a37543beee5547b8a21a887b17b87d27a01823c4cd3851"},
 ]
 
 [package.dependencies]
@@ -338,6 +338,21 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+
+[[package]]
+name = "croniter"
+version = "6.2.4"
+description = "croniter provides iteration for datetime object with cron like format"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "croniter-6.2.4-py3-none-any.whl", hash = "sha256:8ef3d544107a5c05a150a2d78f8bf5a8eb9c5c4d93405a736b824109574e3f4d"},
+    {file = "croniter-6.2.4.tar.gz", hash = "sha256:fc124f751b1b04805c2a04b061898b436b45ab2320b045e1e052ea895de65189"},
+]
+
+[package.dependencies]
+python-dateutil = "*"
 
 [[package]]
 name = "cucumber-expressions"
@@ -552,19 +567,20 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kontiki"
-version = "1.5.0"
+version = "2.0.0"
 description = "Microservices framework in Python."
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "kontiki-1.5.0-py3-none-any.whl", hash = "sha256:1e211d66f053654fcab7434e7b187814fef5a239418c2c1fac15b38edc03c282"},
-    {file = "kontiki-1.5.0.tar.gz", hash = "sha256:4ae589f09a3b57320892156c2fccaacd8fdffb62d5813bb534579e2dc42de495"},
+    {file = "kontiki-2.0.0-py3-none-any.whl", hash = "sha256:dfb8d7b9ff66041fd8fbc08f25c275cbd24c0c0112f09519ff7ead84ac5dfd21"},
+    {file = "kontiki-2.0.0.tar.gz", hash = "sha256:3d354a326ad2859abb129d745cebee5f4bd483a7bba12def68675c86ff4b4cf7"},
 ]
 
 [package.dependencies]
 aio-pika = ">=9.0.0,<10.0.0"
 aiohttp = ">=3.11.0,<4.0.0"
+croniter = ">=6.0.0,<7.0.0"
 pydantic = ">=2.0.0,<3.0.0"
 PyYAML = ">=6.0,<7.0"
 
@@ -1151,6 +1167,21 @@ files = [
 ]
 
 [[package]]
+name = "python-dateutil"
+version = "2.9.0.post0"
+description = "Extensions to the standard Python datetime module"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+groups = ["main"]
+files = [
+    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
+    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
+]
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 description = "YAML parser and emitter for Python"
@@ -1239,7 +1270,7 @@ version = "1.17.0"
 description = "Python 2 and 3 compatibility utilities"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
@@ -1418,4 +1449,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "ff02d2bf992169924923627561d3f8480ae2dd5d09243c747232c98af57e1d3d"
+content-hash = "b3747a646882541ed0691aae59f0088c28eac1c076eea6ec79fb1157726658b2"

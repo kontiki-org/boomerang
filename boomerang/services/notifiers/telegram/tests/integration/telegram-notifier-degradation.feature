@@ -46,7 +46,6 @@ Feature: Report degraded state for telegram-notifier service
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Weather alert",
@@ -62,7 +61,6 @@ Feature: Report degraded state for telegram-notifier service
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Weather alert",
@@ -78,7 +76,6 @@ Feature: Report degraded state for telegram-notifier service
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Weather alert",

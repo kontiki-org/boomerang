@@ -4,8 +4,8 @@ Feature: Configured endpoints loaded from email-notifier service configuration
   As an operator
   I want email endpoints declared in service configuration to be used at notification dispatch
 
-  Configured entries are keyed by endpoint_id (opaque, operator-chosen) — independent of audience.
-  Dispatch resolves endpoint_key against this registry; recipient_id (audience from subscriptions) is opaque to the notifier.
+  Configured entries are keyed by endpoint_id (opaque, operator-chosen).
+  Dispatch resolves endpoint_key against this registry.
 
   Scenario: Deliver notification using configured endpoint
     Given the email-notifier service is running with the following configuration
@@ -51,7 +51,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       """
       {
         "channel": "email",
-        "recipient_id": "platform-ops",
         "endpoint_key": "oncall",
         "message": {
           "title": "Registry alert",
@@ -128,7 +127,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       """
       {
         "channel": "email",
-        "recipient_id": "platform-ops",
         "endpoint_key": "oncall",
         "message": {
           "title": "Ops alert",
@@ -162,7 +160,6 @@ Feature: Configured endpoints loaded from email-notifier service configuration
       """
       {
         "channel": "email",
-        "recipient_id": "usr_ui",
         "endpoint_key": "email_primary",
         "message": {
           "title": "UI alert",

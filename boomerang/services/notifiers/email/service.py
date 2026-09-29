@@ -1,3 +1,4 @@
+from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger, on_event, rpc
 from kontiki.registry import degraded_on
 
@@ -18,7 +19,7 @@ class EmailNotifierService:
         return catalog.model_dump(mode="json", exclude_none=True)
 
     @on_event("email.alerting.notification.requested")
-    async def on_notification_requested(self, payload):
+    async def on_notification_requested(self, payload: NotificationRequest):
         await self.delegate.send_notification_email(payload)
 
     @degraded_on

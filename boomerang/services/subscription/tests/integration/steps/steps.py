@@ -51,12 +51,6 @@ def _as_jsonable(value):
     return value
 
 
-def _last_response(context):
-    if context.last_http_status is None:
-        raise AssertionError("No HTTP response recorded. Call a When step first.")
-    return context.last_http_status, context.last_http_body
-
-
 def _resolve_placeholders(text, context):
     resolved = text
     if context.last_code is not None:
@@ -217,36 +211,20 @@ def step_wait_seconds(context, seconds):
     time.sleep(seconds)
 
 
-def _assert_success_response(context):
+@then("the HTTP response status is {status:d}")
+def step_http_response_status(context, status):
+    assert context.last_http_status == status, "Expected HTTP %s, got %s body=%s" % (
+        status,
+        context.last_http_status,
+        context.last_http_body,
+    )
+
+
+@then("the HTTP response is")
+def step_http_response_is(context):
     expected = json.loads(context.text.strip()) if context.text else {}
-    status, body = _last_response(context)
-    assert status == 200, f"Expected HTTP 200, got {status} body={body}"
-    normalized_body = _normalize_actual_for_placeholders(expected, body)
-    assert (
-        normalized_body == expected
-    ), f"Response mismatch.\nExpected: {expected}\nActual:   {normalized_body}"
-    if isinstance(body, dict):
-        access_token = body.get("access_token")
-        if isinstance(access_token, str) and access_token:
-            context.last_access_token = access_token
-        created = body.get("created")
-        if isinstance(created, list) and created:
-            first = created[0]
-            if isinstance(first, dict):
-                subscription_id = first.get("subscription_id")
-                if isinstance(subscription_id, str) and subscription_id:
-                    context.last_subscription_id = subscription_id
-        item = body.get("item")
-        if isinstance(item, dict):
-            subscription_id = item.get("subscription_id")
-            if isinstance(subscription_id, str) and subscription_id:
-                context.last_subscription_id = subscription_id
-
-
-@then("the get-notification-channels-catalog response is")
-@then("the get-alert-catalog response is")
-def step_catalog_http_response(context):
-    _assert_success_response(context)
+    actual = context.last_http_body
+    assert actual == expected, "Expected %s, got %s" % (expected, actual)
 
 
 @then('a "{event_type}" event is published')

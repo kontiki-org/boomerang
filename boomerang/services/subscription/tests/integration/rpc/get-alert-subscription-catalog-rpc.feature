@@ -136,3 +136,84 @@ Feature: Get aggregated alert subscription catalog via RPC
         "sources": []
       }
       """
+
+  Scenario: Reject the alert catalog when alert connectors are not configured
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app: {}
+      """
+    When I call the RPC get_alert_subscription_catalog on the subscription service with the following arguments
+      """
+      {}
+      """
+    Then the RPC call fails with a CATALOG_NOT_CONFIGURED
+      """
+      {
+        "code": "CATALOG_NOT_CONFIGURED",
+        "message": "app.alert_connectors is not configured"
+      }
+      """
+
+  Scenario: Reject the alert catalog when alert connectors are null
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        alert_connectors: null
+      """
+    When I call the RPC get_alert_subscription_catalog on the subscription service with the following arguments
+      """
+      {}
+      """
+    Then the RPC call fails with a CATALOG_NOT_CONFIGURED
+      """
+      {
+        "code": "CATALOG_NOT_CONFIGURED",
+        "message": "app.alert_connectors is not configured"
+      }
+      """

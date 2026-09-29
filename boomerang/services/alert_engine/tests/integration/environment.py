@@ -11,17 +11,14 @@ from boomerang.testing import NotificationPublisherMock, safe_unlink
 SUBSCRIPTION_RECIPIENT_PRESETS = {
     "subscription_recipients_two": [
         {
-            "recipient_id": "usr_1",
             "channel": "email",
             "endpoint_key": "email_primary",
         },
         {
-            "recipient_id": "usr_1",
             "channel": "sms",
             "endpoint_key": "sms_primary",
         },
         {
-            "recipient_id": "usr_2",
             "channel": "sms",
             "endpoint_key": "sms_backup",
         },

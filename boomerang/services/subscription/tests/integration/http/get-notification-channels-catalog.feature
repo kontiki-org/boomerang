@@ -38,7 +38,8 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": [
@@ -95,10 +96,92 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": []
+      }
+      """
+
+  Scenario: Reject the channels catalog when notification channels are not configured
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app: {}
+      """
+    When I call GET on the subscription service on http://127.0.0.1:8000/notification-channels/catalog with the following request
+      """
+      {}
+      """
+    Then the HTTP response status is 409
+    And the HTTP response is
+      """
+      {
+        "message": "app.notification_channels is not configured"
+      }
+      """
+
+  Scenario: Reject the channels catalog when notification channels are null
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        notification_channels: null
+      """
+    When I call GET on the subscription service on http://127.0.0.1:8000/notification-channels/catalog with the following request
+      """
+      {}
+      """
+    Then the HTTP response status is 409
+    And the HTTP response is
+      """
+      {
+        "message": "app.notification_channels is not configured"
       }
       """
 
@@ -139,7 +222,8 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": [

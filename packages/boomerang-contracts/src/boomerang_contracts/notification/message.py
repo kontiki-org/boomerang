@@ -16,6 +16,5 @@ class NotificationMessage(BaseModel):
 
 class NotificationRequest(BaseModel):
     channel: str
-    recipient_id: str
     endpoint_key: str
     message: NotificationMessage

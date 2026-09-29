@@ -44,7 +44,6 @@ Feature: Consume notification delivery requests
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "Weather alert",
@@ -73,7 +72,6 @@ Feature: Consume notification delivery requests
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "telegram_primary",
         "message": {
           "title": "M 2.3 - 24 km ENE of Honey Lake, CA",
@@ -109,7 +107,6 @@ Feature: Consume notification delivery requests
       """
       {
         "channel": "telegram",
-        "recipient_id": "usr_1",
         "endpoint_key": "",
         "message": {
           "title": "Weather alert",

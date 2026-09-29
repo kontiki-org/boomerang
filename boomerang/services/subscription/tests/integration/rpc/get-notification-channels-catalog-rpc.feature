@@ -104,6 +104,87 @@ Feature: Get aggregated notification channels catalog via RPC
       }
       """
 
+  Scenario: Reject the channels catalog when notification channels are not configured
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app: {}
+      """
+    When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
+      """
+      {}
+      """
+    Then the RPC call fails with a CATALOG_NOT_CONFIGURED
+      """
+      {
+        "code": "CATALOG_NOT_CONFIGURED",
+        "message": "app.notification_channels is not configured"
+      }
+      """
+
+  Scenario: Reject the channels catalog when notification channels are null
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        notification_channels: null
+      """
+    When I call the RPC get_notification_channels_catalog on the subscription service with the following arguments
+      """
+      {}
+      """
+    Then the RPC call fails with a CATALOG_NOT_CONFIGURED
+      """
+      {
+        "code": "CATALOG_NOT_CONFIGURED",
+        "message": "app.notification_channels is not configured"
+      }
+      """
+
   Scenario: Normalize configured notification channels and ignore invalid entries
     Given the subscription service is running with the following configuration
       """

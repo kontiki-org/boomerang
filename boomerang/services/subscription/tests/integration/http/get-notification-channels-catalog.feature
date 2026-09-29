@@ -38,7 +38,8 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": [
@@ -95,7 +96,8 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": []
@@ -220,7 +222,8 @@ Feature: Get aggregated notification channels catalog over HTTP
       """
       {}
       """
-    Then the get-notification-channels-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "channels": [

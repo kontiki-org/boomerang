@@ -299,14 +299,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boomerang-contracts"
-version = "1.0.0"
+version = "2.0.0"
 description = "Shared Boomerang alert and notification contracts."
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "boomerang_contracts-1.0.0-py3-none-any.whl", hash = "sha256:0922eaf9ee840751dff06d55014cb4c926e1f06bc270dfc586743da053a73e39"},
-    {file = "boomerang_contracts-1.0.0.tar.gz", hash = "sha256:ad046100ec8dec0f378dc9ef59840d88fcd35806cfda13a93b7c709c3bc04ba2"},
+    {file = "boomerang_contracts-2.0.0-py3-none-any.whl", hash = "sha256:9456e97d5fe2db69d3060f79a7613d5b0ba49bb5e3d92f1e0f15d9f3114fbde6"},
+    {file = "boomerang_contracts-2.0.0.tar.gz", hash = "sha256:9e13baadc5da85ae95a37543beee5547b8a21a887b17b87d27a01823c4cd3851"},
 ]
 
 [package.dependencies]
@@ -567,26 +567,22 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kontiki"
-version = "2.0.0a2"
+version = "2.0.0"
 description = "Microservices framework in Python."
 optional = false
-python-versions = ">=3.11,<4.0"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "kontiki-2.0.0-py3-none-any.whl", hash = "sha256:dfb8d7b9ff66041fd8fbc08f25c275cbd24c0c0112f09519ff7ead84ac5dfd21"},
+    {file = "kontiki-2.0.0.tar.gz", hash = "sha256:3d354a326ad2859abb129d745cebee5f4bd483a7bba12def68675c86ff4b4cf7"},
+]
 
 [package.dependencies]
-aio-pika = "^9.0.0"
-aiohttp = "^3.11.0"
-croniter = "^6.0.0"
-pydantic = "^2.0.0"
-PyYAML = "^6.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/kontiki-org/kontiki.git"
-reference = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231"
-resolved_reference = "f538f75a2c9322a3fc8901aba3fcfd3a96ec2231"
+aio-pika = ">=9.0.0,<10.0.0"
+aiohttp = ">=3.11.0,<4.0.0"
+croniter = ">=6.0.0,<7.0.0"
+pydantic = ">=2.0.0,<3.0.0"
+PyYAML = ">=6.0,<7.0"
 
 [[package]]
 name = "mccabe"
@@ -1453,4 +1449,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "30affaa7ae00c6c37c8b7b2c0818c18f2fc91bc0a4ba534d3a86f2b0bf605dbd"
+content-hash = "b3747a646882541ed0691aae59f0088c28eac1c076eea6ec79fb1157726658b2"

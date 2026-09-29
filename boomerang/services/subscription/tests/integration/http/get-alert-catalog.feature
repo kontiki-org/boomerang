@@ -39,7 +39,8 @@ Feature: Get aggregated alert subscription catalog over HTTP
       """
       {}
       """
-    Then the get-alert-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "sources": [
@@ -128,7 +129,8 @@ Feature: Get aggregated alert subscription catalog over HTTP
       """
       {}
       """
-    Then the get-alert-catalog response is
+    Then the HTTP response status is 200
+    And the HTTP response is
       """
       {
         "sources": []

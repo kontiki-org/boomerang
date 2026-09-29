@@ -1,9 +1,9 @@
+from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger, on_event, rpc
 from kontiki.registry import degraded_on
 
-from boomerang_contracts.notification.message import NotificationRequest
 from boomerang.core.service_contracts.notifiers.email.service import (
-    EMAIL_NOTIFIER_SERVICE_NAME
+    EMAIL_NOTIFIER_SERVICE_NAME,
 )
 from boomerang.services.notifiers.email.delegate import EmailNotifierDelegate
 

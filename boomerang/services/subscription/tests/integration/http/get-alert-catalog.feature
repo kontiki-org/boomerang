@@ -134,3 +134,84 @@ Feature: Get aggregated alert subscription catalog over HTTP
         "sources": []
       }
       """
+
+  Scenario: Reject the alert catalog when alert connectors are not configured
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app: {}
+      """
+    When I call GET on the subscription service on http://127.0.0.1:8000/alert-catalog with the following request
+      """
+      {}
+      """
+    Then the HTTP response status is 409
+    And the HTTP response is
+      """
+      {
+        "message": "app.alert_connectors is not configured"
+      }
+      """
+
+  Scenario: Reject the alert catalog when alert connectors are null
+    Given the subscription service is running with the following configuration
+      """
+      kontiki:
+        amqp:
+          url: amqp://guest:guest@localhost/
+        http:
+          address: 127.0.0.1
+          port: 8000
+      logging:
+        version: 1
+        disable_existing_loggers: false
+        formatters:
+          default:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        handlers:
+          file:
+            class: logging.FileHandler
+            formatter: default
+            filename: /tmp/subscription.log
+            level: INFO
+        root:
+          level: DEBUG
+          handlers:
+            - file
+      app:
+        alert_connectors: null
+      """
+    When I call GET on the subscription service on http://127.0.0.1:8000/alert-catalog with the following request
+      """
+      {}
+      """
+    Then the HTTP response status is 409
+    And the HTTP response is
+      """
+      {
+        "message": "app.alert_connectors is not configured"
+      }
+      """

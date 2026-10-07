@@ -1,9 +1,11 @@
 # Telegram Notifier Service
 
 `telegram-notifier-service` resolves Telegram destinations and delivers
-notifications for the telegram channel.
+notifications for the telegram channel. With `app.sentinel`, it also holds
+external watchdogs and sends `DOWN {name}` / `RECOVERED {name}` on Telegram.
 
-Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
+HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
+route answers 404. Health in Compose stays the Kontiki registry live probe.
 
 ## What it does
 
@@ -14,8 +16,10 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
 - Format alert notifications as structured HTML (shared parsing with email via
   `notifiers.common.structured_alert`).
 - Send via Telegram Bot API.
+- When `app.sentinel` is set, accept watchdog heartbeats and send a title-only
+  `DOWN` / `RECOVERED` message on the watchdog’s endpoint.
 - Mark the instance degraded on repeated API failures (`@degraded_on`);
-  delivery failures surface through Kontiki exception / alerting.
+  alert-delivery failures surface through Kontiki exception / alerting.
 
 ## Stack E2E
 
@@ -59,7 +63,8 @@ Alert notifications are rendered as structured HTML messages for Telegram:
 - body shown as `Message:` when it differs from the title
 - clickable details link when a URL is available
 
-Non-alert messages stay plain text.
+Non-alert messages stay plain text. Watchdog `DOWN` / `RECOVERED` titles are
+plain text (`context.kind` = `watchdog`), not structured alerts.
 
 ### Category icons (`app.telegram.category_icons`)
 
@@ -69,3 +74,15 @@ has no domain emoji (severity icon only).
 
 See [`docs/configuration.md`](../../../../docs/configuration.md) and
 [`docs/boomerang-config.example.yaml`](../../../../docs/boomerang-config.example.yaml).
+
+## External sentinel
+
+Optional. `POST /watchdogs/{name}/heartbeat` with `Authorization: Bearer <token>`
+refreshes one watchdog. A matching token on a known name answers 204. A missing
+or wrong token answers 401. An unknown name, or no `app.sentinel` section,
+answers 404.
+
+The message text is `DOWN {name}` or `RECOVERED {name}`, sent through the
+endpoint named by `endpoint_key`. The send does not go through the bus.
+
+Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

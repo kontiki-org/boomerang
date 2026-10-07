@@ -13,6 +13,7 @@ from boomerang.services.notifiers.telegram.tests.integration.utils import (
     http_request,
     start_telegram_notifier_subprocess,
 )
+from boomerang.testing import safe_unlink
 
 
 def _resolve_placeholders(value, context):
@@ -65,6 +66,34 @@ def _registry_amqp_url(context):
     )
 
 
+def _clear_sentinel_state(config):
+    app = config.get("app") if config else None
+    sentinel = app.get("sentinel") if app else None
+    if not sentinel:
+        return
+    path = sentinel.get("state_path")
+    safe_unlink(path)
+    if path:
+        safe_unlink(path + ".tmp")
+
+
+def _start_telegram_notifier(context, config, clear_state):
+    if clear_state:
+        _clear_sentinel_state(config)
+    context.manager.clean_http_requests("telegram-api-mock")
+    proc, config_path = start_telegram_notifier_subprocess(config)
+    context.telegram_notifier_process = proc
+    context.telegram_notifier_config_path = config_path
+    time.sleep(5)
+    if proc.poll() is not None:
+        stderr = (
+            proc.stderr.read().decode(errors="replace") if proc.stderr else ""
+        ) or "(empty)"
+        raise RuntimeError(
+            "TelegramNotifier subprocess exited before step. stderr:\n%s" % stderr
+        )
+
+
 def _fetch_registry_services(amqp_url):
     async def _fetch():
         async with Messenger(amqp_url=amqp_url, standalone=True) as messenger:
@@ -79,18 +108,7 @@ def step_telegram_notifier_running_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
     context.telegram_notifier_config = config
-
-    proc, config_path = start_telegram_notifier_subprocess(config)
-    context.telegram_notifier_process = proc
-    context.telegram_notifier_config_path = config_path
-    time.sleep(5)
-    if proc.poll() is not None:
-        stderr = (
-            proc.stderr.read().decode(errors="replace") if proc.stderr else ""
-        ) or "(empty)"
-        raise RuntimeError(
-            "TelegramNotifier subprocess exited before step. stderr:\n%s" % stderr
-        )
+    _start_telegram_notifier(context, config, clear_state=True)
 
 
 @when('an "{event_type}" event is published with payload')
@@ -121,6 +139,34 @@ def step_call_request_on_telegram_notifier_service_with_request(context, method,
     status, resp_body = http_request(method, url, payload=body, headers=headers)
     context.last_http_status = status
     context.last_http_body = resp_body
+
+
+@when("I wait {seconds:d} second")
+@when("I wait {seconds:d} seconds")
+def step_wait_seconds(context, seconds):
+    _ = context
+    time.sleep(seconds)
+
+
+@when("the telegram-notifier service is restarted")
+def step_telegram_notifier_restarted(context):
+    proc = context.telegram_notifier_process
+    proc.terminate()
+    proc.wait(timeout=5)
+    safe_unlink(context.telegram_notifier_config_path)
+    context.telegram_notifier_process = None
+    _start_telegram_notifier(
+        context, context.telegram_notifier_config, clear_state=False
+    )
+
+
+@then("the HTTP response status is {status:d}")
+def step_http_response_status(context, status):
+    assert context.last_http_status == status, "Expected HTTP %s, got %s body=%s" % (
+        status,
+        context.last_http_status,
+        context.last_http_body,
+    )
 
 
 @when(
@@ -208,6 +254,12 @@ def step_telegram_api_should_contain_send_message_matching(context):
     )
 
 
+@then("the Telegram API should contain no sendMessage")
+def step_telegram_api_should_contain_no_send_message(context):
+    requests = context.manager.get_http_requests("telegram-api-mock") or []
+    assert not requests, f"Expected no Telegram API calls, got {requests}"
+
+
 @then("the telegram-notifier service rejects the event as invalid payload")
 def step_telegram_notifier_rejects_invalid_payload(context):
     _ = context.last_published_event_payload
@@ -238,13 +290,27 @@ def step_telegram_notifier_fails_to_start_with_config(context):
     context.telegram_notifier_process = None
 
 
-@then("the telegram-notifier service startup error mentions endpoints")
-def step_telegram_notifier_startup_error_mentions_endpoints(context):
+def _startup_error_mentions(context, fragment):
     stderr = context.telegram_notifier_startup_stderr or ""
     lowered = stderr.lower()
-    assert "endpoints" in lowered, (
-        "Expected startup error to mention endpoints.\n" f"stderr:\n{stderr}"
+    assert fragment in lowered, (
+        f"Expected startup error to mention {fragment}.\n" f"stderr:\n{stderr}"
     )
+
+
+@then("the telegram-notifier service startup error mentions endpoints")
+def step_telegram_notifier_startup_error_mentions_endpoints(context):
+    _startup_error_mentions(context, "endpoints")
+
+
+@then("the telegram-notifier service startup error mentions the sentinel state path")
+def step_telegram_notifier_startup_error_mentions_sentinel_state_path(context):
+    _startup_error_mentions(context, "sentinel state path")
+
+
+@then("the telegram-notifier service startup error mentions the endpoint key")
+def step_telegram_notifier_startup_error_mentions_endpoint_key(context):
+    _startup_error_mentions(context, "endpoint key")
 
 
 @then("the service registry eventually receives a heartbeat with degraded flag true")

@@ -74,8 +74,7 @@ def load_configured_subscriptions(raw):
             entry = ConfiguredSubscription.model_validate(entry_raw)
         except ValidationError as exc:
             raise RuntimeError(
-                "Invalid app.subscriptions configuration for "
-                f"{rule_key}: {exc}"
+                "Invalid app.subscriptions configuration for " f"{rule_key}: {exc}"
             ) from exc
         records.append(entry)
     return records

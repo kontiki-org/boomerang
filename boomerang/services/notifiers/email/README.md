@@ -1,9 +1,11 @@
 # Email Notifier Service
 
 `email-notifier-service` resolves email destinations and delivers notifications
-for the email channel.
+for the email channel. With `app.sentinel`, it also holds external watchdogs
+and sends `DOWN {name}` / `RECOVERED {name}` by email.
 
-Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
+HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
+route answers 404. Health in Compose stays the Kontiki registry live probe.
 
 ## What it does
 
@@ -15,8 +17,10 @@ Bus-only service: no HTTP entrypoints (health via Kontiki registry when used).
   layout as Telegram: event_type banner, humanized attributes, Message when
   body adds info). Subject is the banner label.
 - Send email through configured SMTP.
+- When `app.sentinel` is set, accept watchdog heartbeats and send a title-only
+  `DOWN` / `RECOVERED` mail on the watchdog’s endpoint.
 - Mark the instance degraded on repeated SMTP failures (`@degraded_on`);
-  delivery failures surface through Kontiki exception / alerting.
+  alert-delivery failures surface through Kontiki exception / alerting.
 
 ## Stack
 
@@ -52,3 +56,16 @@ Behavior:
 - resolve address from configured endpoint,
 - format plain + HTML body,
 - send via SMTP (failures propagate as Kontiki exceptions).
+
+## External sentinel
+
+Optional. `POST /watchdogs/{name}/heartbeat` with `Authorization: Bearer <token>`
+refreshes one watchdog. A matching token on a known name answers 204. A missing
+or wrong token answers 401. An unknown name, or no `app.sentinel` section,
+answers 404.
+
+`DOWN {name}` and `RECOVERED {name}` are titles only (`context.kind` =
+`watchdog`), sent through the endpoint named by `endpoint_key`. They are not
+structured alerts and they do not go through the bus.
+
+Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

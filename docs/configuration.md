@@ -97,6 +97,8 @@ Alert notifications are sent as multipart plain+HTML with an `event_type` (or
 category) subject/banner and humanized attributes — same structured layout as
 Telegram (see the email notifier README).
 
+Optional external sentinel: [`app.sentinel`](#external-sentinel-appsentinel).
+
 ---
 
 ## telegram-notifier-service
@@ -137,6 +139,71 @@ The banner title is the humanized `event_type` when present, otherwise the last
 category segment. Attribute labels are auto-humanized; order follows the
 producer’s attribute dict.
 See [`boomerang/services/notifiers/telegram/README.md`](../boomerang/services/notifiers/telegram/README.md).
+
+Optional external sentinel: [`app.sentinel`](#external-sentinel-appsentinel).
+
+---
+
+## External sentinel (`app.sentinel`)
+
+Optional on **email-notifier-service** and **telegram-notifier-service**. Same
+keys on either service. One notifier, in another failure domain, holds the
+watchdogs for a Kontiki environment that only emits outbound heartbeats.
+
+Omit the section on a notifier that only delivers alerts. `POST
+/watchdogs/{name}/heartbeat` then answers **404**, and no sweep runs.
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `app.sentinel.state_path` | required | JSON file for watchdog state. Missing file on first start is the initial unseen state. An unreadable file fails startup. |
+| `app.sentinel.sweep_seconds` | `1` | How often the process applies timeouts and retries an outbound `DOWN` / `RECOVERED`. |
+| `app.sentinel.watchdogs` | `{}` | Map of watchdog name → spec. The name is the `{name}` in the heartbeat URL. |
+
+### `app.sentinel.watchdogs.<name>`
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `token` | yes | Expected `Authorization: Bearer` value. |
+| `timeout_seconds` | yes | Silence after which the watchdog is DOWN. Ops rule: at least three times the monitor’s send interval. |
+| `endpoint_key` | yes | Key in this notifier’s `app.endpoints`. An unknown key fails startup. |
+
+```yaml
+app:
+  endpoints:
+    ops_alerts:
+      chat_id: "123456789"   # or address: ops@example.org on the email notifier
+  sentinel:
+    state_path: /var/lib/boomerang/sentinel-state.json
+    sweep_seconds: 1
+    watchdogs:
+      prod:
+        token: "change-me"
+        timeout_seconds: 180
+        endpoint_key: ops_alerts
+```
+
+`POST /watchdogs/{name}/heartbeat` (empty body):
+
+| Case | Status |
+|------|--------|
+| Known name, matching Bearer | 204 |
+| Known name, missing or wrong Bearer | 401 |
+| Unknown name, or no `app.sentinel` section | 404 |
+
+A watchdog is unseen, UP, or DOWN. The first heartbeat before
+`timeout_seconds` marks it UP and sends nothing. No heartbeat, or a last
+heartbeat older than `timeout_seconds`, sends `DOWN {name}`. A heartbeat
+received while DOWN sends `RECOVERED {name}`. The state file keeps a DOWN
+watchdog across a restart.
+
+Those messages are a title only (`context.kind` = `watchdog`). They are sent
+on the notifier’s own delivery path, not on the bus. A failed send is retried
+on the next sweep. If the watchdog changes state before that send succeeds,
+only the latest transition is sent.
+
+A sentinel outside the monitored environment sets `kontiki.amqp.disable: true`
+so startup does not require that environment’s broker. The heartbeat route
+still needs `kontiki.http`.
 
 ---
 

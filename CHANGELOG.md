@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+- Notifiers (email, telegram): optional external sentinel (`app.sentinel`).
+  `POST /watchdogs/{name}/heartbeat` refreshes a watchdog; a timeout sends
+  `DOWN {name}` and a later heartbeat sends `RECOVERED {name}` on a configured
+  endpoint, without the bus.
+
 ## [2.0.0] - 2026-09-29
 
 Breaking runtime upgrade to Kontiki 2. Development status: Beta.

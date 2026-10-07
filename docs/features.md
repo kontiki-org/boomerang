@@ -34,7 +34,8 @@ Producer ──► alert.normalized (AMQP)
 - **alert-engine-service** turns one alert into one `NotificationRequest` per
   `(channel, endpoint_key)`.
 - **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot
-  API). Failures surface through Kontiki exception / alerting
+  API). The same process can host an external sentinel. Failures on alert
+  delivery surface through Kontiki exception / alerting.
 
 ---
 
@@ -141,3 +142,34 @@ That overlay registers the connector and an active subscription
 `telegram.alerts` and `email.inbox`. Email goes to MailHog via the stock
 `inbox` endpoint. For Telegram, set `app.endpoints.alerts.chat_id` and the
 bot token overlay.
+
+---
+
+## External sentinel
+
+A Kontiki environment that cannot accept inbound connections proves it is
+alive with an empty outbound heartbeat. One Boomerang notifier, in another
+failure domain, holds the watchdogs and notifies on its own channel.
+
+The monitor posts `POST /watchdogs/{name}/heartbeat` with
+`Authorization: Bearer <token>`. The notifier answers **204** when the name
+is known and the token matches, **401** when the token is missing or wrong,
+and **404** when the name is unknown or `app.sentinel` is absent.
+
+States are unseen, UP, and DOWN:
+
+- unseen past `timeout_seconds` since process start sends `DOWN {name}`
+- the first heartbeat before that delay marks the watchdog UP and sends nothing
+- UP whose last heartbeat is older than `timeout_seconds` sends `DOWN {name}`
+- a heartbeat received while DOWN sends `RECOVERED {name}`
+
+The text is the title only. It is not a structured alert. The send calls the
+notifier directly; it does not go through the bus. A failed send is retried
+until it succeeds. If the state flips before that, only the latest transition
+is sent. The state file keeps a DOWN watchdog across a restart.
+
+Omit `app.sentinel` on a notifier that only delivers alerts. The heartbeat
+route still answers **404**, and no sweep runs.
+
+Keys, the state file, and `kontiki.amqp.disable` for a sentinel deployed
+outside the monitored environment: [`configuration.md`](configuration.md#external-sentinel-appsentinel).

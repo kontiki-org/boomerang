@@ -1,17 +1,45 @@
+from aiohttp.web import Response
 from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger, on_event, rpc
 from kontiki.registry import degraded_on
+from kontiki.web import http
 
+from boomerang.core.exceptions import AuthError, NotFoundError
 from boomerang.core.service_contracts.notifiers.email.service import (
     EMAIL_NOTIFIER_SERVICE_NAME,
 )
+from boomerang.services.notifiers.common.sentinel import SentinelDelegate
 from boomerang.services.notifiers.email.delegate import EmailNotifierDelegate
 
 
 class EmailNotifierService:
     name = EMAIL_NOTIFIER_SERVICE_NAME
     delegate = EmailNotifierDelegate()
+    sentinel = SentinelDelegate(delegate)
     messenger = Messenger()
+
+    # ------------------------------------------------------------
+    # Sentinel mode
+    # ------------------------------------------------------------
+
+    http_error_handlers = {
+        AuthError: (401, AuthError.message),
+        NotFoundError: (404, NotFoundError.message),
+    }
+
+    @http(
+        "/watchdogs/{name}/heartbeat",
+        "POST",
+        status_code=204,
+        errors=[AuthError, NotFoundError],
+    )
+    async def post_watchdog_heartbeat(self, request, name):
+        self.sentinel.observe_heartbeat(request, name)
+        return Response(status=204)
+
+    # ------------------------------------------------------------
+    # Notification delivery
+    # ------------------------------------------------------------
 
     @rpc
     async def get_notification_channel_catalog(self):
@@ -20,7 +48,11 @@ class EmailNotifierService:
 
     @on_event("email.alerting.notification.requested")
     async def on_notification_requested(self, payload: NotificationRequest):
-        await self.delegate.send_notification_email(payload)
+        await self.delegate.send_notification(payload)
+
+    # ------------------------------------------------------------
+    # Degraded status
+    # ------------------------------------------------------------
 
     @degraded_on
     def is_degraded(self):

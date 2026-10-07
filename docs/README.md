@@ -4,7 +4,7 @@ Public docs (safe to publish with the OSS repo):
 
 | Doc | Audience |
 |-----|----------|
-| [features.md](features.md) | Product overview, pipeline, YAML targeting |
+| [features.md](features.md) | Product overview, pipeline, YAML targeting, external sentinel |
 | [contracts.md](contracts.md) | Events and shared Pydantic models |
 | [configuration.md](configuration.md) | `app.*` keys per service (reference) |
 | [boomerang-config.example.yaml](boomerang-config.example.yaml) | Annotated YAML covering every `app.*` option |

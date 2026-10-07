@@ -25,8 +25,9 @@ class TelegramNotifierDelegate(ServiceDelegate):
     async def setup(self) -> None:
         config = self.container.config
         self._channel_catalog = telegram_notification_channel_catalog()
+        self.channel_id = self._channel_catalog.channel_id
         configured_endpoints = get_parameter(config, "app.endpoints", None)
-        self._configured_endpoints = load_configured_endpoints(
+        self.configured_endpoints = load_configured_endpoints(
             configured_endpoints,
             self._channel_catalog,
         )
@@ -46,7 +47,7 @@ class TelegramNotifierDelegate(ServiceDelegate):
     async def get_notification_channel_catalog(self) -> NotificationChannelCatalog:
         return self._channel_catalog
 
-    async def send_notification_telegram(self, request: NotificationRequest) -> None:
+    async def send_notification(self, request: NotificationRequest) -> None:
         chat_id = self._resolve_chat_id(request)
         text, parse_mode = format_telegram_notification(
             request.message,
@@ -74,7 +75,7 @@ class TelegramNotifierDelegate(ServiceDelegate):
         if not endpoint_key:
             raise ValidationError()
 
-        configured = self._configured_endpoints.get(endpoint_key)
+        configured = self.configured_endpoints.get(endpoint_key)
         if configured is None:
             raise ValidationError()
 

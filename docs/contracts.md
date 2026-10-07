@@ -12,8 +12,10 @@ Shared models live in the `boomerang-contracts` package
 | `alert.normalized` | `NormalizedAlert` | Producer → alert-engine |
 | `{channel}.alerting.notification.requested` | `NotificationRequest` | alert-engine → notifier (`email`, `telegram`, …) |
 
-Notifiers deliver only (SMTP / Bot API). Delivery failures surface through
-Kontiki exception / alerting
+Notifiers deliver `NotificationRequest` events (SMTP / Bot API). Delivery
+failures surface through Kontiki exception / alerting. Watchdog `DOWN` /
+`RECOVERED` titles are built by the notifier (`message.context.kind` =
+`watchdog`) and sent on that same delivery path; they are not bus events.
 
 Constant for the ingest event:
 

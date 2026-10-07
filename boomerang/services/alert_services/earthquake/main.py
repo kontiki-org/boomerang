@@ -1,5 +1,6 @@
 from kontiki.runner import cli
 
+from boomerang import __version__
 from boomerang.services.alert_services.earthquake.service import EarthquakeFeedService
 
 
@@ -7,7 +8,7 @@ def run() -> None:
     cli.run(
         EarthquakeFeedService,
         "Boomerang earthquake feed connector (USGS -> alert.normalized).",
-        version="0.1.0",
+        version=__version__,
         disable_service_registration=False,
     )
 

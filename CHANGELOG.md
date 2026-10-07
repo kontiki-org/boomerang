@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.0] - 2026-10-07
 
 - Notifiers (email, telegram): optional external sentinel (`app.sentinel`).
   `POST /watchdogs/{name}/heartbeat` refreshes a watchdog; a timeout sends
   `DOWN {name}` and a later heartbeat sends `RECOVERED {name}` on a configured
   endpoint, without the bus.
+- Service registration reports the `kontiki-boomerang` package version.
 
 ## [2.0.0] - 2026-09-29
 

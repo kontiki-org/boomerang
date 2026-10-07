@@ -1,5 +1,6 @@
 from kontiki.runner import cli
 
+from boomerang import __version__
 from boomerang.services.subscription.service import SubscriptionService
 
 
@@ -7,7 +8,7 @@ def run():
     cli.run(
         SubscriptionService,
         "Boomerang Subscription Store service.",
-        version="0.1.0",
+        version=__version__,
         disable_service_registration=False,
     )
 

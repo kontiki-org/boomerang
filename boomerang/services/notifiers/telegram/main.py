@@ -1,5 +1,6 @@
 from kontiki.runner import cli
 
+from boomerang import __version__
 from boomerang.services.notifiers.telegram.service import TelegramNotifierService
 
 
@@ -7,7 +8,7 @@ def run() -> None:
     cli.run(
         TelegramNotifierService,
         "Boomerang Telegram Notifier service.",
-        version="0.1.0",
+        version=__version__,
         disable_service_registration=False,
     )
 

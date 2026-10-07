@@ -14,6 +14,7 @@ from boomerang.services.notifiers.email.tests.integration.utils import (
     http_request,
     start_email_notifier_subprocess,
 )
+from boomerang.testing import safe_unlink
 
 
 def _last_response(context):
@@ -79,11 +80,24 @@ def _fetch_registry_services(amqp_url):
     return asyncio.run(_fetch())
 
 
+def _clear_sentinel_state(config):
+    app = config.get("app") if config else None
+    sentinel = app.get("sentinel") if app else None
+    if not sentinel:
+        return
+    path = sentinel.get("state_path")
+    safe_unlink(path)
+    if path:
+        safe_unlink(path + ".tmp")
+
+
 @given("the email-notifier service is running with the following configuration")
 def step_email_notifier_running_with_config(context):
     config_text = context.text.strip()
     config = yaml.safe_load(config_text) or {}
     context.email_notifier_config = config
+    _clear_sentinel_state(config)
+    mailhog.purge_messages()
 
     proc, config_path = start_email_notifier_subprocess(config)
     context.email_notifier_process = proc
@@ -126,6 +140,22 @@ def step_call_request_on_email_notifier_service_with_request(context, method, ur
     status, resp_body = http_request(method, url, payload=body, headers=headers)
     context.last_http_status = status
     context.last_http_body = resp_body
+
+
+@when("I wait {seconds:d} second")
+@when("I wait {seconds:d} seconds")
+def step_wait_seconds(context, seconds):
+    _ = context
+    time.sleep(seconds)
+
+
+@then("the HTTP response status is {status:d}")
+def step_http_response_status(context, status):
+    assert context.last_http_status == status, "Expected HTTP %s, got %s body=%s" % (
+        status,
+        context.last_http_status,
+        context.last_http_body,
+    )
 
 
 @when(

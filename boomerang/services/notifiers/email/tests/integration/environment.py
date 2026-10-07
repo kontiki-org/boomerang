@@ -35,6 +35,13 @@ def after_scenario(context, scenario):
         context.email_notifier_process.wait(timeout=5)
         context.email_notifier_process = None
 
+    app = (context.email_notifier_config or {}).get("app") or {}
+    sentinel = app.get("sentinel") or {}
+    state_path = sentinel.get("state_path")
+    safe_unlink(state_path)
+    if state_path:
+        safe_unlink(state_path + ".tmp")
+
     safe_unlink(context.email_notifier_config_path)
     context.email_notifier_config_path = None
 

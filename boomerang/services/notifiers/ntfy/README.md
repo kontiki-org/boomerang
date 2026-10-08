@@ -2,7 +2,7 @@
 
 `ntfy-notifier-service` resolves ntfy topics and delivers notifications for the
 ntfy channel. With `app.sentinel`, it also holds external watchdogs and sends
-`DOWN {name}` / `RECOVERED {name}` on ntfy.
+a Down or Recovered alert on ntfy.
 
 HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
 route answers 404. Health in Compose stays the Kontiki registry live probe.
@@ -16,8 +16,8 @@ route answers 404. Health in Compose stays the Kontiki registry live probe.
 - Format alert notifications as Markdown (shared parsing with email and
   Telegram via `notifiers.common.structured_alert`).
 - Publish via JSON `POST` to the ntfy server.
-- When `app.sentinel` is set, accept watchdog heartbeats and send a title-only
-  `DOWN` / `RECOVERED` message on the watchdog’s endpoint.
+- When `app.sentinel` is set, accept watchdog heartbeats and send a structured
+  Down or Recovered alert on the watchdog’s endpoint.
 - Mark the instance degraded on repeated publish failures (`@degraded_on`);
   alert-delivery failures surface through Kontiki exception / alerting.
 
@@ -66,7 +66,7 @@ Alert notifications are a JSON publish:
 - `markdown`: true
 
 Non-alert messages stay plain text (`markdown` false, priority 3). Watchdog
-`DOWN` / `RECOVERED` titles are plain text (`context.kind` = `watchdog`).
+Down and Recovered alerts use this layout (`category` `kontiki.sentinel`).
 
 ### Category icons (`app.ntfy.category_icons`)
 
@@ -84,7 +84,8 @@ refreshes one watchdog. A matching token on a known name answers 204. A missing
 or wrong token answers 401. An unknown name, or no `app.sentinel` section,
 answers 404.
 
-The message text is `DOWN {name}` or `RECOVERED {name}`, sent through the
-endpoint named by `endpoint_key`. The send does not go through the bus.
+Down (`event_type` `down`, critical) and Recovered (`event_type` `recovered`,
+low) are structured alerts. The attribute `watchdog` is the heartbeat name.
+They go through the endpoint named by `endpoint_key`, not through the bus.
 
 Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

@@ -169,8 +169,8 @@ app:
 Publish is a JSON `POST` to `{server_url}/` with `topic`, `title`, `message`,
 `markdown`, and `priority`. Severity maps to ntfy priority (`low` → 2,
 `moderate` → 3, `severe` → 4, `critical` → 5). A detail URL is sent as `click`.
-A configured category icon is sent as `tags`. Watchdog `DOWN` / `RECOVERED`
-titles are plain text.
+A configured category icon is sent as `tags`. Watchdog Down and Recovered
+alerts use this layout (`category` `kontiki.sentinel`).
 
 ### `app.ntfy.category_icons`
 
@@ -237,11 +237,13 @@ app:
 
 A watchdog is unseen, UP, or DOWN. The first heartbeat before
 `timeout_seconds` marks it UP and sends nothing. No heartbeat, or a last
-heartbeat older than `timeout_seconds`, sends `DOWN {name}`. A heartbeat
-received while DOWN sends `RECOVERED {name}`. The state file keeps a DOWN
+heartbeat older than `timeout_seconds`, sends a Down alert. A heartbeat
+received while DOWN sends a Recovered alert. The state file keeps a DOWN
 watchdog across a restart.
 
-Those messages are a title only (`context.kind` = `watchdog`). They are sent
+Those alerts use the notifier’s structured layout (`category`
+`kontiki.sentinel`, `event_type` `down` or `recovered`, attribute `watchdog`).
+Down is critical, Recovered is low. They are sent
 on the notifier’s own delivery path, not on the bus. A failed send is retried
 on the next sweep. If the watchdog changes state before that send succeeds,
 only the latest transition is sent.

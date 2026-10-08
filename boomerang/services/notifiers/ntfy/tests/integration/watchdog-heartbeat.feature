@@ -8,8 +8,8 @@ Feature: Heartbeat an external watchdog
   An unknown name answers 404.
   A missing or wrong Bearer token on a known name answers 401.
   The first heartbeat marks the watchdog UP and sends nothing.
-  No heartbeat, or a last heartbeat older than timeout_seconds, sends "DOWN {name}".
-  A heartbeat received while DOWN sends "RECOVERED {name}".
+  No heartbeat, or a last heartbeat older than timeout_seconds, sends a Down alert for that watchdog.
+  A heartbeat received while DOWN sends a Recovered alert for that watchdog.
   The state file keeps a DOWN watchdog across a restart.
 
   Background:
@@ -115,10 +115,10 @@ Feature: Heartbeat an external watchdog
       """
       {
         "topic": "ops_alerts",
-        "title": "DOWN prod",
-        "message": "DOWN prod",
-        "markdown": false,
-        "priority": 3
+        "title": "Down",
+        "message": "**Watchdog:** prod",
+        "markdown": true,
+        "priority": 5
       }
       """
 
@@ -137,10 +137,10 @@ Feature: Heartbeat an external watchdog
       """
       {
         "topic": "ops_alerts",
-        "title": "DOWN prod",
-        "message": "DOWN prod",
-        "markdown": false,
-        "priority": 3
+        "title": "Down",
+        "message": "**Watchdog:** prod",
+        "markdown": true,
+        "priority": 5
       }
       """
     When I call POST on the ntfy-notifier service on http://127.0.0.1:8006/watchdogs/prod/heartbeat with the following request
@@ -157,10 +157,10 @@ Feature: Heartbeat an external watchdog
       """
       {
         "topic": "ops_alerts",
-        "title": "RECOVERED prod",
-        "message": "RECOVERED prod",
-        "markdown": false,
-        "priority": 3
+        "title": "Recovered",
+        "message": "**Watchdog:** prod",
+        "markdown": true,
+        "priority": 2
       }
       """
 
@@ -170,10 +170,10 @@ Feature: Heartbeat an external watchdog
       """
       {
         "topic": "ops_alerts",
-        "title": "DOWN prod",
-        "message": "DOWN prod",
-        "markdown": false,
-        "priority": 3
+        "title": "Down",
+        "message": "**Watchdog:** prod",
+        "markdown": true,
+        "priority": 5
       }
       """
     When the ntfy-notifier service is restarted
@@ -191,9 +191,9 @@ Feature: Heartbeat an external watchdog
       """
       {
         "topic": "ops_alerts",
-        "title": "RECOVERED prod",
-        "message": "RECOVERED prod",
-        "markdown": false,
-        "priority": 3
+        "title": "Recovered",
+        "message": "**Watchdog:** prod",
+        "markdown": true,
+        "priority": 2
       }
       """

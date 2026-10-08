@@ -64,8 +64,9 @@ refreshes one watchdog. A matching token on a known name answers 204. A missing
 or wrong token answers 401. An unknown name, or no `app.sentinel` section,
 answers 404.
 
-Down and Recovered are structured alerts (`category` `kontiki.sentinel`,
-subject `Down` or `Recovered`, attribute `watchdog`), sent through the
-endpoint named by `endpoint_key`. They do not go through the bus.
+Down and Recovered are structured alerts (`category` `kontiki.sentinel`).
+The subject is **Down** (critical) or **Recovered** (low). The heartbeat name
+is the `Watchdog` attribute. They are sent through the endpoint named by
+`endpoint_key`. They do not go through the bus.
 
 Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

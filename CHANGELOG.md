@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Sentinel Down and Recovered notifications use the structured alert layout
+  (`category` `kontiki.sentinel`, banner **Down** or **Recovered**, attribute
+  `watchdog`). Down is critical, Recovered is low.
+
 ## [2.1.0] - 2026-10-07
 
 - Notifiers (email, telegram): optional external sentinel (`app.sentinel`).

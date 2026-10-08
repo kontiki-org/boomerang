@@ -64,7 +64,8 @@ Alert notifications are rendered as structured HTML messages for Telegram:
 - clickable details link when a URL is available
 
 Non-alert messages stay plain text. Watchdog Down and Recovered alerts use
-this layout (`category` `kontiki.sentinel`).
+this layout: banner **Down** or **Recovered**, severity icon, and a
+`Watchdog` attribute (`category` `kontiki.sentinel`).
 
 ### Category icons (`app.telegram.category_icons`)
 
@@ -83,7 +84,8 @@ or wrong token answers 401. An unknown name, or no `app.sentinel` section,
 answers 404.
 
 Down (`event_type` `down`, critical) and Recovered (`event_type` `recovered`,
-low) are structured alerts. The attribute `watchdog` is the heartbeat name.
-They go through the endpoint named by `endpoint_key`, not through the bus.
+low) are structured alerts. The banner is **Down** or **Recovered**. The
+attribute `watchdog` is the heartbeat name. They go through the endpoint
+named by `endpoint_key`, not through the bus.
 
 Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

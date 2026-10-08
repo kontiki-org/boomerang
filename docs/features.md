@@ -163,12 +163,14 @@ States are unseen, UP, and DOWN:
 - UP whose last heartbeat is older than `timeout_seconds` sends a Down alert
 - a heartbeat received while DOWN sends a Recovered alert
 
-Down and Recovered use the same structured layout as other alerts
-(`category` `kontiki.sentinel`, `event_type` `down` or `recovered`, attribute
-`watchdog`). Down is critical, Recovered is low. The send calls the notifier
-directly; it does not go through the bus. A failed send is retried
-until it succeeds. If the state flips before that, only the latest transition
-is sent. The state file keeps a DOWN watchdog across a restart.
+Down and Recovered use the same structured layout as other alerts. `category`
+is `kontiki.sentinel`. `event_type` is `down` or `recovered`, so the banner
+(and the email subject) is **Down** or **Recovered**. Down is critical,
+Recovered is low. The heartbeat name is the attribute `watchdog`. There is no
+message body. The send calls the notifier directly; it does not go through the
+bus. A failed send is retried until it succeeds. If the state flips before
+that, only the latest transition is sent. The state file keeps a DOWN watchdog
+across a restart.
 
 Omit `app.sentinel` on a notifier that only delivers alerts. The heartbeat
 route still answers **404**, and no sweep runs.

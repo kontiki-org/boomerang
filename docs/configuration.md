@@ -156,7 +156,7 @@ Omit the section on a notifier that only delivers alerts. `POST
 | Key | Default | Description |
 |-----|---------|-------------|
 | `app.sentinel.state_path` | required | JSON file for watchdog state. Missing file on first start is the initial unseen state. An unreadable file fails startup. |
-| `app.sentinel.sweep_seconds` | `1` | How often the process applies timeouts and retries an outbound `DOWN` / `RECOVERED`. |
+| `app.sentinel.sweep_seconds` | `1` | How often the process applies timeouts and retries a pending Down or Recovered alert. |
 | `app.sentinel.watchdogs` | `{}` | Map of watchdog name → spec. The name is the `{name}` in the heartbeat URL. |
 
 ### `app.sentinel.watchdogs.<name>`
@@ -196,12 +196,13 @@ heartbeat older than `timeout_seconds`, sends a Down alert. A heartbeat
 received while DOWN sends a Recovered alert. The state file keeps a DOWN
 watchdog across a restart.
 
-Those alerts use the notifier’s structured layout (`category`
-`kontiki.sentinel`, `event_type` `down` or `recovered`, attribute `watchdog`).
-Down is critical, Recovered is low. They are sent
-on the notifier’s own delivery path, not on the bus. A failed send is retried
-on the next sweep. If the watchdog changes state before that send succeeds,
-only the latest transition is sent.
+Those alerts use the notifier’s structured layout. `category` is
+`kontiki.sentinel`. `event_type` is `down` or `recovered`, so the banner (and
+the email subject) is **Down** or **Recovered**. Down is critical, Recovered
+is low. The heartbeat name is the attribute `watchdog`. There is no message
+body. They are sent on the notifier’s own delivery path, not on the bus. A
+failed send is retried on the next sweep. If the watchdog changes state before
+that send succeeds, only the latest transition is sent.
 
 A sentinel outside the monitored environment sets `kontiki.amqp.disable: true`
 so startup does not require that environment’s broker. The heartbeat route

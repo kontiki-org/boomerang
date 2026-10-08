@@ -200,14 +200,29 @@ def _timed_out(record, timeout_seconds, started_at, now):
 
 
 def _notification(channel, name, kind, endpoint_key):
-    label = "DOWN" if kind is WatchdogTransition.DOWN else "RECOVERED"
+    if kind is WatchdogTransition.DOWN:
+        event_type = "down"
+        severity = "critical"
+        label = "DOWN"
+    else:
+        event_type = "recovered"
+        severity = "low"
+        label = "RECOVERED"
     return NotificationRequest(
         channel=channel,
         endpoint_key=endpoint_key,
         message=NotificationMessage(
             title=f"{label} {name}",
             body="",
-            context=NotificationContext(kind="watchdog"),
+            context=NotificationContext(
+                kind="alert",
+                data={
+                    "category": "kontiki.sentinel",
+                    "event_type": event_type,
+                    "severity": severity,
+                    "attributes": {"watchdog": name},
+                },
+            ),
         ),
     )
 

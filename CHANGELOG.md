@@ -1,11 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+- Sentinel Down and Recovered notifications use the structured alert layout
+  (`category` `kontiki.sentinel`, banner **Down** or **Recovered**, attribute
+  `watchdog`). Down is critical, Recovered is low.
+
 ## [2.1.0] - 2026-10-07
 
 - Notifiers (email, telegram): optional external sentinel (`app.sentinel`).
   `POST /watchdogs/{name}/heartbeat` refreshes a watchdog; a timeout sends
-  `DOWN {name}` and a later heartbeat sends `RECOVERED {name}` on a configured
-  endpoint, without the bus.
+  a Down alert and a later heartbeat sends a Recovered alert on a configured
+  endpoint, without the bus. Both use the structured alert layout.
 - Service registration reports the `kontiki-boomerang` package version.
 
 ## [2.0.0] - 2026-09-29

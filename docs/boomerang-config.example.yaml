@@ -74,6 +74,9 @@
 # External sentinel (email-notifier or telegram-notifier)
 # Omit the whole sentinel block on a notifier that only delivers alerts.
 # POST /watchdogs/{name}/heartbeat — Bearer token, empty body.
+# A timeout sends a structured Down alert (critical); a later heartbeat sends
+# Recovered (low). Banner / email subject is Down or Recovered; the name is
+# the watchdog attribute. Category kontiki.sentinel.
 # A sentinel outside the monitored environment also sets kontiki.amqp.disable: true.
 # =============================================================================
 # app:

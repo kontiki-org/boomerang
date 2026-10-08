@@ -158,13 +158,15 @@ and **404** when the name is unknown or `app.sentinel` is absent.
 
 States are unseen, UP, and DOWN:
 
-- unseen past `timeout_seconds` since process start sends `DOWN {name}`
+- unseen past `timeout_seconds` since process start sends a Down alert
 - the first heartbeat before that delay marks the watchdog UP and sends nothing
-- UP whose last heartbeat is older than `timeout_seconds` sends `DOWN {name}`
-- a heartbeat received while DOWN sends `RECOVERED {name}`
+- UP whose last heartbeat is older than `timeout_seconds` sends a Down alert
+- a heartbeat received while DOWN sends a Recovered alert
 
-The text is the title only. It is not a structured alert. The send calls the
-notifier directly; it does not go through the bus. A failed send is retried
+Down and Recovered use the same structured layout as other alerts
+(`category` `kontiki.sentinel`, `event_type` `down` or `recovered`, attribute
+`watchdog`). Down is critical, Recovered is low. The send calls the notifier
+directly; it does not go through the bus. A failed send is retried
 until it succeeds. If the state flips before that, only the latest transition
 is sent. The state file keeps a DOWN watchdog across a restart.
 

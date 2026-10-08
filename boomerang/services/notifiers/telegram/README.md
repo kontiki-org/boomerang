@@ -2,7 +2,7 @@
 
 `telegram-notifier-service` resolves Telegram destinations and delivers
 notifications for the telegram channel. With `app.sentinel`, it also holds
-external watchdogs and sends `DOWN {name}` / `RECOVERED {name}` on Telegram.
+external watchdogs and sends a Down or Recovered alert on Telegram.
 
 HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
 route answers 404. Health in Compose stays the Kontiki registry live probe.
@@ -16,8 +16,8 @@ route answers 404. Health in Compose stays the Kontiki registry live probe.
 - Format alert notifications as structured HTML (shared parsing with email via
   `notifiers.common.structured_alert`).
 - Send via Telegram Bot API.
-- When `app.sentinel` is set, accept watchdog heartbeats and send a title-only
-  `DOWN` / `RECOVERED` message on the watchdog’s endpoint.
+- When `app.sentinel` is set, accept watchdog heartbeats and send a structured
+  Down or Recovered alert on the watchdog’s endpoint.
 - Mark the instance degraded on repeated API failures (`@degraded_on`);
   alert-delivery failures surface through Kontiki exception / alerting.
 
@@ -63,8 +63,8 @@ Alert notifications are rendered as structured HTML messages for Telegram:
 - body shown as `Message:` when it differs from the title
 - clickable details link when a URL is available
 
-Non-alert messages stay plain text. Watchdog `DOWN` / `RECOVERED` titles are
-plain text (`context.kind` = `watchdog`), not structured alerts.
+Non-alert messages stay plain text. Watchdog Down and Recovered alerts use
+this layout (`category` `kontiki.sentinel`).
 
 ### Category icons (`app.telegram.category_icons`)
 
@@ -82,7 +82,8 @@ refreshes one watchdog. A matching token on a known name answers 204. A missing
 or wrong token answers 401. An unknown name, or no `app.sentinel` section,
 answers 404.
 
-The message text is `DOWN {name}` or `RECOVERED {name}`, sent through the
-endpoint named by `endpoint_key`. The send does not go through the bus.
+Down (`event_type` `down`, critical) and Recovered (`event_type` `recovered`,
+low) are structured alerts. The attribute `watchdog` is the heartbeat name.
+They go through the endpoint named by `endpoint_key`, not through the bus.
 
 Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).

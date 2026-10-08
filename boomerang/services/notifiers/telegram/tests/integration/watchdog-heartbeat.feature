@@ -8,8 +8,8 @@ Feature: Heartbeat an external watchdog
   An unknown name answers 404.
   A missing or wrong Bearer token on a known name answers 401.
   The first heartbeat marks the watchdog UP and sends nothing.
-  No heartbeat, or a last heartbeat older than timeout_seconds, sends "DOWN {name}".
-  A heartbeat received while DOWN sends "RECOVERED {name}".
+  No heartbeat, or a last heartbeat older than timeout_seconds, sends a Down alert for that watchdog.
+  A heartbeat received while DOWN sends a Recovered alert for that watchdog.
   The state file keeps a DOWN watchdog across a restart.
 
   Background:
@@ -116,7 +116,8 @@ Feature: Heartbeat an external watchdog
       """
       {
         "chat_id": "123456789",
-        "text": "DOWN prod"
+        "text": "🔴 <b>Down</b>\n\n<b>Watchdog:</b> prod",
+        "parse_mode": "HTML"
       }
       """
 
@@ -135,7 +136,8 @@ Feature: Heartbeat an external watchdog
       """
       {
         "chat_id": "123456789",
-        "text": "DOWN prod"
+        "text": "🔴 <b>Down</b>\n\n<b>Watchdog:</b> prod",
+        "parse_mode": "HTML"
       }
       """
     When I call POST on the telegram-notifier service on http://127.0.0.1:8004/watchdogs/prod/heartbeat with the following request
@@ -152,7 +154,8 @@ Feature: Heartbeat an external watchdog
       """
       {
         "chat_id": "123456789",
-        "text": "RECOVERED prod"
+        "text": "🟢 <b>Recovered</b>\n\n<b>Watchdog:</b> prod",
+        "parse_mode": "HTML"
       }
       """
 
@@ -162,7 +165,8 @@ Feature: Heartbeat an external watchdog
       """
       {
         "chat_id": "123456789",
-        "text": "DOWN prod"
+        "text": "🔴 <b>Down</b>\n\n<b>Watchdog:</b> prod",
+        "parse_mode": "HTML"
       }
       """
     When the telegram-notifier service is restarted
@@ -180,6 +184,7 @@ Feature: Heartbeat an external watchdog
       """
       {
         "chat_id": "123456789",
-        "text": "RECOVERED prod"
+        "text": "🟢 <b>Recovered</b>\n\n<b>Watchdog:</b> prod",
+        "parse_mode": "HTML"
       }
       """

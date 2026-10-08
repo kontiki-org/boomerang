@@ -2,7 +2,7 @@
 Feature: Heartbeat an external watchdog by email
   In order to notice when a Kontiki environment disappears
   As the email-notifier running outside that environment
-  I want a stopped heartbeat to send "DOWN {name}" through the configured endpoint
+  I want a stopped heartbeat to send a Down alert through the configured endpoint
 
   Background:
     Given the email-notifier service is running with the following configuration
@@ -69,9 +69,11 @@ Feature: Heartbeat an external watchdog by email
       {
         "from": "no-reply@example.org",
         "to": ["ops@example.org"],
-        "subject": "DOWN prod",
+        "subject": "Down",
         "body_contains": [
-          "DOWN prod"
+          "Down",
+          "Watchdog: prod",
+          "<b>Down</b>"
         ]
       }
       """

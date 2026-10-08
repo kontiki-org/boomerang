@@ -8,7 +8,7 @@
 Producers publish alerts; the core matches **YAML subscriptions**; notifiers deliver
 (email, Telegram, …).
 
-**2.1.0** runs on Kontiki 2 (JSON AMQP, RabbitMQ ≥ 4.3).
+**2.1.1** runs on Kontiki 2 (JSON AMQP, RabbitMQ ≥ 4.3).
 Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`.
 `NotificationRequest` carries `channel`, `endpoint_key`, and `message`
 (`boomerang-contracts` 2.0.0). Both ends speak shared contracts:

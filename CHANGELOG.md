@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.1] - 2026-10-08
 
 - Sentinel Down and Recovered notifications use the structured alert layout
   (`category` `kontiki.sentinel`, banner **Down** or **Recovered**, attribute

@@ -11,3 +11,4 @@ app:
   notification_channels:
     - email-notifier-service
     - telegram-notifier-service
+    - ntfy-notifier-service

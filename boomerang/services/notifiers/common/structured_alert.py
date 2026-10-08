@@ -1,4 +1,4 @@
-"""Shared structured-alert content for notifier formatters (telegram, email)."""
+"""Shared structured-alert content for notifier formatters (telegram, email, ntfy)."""
 
 from __future__ import annotations
 

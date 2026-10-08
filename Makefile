@@ -4,6 +4,7 @@
 	integration-test-subscription integration-test-subscription-tag \
 	integration-test-email-notifier integration-test-email-notifier-tag \
 	integration-test-telegram-notifier integration-test-telegram-notifier-tag \
+	integration-test-ntfy-notifier integration-test-ntfy-notifier-tag \
 	integration-test-alert-engine integration-test-alert-engine-tag \
 	integration-test-earthquake-feed integration-test-earthquake-feed-tag \
 	run-dev-platform down-dev-platform \
@@ -50,6 +51,7 @@ integration-test-core:
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/email/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop
+	poetry run behave boomerang/services/notifiers/ntfy/tests/integration --stop
 
 integration-test: run-dev-platform
 	@$(MAKE) integration-test-core
@@ -72,6 +74,12 @@ integration-test-telegram-notifier: run-dev-platform
 
 integration-test-telegram-notifier-tag: run-dev-platform
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop --tags "$(TAG)"
+
+integration-test-ntfy-notifier: run-dev-platform
+	poetry run behave boomerang/services/notifiers/ntfy/tests/integration --stop
+
+integration-test-ntfy-notifier-tag: run-dev-platform
+	poetry run behave boomerang/services/notifiers/ntfy/tests/integration --stop --tags "$(TAG)"
 
 integration-test-alert-engine: run-dev-platform
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop

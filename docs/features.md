@@ -22,19 +22,17 @@ Producer ──► alert.normalized (AMQP)
                     │
                     └── publish {channel}.alerting.notification.requested
                                     │
-                    ┌───────────────┴───────────────┐
-                    ▼                               ▼
-              email-notifier                 telegram-notifier
-                    │                               │
-                    SMTP / Bot API            (delivery only)
+           email-notifier     telegram-notifier     ntfy-notifier
+                    │                  │                  │
+                   SMTP            Bot API            ntfy HTTP
 ```
 
 - **subscription-service** loads subscriptions from YAML, aggregates catalogues,
   and resolves recipients for a given `NormalizedAlert`.
 - **alert-engine-service** turns one alert into one `NotificationRequest` per
   `(channel, endpoint_key)`.
-- **Notifiers** own endpoint credentials (YAML) and delivery (SMTP / Telegram Bot
-  API). The same process can host an external sentinel. Failures on alert
+- **Notifiers** own endpoint credentials (YAML) and delivery (SMTP, Telegram Bot
+  API, ntfy). The same process can host an external sentinel. Failures on alert
   delivery surface through Kontiki exception / alerting.
 
 ---
@@ -96,6 +94,8 @@ subscription plus an email inbox endpoint (MailHog); Telegram still needs a
 | `stack/notifiers/email.yaml` | SMTP + optional `app.endpoints` (demo ships `inbox`) |
 | `stack/notifiers/telegram.yaml` | optional `app.endpoints` (`alerts.chat_id` for demo) |
 | `stack/notifiers/telegram_bot_token.yaml` | bot token (gitignored; copy from `.example`) |
+| `stack/notifiers/ntfy.yaml` | ntfy server URL + optional `app.endpoints` |
+| `stack/notifiers/ntfy_token.yaml` | access token (gitignored; copy from `.example`) |
 
 ### Minimal targeting example
 
@@ -124,7 +124,7 @@ The map under `subscriptions` is **rule id → entry**. The rule id (e.g.
 `hello`) names one targeting rule. It is not sent to notifiers.
 
 Endpoint refs are qualified as `<channel>.<endpoint_id>` (e.g. `email.inbox`,
-`telegram.ops_alerts`). Matching uses `category` + `event_type` first;
+`telegram.ops_alerts`, `ntfy.ops_alerts`). Matching uses `category` + `event_type` first;
 `criteria` is optional — omit it for a catch-all on attributes. When present,
 it is a non-empty list of `{key, operator, value}`; every entry must match.
 Area criteria use keys `area.<type>` (e.g.

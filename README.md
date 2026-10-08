@@ -6,7 +6,7 @@
 
 **Boomerang** is an alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
 Producers publish alerts; the core matches **YAML subscriptions**; notifiers deliver
-(email, Telegram, …).
+(email, Telegram, ntfy, …).
 
 **2.1.0** runs on Kontiki 2 (JSON AMQP, RabbitMQ ≥ 4.3).
 Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`.
@@ -35,7 +35,7 @@ More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](doc
 ```bash
 pip install kontiki-boomerang
 # boomerang-subscription, boomerang-alert-engine,
-# boomerang-email-notifier, boomerang-telegram-notifier, …
+# boomerang-email-notifier, boomerang-telegram-notifier, boomerang-ntfy-notifier, …
 ```
 
 **Extend Boomerang** (producers / notifiers — contracts only):
@@ -110,4 +110,5 @@ Details (pipeline, HTTP ingest, catalogues, contracts): [`docs/features.md`](doc
 | Alert engine | [`boomerang/services/alert_engine/README.md`](boomerang/services/alert_engine/README.md) |
 | Email notifier | [`boomerang/services/notifiers/email/README.md`](boomerang/services/notifiers/email/README.md) |
 | Telegram notifier | [`boomerang/services/notifiers/telegram/README.md`](boomerang/services/notifiers/telegram/README.md) |
+| ntfy notifier | [`boomerang/services/notifiers/ntfy/README.md`](boomerang/services/notifiers/ntfy/README.md) |
 | Earthquake feed (demo) | [`boomerang/services/alert_services/earthquake/README.md`](boomerang/services/alert_services/earthquake/README.md) |

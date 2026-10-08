@@ -1,0 +1,18 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8006
+
+app:
+  ntfy:
+    server_url: https://ntfy.sh
+    # token: stack/notifiers/ntfy_token.yaml (gitignored, merged at startup).
+    # Optional domain icons sent as ntfy tags (exact key, then prefix).
+    category_icons:
+      natural.earthquake: "🌍"
+      weather: "🌧"
+      wildfire: "🔥"
+      safety.fire: "🔥"
+      website: "🌐"
+      kontiki.registry: "⚙️"
+      certificate: "🔒"

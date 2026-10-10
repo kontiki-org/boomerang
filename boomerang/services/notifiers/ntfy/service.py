@@ -2,17 +2,17 @@ from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger, on_event, rpc
 from kontiki.registry import degraded_on
 
-from boomerang.core.service_contracts.notifiers.telegram.service import (
-    TELEGRAM_NOTIFIER_SERVICE_NAME,
+from boomerang.core.service_contracts.notifiers.ntfy.service import (
+    NTFY_NOTIFIER_SERVICE_NAME,
 )
 from boomerang.services.notifiers.common.sentinel import SentinelDelegate
 from boomerang.services.notifiers.common.service import SentinelHttp
-from boomerang.services.notifiers.telegram.delegate import TelegramNotifierDelegate
+from boomerang.services.notifiers.ntfy.delegate import NtfyNotifierDelegate
 
 
-class TelegramNotifierService(SentinelHttp):
-    name = TELEGRAM_NOTIFIER_SERVICE_NAME
-    delegate = TelegramNotifierDelegate()
+class NtfyNotifierService(SentinelHttp):
+    name = NTFY_NOTIFIER_SERVICE_NAME
+    delegate = NtfyNotifierDelegate()
     sentinel = SentinelDelegate(delegate)
     messenger = Messenger()
 
@@ -25,7 +25,7 @@ class TelegramNotifierService(SentinelHttp):
         catalog = await self.delegate.get_notification_channel_catalog()
         return catalog.model_dump(mode="json", exclude_none=True)
 
-    @on_event("telegram.alerting.notification.requested")
+    @on_event("ntfy.alerting.notification.requested")
     async def on_notification_requested(self, payload: NotificationRequest):
         await self.delegate.send_notification(payload)
 

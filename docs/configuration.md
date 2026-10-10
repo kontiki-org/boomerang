@@ -144,10 +144,55 @@ Optional external sentinel: [`app.sentinel`](#external-sentinel-appsentinel).
 
 ---
 
+## ntfy-notifier-service
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `app.ntfy.server_url` | `https://ntfy.sh` | ntfy base URL. Point this at a self-hosted server. Override for tests. |
+| `app.ntfy.token` | `""` | Optional access token sent as `Authorization: Bearer`. Often supplied via a gitignored overlay (see `stack/notifiers/ntfy_token.yaml.example`). |
+| `app.ntfy.degraded_after_failures` | `3` | Consecutive publish failures before the instance is marked degraded. |
+| `app.ntfy.category_icons` | unset | Optional map category → emoji, sent as ntfy tags. Exact match, then prefix (e.g. `weather` matches `weather.wind`). |
+| `app.endpoints` | unset | Map of endpoint_id → fields. See below. |
+
+### `app.endpoints` (ntfy)
+
+Each endpoint must match the ntfy channel catalogue: required field `topic`
+(`[-_A-Za-z0-9]{1,64}`).
+
+```yaml
+app:
+  endpoints:
+    ops_alerts:
+      topic: ops_alerts
+```
+
+Publish is a JSON `POST` to `{server_url}/` with `topic`, `title`, `message`,
+`markdown`, and `priority`. Severity maps to ntfy priority (`low` → 2,
+`moderate` → 3, `severe` → 4, `critical` → 5). A detail URL is sent as `click`.
+A configured category icon is sent as `tags`. Watchdog Down and Recovered
+alerts use this layout (`category` `kontiki.sentinel`).
+
+### `app.ntfy.category_icons`
+
+```yaml
+app:
+  ntfy:
+    category_icons:
+      natural.earthquake: "🌍"
+      weather: "🌧"
+      kontiki.registry: "⚙️"
+```
+
+See [`boomerang/services/notifiers/ntfy/README.md`](../boomerang/services/notifiers/ntfy/README.md).
+
+Optional external sentinel: [`app.sentinel`](#external-sentinel-appsentinel).
+
+---
+
 ## External sentinel (`app.sentinel`)
 
-Optional on **email-notifier-service** and **telegram-notifier-service**. Same
-keys on either service. One notifier, in another failure domain, holds the
+Optional on **email-notifier-service**, **telegram-notifier-service**, and
+**ntfy-notifier-service**. Same keys on each service. One notifier, in another failure domain, holds the
 watchdogs for a Kontiki environment that only emits outbound heartbeats.
 
 Omit the section on a notifier that only delivers alerts. `POST
@@ -171,7 +216,7 @@ Omit the section on a notifier that only delivers alerts. `POST
 app:
   endpoints:
     ops_alerts:
-      chat_id: "123456789"   # or address: ops@example.org on the email notifier
+      chat_id: "123456789"   # or address: ops@example.org on email, or topic: ops_alerts on ntfy
   sentinel:
     state_path: /var/lib/boomerang/sentinel-state.json
     sweep_seconds: 1

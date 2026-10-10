@@ -108,6 +108,33 @@ services:
       retries: 30
       start_period: 30s
 
+  ntfy-notifier-service:
+    build:
+      context: .
+    container_name: boomerang-ntfy-notifier-service
+    command: >
+      sh -c 'EXTRA=""; if [ -f /stack/notifiers/ntfy_token.yaml ]; then EXTRA="--config /stack/notifiers/ntfy_token.yaml"; fi;
+      exec boomerang-ntfy-notifier --config /stack/common.services.yaml --config /stack/notifiers/ntfy.yaml $$EXTRA'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_healthy
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/ntfy-notifier-service\", timeout=2).read()'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
   telegram-notifier-service:
     build:
       context: .

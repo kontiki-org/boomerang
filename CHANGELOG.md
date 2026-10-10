@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- ntfy notifier (`boomerang-ntfy-notifier`). Topic endpoints, JSON publish
+  to `app.ntfy.server_url`, optional bearer token, and the same external
+  sentinel as email and telegram.
+
 ## [2.1.1] - 2026-10-08
 
 - Sentinel Down and Recovered notifications use the structured alert layout
@@ -10,8 +16,8 @@
 
 - Notifiers (email, telegram): optional external sentinel (`app.sentinel`).
   `POST /watchdogs/{name}/heartbeat` refreshes a watchdog; a timeout sends
-  a Down alert and a later heartbeat sends a Recovered alert on a configured
-  endpoint, without the bus. Both use the structured alert layout.
+  `DOWN {name}` and a later heartbeat sends `RECOVERED {name}` on a configured
+  endpoint, without the bus.
 - Service registration reports the `kontiki-boomerang` package version.
 
 ## [2.0.0] - 2026-09-29

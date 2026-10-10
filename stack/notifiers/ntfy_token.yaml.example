@@ -1,0 +1,8 @@
+# Copy to ntfy_token.yaml (gitignored) and set your ntfy access token.
+app:
+  ntfy:
+    token: "tk_REPLACE_WITH_YOUR_ACCESS_TOKEN"
+
+  endpoints:
+    alerts:
+      topic: your_topic

@@ -10,9 +10,9 @@ Shared models live in the `boomerang-contracts` package
 | Event | Payload | Role |
 |-------|---------|------|
 | `alert.normalized` | `NormalizedAlert` | Producer → alert-engine |
-| `{channel}.alerting.notification.requested` | `NotificationRequest` | alert-engine → notifier (`email`, `telegram`, …) |
+| `{channel}.alerting.notification.requested` | `NotificationRequest` | alert-engine → notifier (`email`, `telegram`, `ntfy`, …) |
 
-Notifiers deliver `NotificationRequest` events (SMTP / Bot API). Delivery
+Notifiers deliver `NotificationRequest` events (SMTP / Bot API / ntfy). Delivery
 failures surface through Kontiki exception / alerting. Watchdog Down /
 Recovered alerts are built by the notifier and sent on that same delivery
 path; they are not bus events. `message.context.kind` is `alert`, and
@@ -62,7 +62,7 @@ from boomerang_contracts.notification.message import NotificationRequest
 
 | Field | Notes |
 |-------|--------|
-| `channel` | e.g. `email`, `telegram` |
+| `channel` | e.g. `email`, `telegram`, `ntfy` |
 | `endpoint_key` | notifier endpoint id (from qualified ref `<channel>.<endpoint_id>`) |
 | `message` | `title`, `body`, `context` (`kind` + `data`) |
 

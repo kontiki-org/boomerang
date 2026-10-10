@@ -71,7 +71,27 @@
 #       chat_id: "123456789"
 
 # =============================================================================
-# External sentinel (email-notifier or telegram-notifier)
+# ntfy-notifier-service
+# =============================================================================
+# app:
+#   ntfy:
+#     server_url: https://ntfy.example
+#     token: "tk_REPLACE_WITH_YOUR_ACCESS_TOKEN"
+#     degraded_after_failures: 3
+#     category_icons:
+#       natural.earthquake: "🌍"
+#       weather: "🌧"
+#       wildfire: "🔥"
+#       safety.fire: "🔥"
+#       website: "🌐"
+#       kontiki.registry: "⚙️"
+#       certificate: "🔒"
+#   endpoints:
+#     ops_alerts:
+#       topic: ops_alerts
+
+# =============================================================================
+# External sentinel (email-notifier, telegram-notifier, or ntfy-notifier)
 # Omit the whole sentinel block on a notifier that only delivers alerts.
 # POST /watchdogs/{name}/heartbeat — Bearer token, empty body.
 # A timeout sends a structured Down alert (critical); a later heartbeat sends

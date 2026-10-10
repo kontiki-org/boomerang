@@ -2,12 +2,15 @@
 
 ## [Unreleased]
 
+## [ntfy-notifier/1.0.0] - 2026-10-10
+
 - ntfy notifier (`boomerang-ntfy-notifier`). Topic endpoints, JSON publish
   to `app.ntfy.server_url`, optional bearer token, and the same external
   sentinel as email and telegram.
-- **Repository releases stop at 2.1.1. Each service is released as an image,
-  starting at 1.0.0** (`subscription/1.0.0`, `alert-engine/1.0.0`,
-  `email-notifier/1.0.0`, `telegram-notifier/1.0.0`, `ntfy-notifier/1.0.0`).
+
+**Repository releases stop at 2.1.1. Each service is released as an image,
+starting at 1.0.0** (`subscription/1.0.0`, `alert-engine/1.0.0`,
+`email-notifier/1.0.0`, `telegram-notifier/1.0.0`, `ntfy-notifier/1.0.0`).
 
 ## [2.1.1] - 2026-10-08
 

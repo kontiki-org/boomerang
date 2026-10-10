@@ -9,7 +9,9 @@
 	integration-test-earthquake-feed integration-test-earthquake-feed-tag \
 	run-dev-platform down-dev-platform \
 	stack-up stack-up-demo stack-down stack-build stack-rebuild \
-	run-service
+	run-service \
+	publish-subscription publish-alert-engine \
+	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -113,3 +115,29 @@ stack-down:
 
 run-service:
 	poetry run boomerang-subscription --config config.example.yaml
+
+# -----------------------------------------------------------------------------
+# Publish one image. One tag per push, so Actions runs one workflow per service.
+# make publish-subscription VERSION=1.0.0
+# -----------------------------------------------------------------------------
+define publish_image
+	@test -n "$(VERSION)" || { echo "VERSION is required, e.g. make $@ VERSION=1.0.0" >&2; exit 1; }
+	@printf '%s' "$(VERSION)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "VERSION must be x.y.z, got: $(VERSION)" >&2; exit 1; }
+	git tag $(1)/$(VERSION)
+	git push origin $(1)/$(VERSION)
+endef
+
+publish-subscription:
+	$(call publish_image,subscription)
+
+publish-alert-engine:
+	$(call publish_image,alert-engine)
+
+publish-email-notifier:
+	$(call publish_image,email-notifier)
+
+publish-telegram-notifier:
+	$(call publish_image,telegram-notifier)
+
+publish-ntfy-notifier:
+	$(call publish_image,ntfy-notifier)

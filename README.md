@@ -11,17 +11,15 @@ Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the no
 
 ## Services
 
-Each service is an image. A tag `telegram-notifier/1.4.0` publishes `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.4.0`. The process reports that version.
+## Services
 
-| Service | Image | Tag |
-|---------|--------|-----|
-| [Subscription](boomerang/services/subscription/README.md) | `ghcr.io/kontiki-org/boomerang-subscription` | `subscription/x.y.z` |
-| [Alert engine](boomerang/services/alert_engine/README.md) | `ghcr.io/kontiki-org/boomerang-alert-engine` | `alert-engine/x.y.z` |
-| [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier` | `email-notifier/x.y.z` |
-| [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier` | `telegram-notifier/x.y.z` |
-| [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier` | `ntfy-notifier/x.y.z` |
-
-No image tag is published yet. Configuration: [`docs/configuration.md`](docs/configuration.md).
+| Service | Image |
+|---------|--------|
+| [Subscription](boomerang/services/subscription/README.md) | `ghcr.io/kontiki-org/boomerang-subscription:1.0.0` |
+| [Alert engine](boomerang/services/alert_engine/README.md) | `ghcr.io/kontiki-org/boomerang-alert-engine:1.0.0` |
+| [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0` |
+| [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0` |
+| [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0` |
 
 ## Contracts
 

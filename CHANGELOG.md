@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## Repository — 2026-10-10
+
+- Removes the earthquake feed producer and the Compose demo (`make stack-up-demo`).
 
 ## [ntfy-notifier/1.0.0] - 2026-10-10
 

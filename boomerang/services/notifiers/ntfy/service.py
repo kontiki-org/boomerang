@@ -1,41 +1,20 @@
-from aiohttp.web import Response
 from boomerang_contracts.notification.message import NotificationRequest
 from kontiki.messaging import Messenger, on_event, rpc
 from kontiki.registry import degraded_on
-from kontiki.web import http
 
-from boomerang.core.exceptions import AuthError, NotFoundError
 from boomerang.core.service_contracts.notifiers.ntfy.service import (
     NTFY_NOTIFIER_SERVICE_NAME,
 )
 from boomerang.services.notifiers.common.sentinel import SentinelDelegate
+from boomerang.services.notifiers.common.service import SentinelHttp
 from boomerang.services.notifiers.ntfy.delegate import NtfyNotifierDelegate
 
 
-class NtfyNotifierService:
+class NtfyNotifierService(SentinelHttp):
     name = NTFY_NOTIFIER_SERVICE_NAME
     delegate = NtfyNotifierDelegate()
     sentinel = SentinelDelegate(delegate)
     messenger = Messenger()
-
-    # ------------------------------------------------------------
-    # Sentinel mode
-    # ------------------------------------------------------------
-
-    http_error_handlers = {
-        AuthError: (401, AuthError.message),
-        NotFoundError: (404, NotFoundError.message),
-    }
-
-    @http(
-        "/watchdogs/{name}/heartbeat",
-        "POST",
-        status_code=204,
-        errors=[AuthError, NotFoundError],
-    )
-    async def post_watchdog_heartbeat(self, request, name):
-        self.sentinel.observe_heartbeat(request, name)
-        return Response(status=204)
 
     # ------------------------------------------------------------
     # Notification delivery

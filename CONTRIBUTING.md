@@ -32,13 +32,11 @@ On `main` and pull requests, GitHub Actions runs:
 - core Behave suites (`make integration-test-core`) with RabbitMQ + MailHog +
   kontiki-registry
 
-Earthquake feed Behave stays local-only for now (`make integration-test-earthquake-feed`).
-
 ## Integration tests (Behave)
 
 Needs RabbitMQ + MailHog + `kontiki-registry` (heartbeats / degradation
 scenarios). `make integration-test` starts them (`run-dev-platform`), then runs
-core + earthquake:
+the core suites:
 
 ```bash
 make integration-test

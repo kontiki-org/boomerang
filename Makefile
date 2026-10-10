@@ -6,9 +6,8 @@
 	integration-test-telegram-notifier integration-test-telegram-notifier-tag \
 	integration-test-ntfy-notifier integration-test-ntfy-notifier-tag \
 	integration-test-alert-engine integration-test-alert-engine-tag \
-	integration-test-earthquake-feed integration-test-earthquake-feed-tag \
 	run-dev-platform down-dev-platform \
-	stack-up stack-up-demo stack-down stack-build stack-rebuild \
+	stack-up stack-down stack-build stack-rebuild \
 	run-service \
 	publish-subscription publish-alert-engine \
 	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier
@@ -16,7 +15,6 @@
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
 STACK_COMPOSE_FILE ?= docker-compose.stack.yaml
-DEMO_COMPOSE_FILE ?= docker-compose.demo.yaml
 SRC = boomerang packages
 
 install:
@@ -57,7 +55,6 @@ integration-test-core:
 
 integration-test: run-dev-platform
 	@$(MAKE) integration-test-core
-	@$(MAKE) integration-test-earthquake-feed
 
 integration-test-subscription: run-dev-platform
 	poetry run behave boomerang/services/subscription/tests/integration --stop
@@ -89,12 +86,6 @@ integration-test-alert-engine: run-dev-platform
 integration-test-alert-engine-tag: run-dev-platform
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop --tags "$(TAG)"
 
-integration-test-earthquake-feed: run-dev-platform
-	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop
-
-integration-test-earthquake-feed-tag: run-dev-platform
-	poetry run behave boomerang/services/alert_services/earthquake/tests/integration --stop --tags "$(TAG)"
-
 # -----------------------------------------------------------------------------
 # Local stack (core alerting runtime)
 # -----------------------------------------------------------------------------
@@ -107,11 +98,8 @@ stack-rebuild:
 stack-up:
 	docker compose -f $(STACK_COMPOSE_FILE) up -d --build --wait --wait-timeout 180
 
-stack-up-demo:
-	docker compose -f $(STACK_COMPOSE_FILE) -f $(DEMO_COMPOSE_FILE) up -d --build --wait --wait-timeout 180
-
 stack-down:
-	docker compose -f $(STACK_COMPOSE_FILE) -f $(DEMO_COMPOSE_FILE) down
+	docker compose -f $(STACK_COMPOSE_FILE) down
 
 run-service:
 	poetry run boomerang-subscription --config config.example.yaml

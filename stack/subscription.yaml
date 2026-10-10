@@ -5,9 +5,6 @@ kontiki:
 
 
 app:
-  # Producers: omit here; add via stack/subscription.demo.yaml (Kontiki merge
-  # rejects overriding a key with a different value — empty list vs non-empty).
-
   notification_channels:
     - email-notifier-service
     - telegram-notifier-service

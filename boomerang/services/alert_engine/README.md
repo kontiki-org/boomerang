@@ -1,10 +1,16 @@
 # Alert engine
 
-The alert engine accepts a `NormalizedAlert` from the bus or from `POST /alerts`, asks subscription for the recipients, and publishes one `NotificationRequest` per endpoint.
+The alert engine accepts a `NormalizedAlert` from the bus (`alert.normalized`) or from `POST /alerts`, asks subscription for the recipients, and publishes one `NotificationRequest` per endpoint.
 
-## Configure and run
+Recipients are resolved via RPC to `subscription-service`. Framework options (`kontiki.*`) are documented with Kontiki.
 
-`POST /alerts` expects `Authorization: Bearer` set to `app.http.token`. HTTP listens on port 8005. Field reference: [configuration](../../../docs/configuration.md#alert-engine-service).
+## `app.http`
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `app.http.token` | `""` | Bearer token for `POST /alerts`. Empty means HTTP ingest rejects as unauthorized. |
+
+`POST /alerts` (status `202`) expects `Authorization: Bearer <app.http.token>` and a JSON `NormalizedAlert` body. It follows the same path as the bus event. HTTP listens on port 8005.
 
 ```yaml
 app:
@@ -13,6 +19,8 @@ app:
 ```
 
 RabbitMQ and the registry come from `stack/common.services.yaml`.
+
+## Run
 
 ```bash
 docker run --rm \

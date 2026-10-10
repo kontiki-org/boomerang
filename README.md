@@ -28,26 +28,6 @@ Producers and notifiers share [`boomerang-contracts`](packages/boomerang-contrac
 pip install boomerang-contracts
 ```
 
-## Demo
-
-USGS quakes, normalized, then Telegram and email (MailHog). Rules: `stack/subscription.demo.yaml` (`magnitude >= 2` → `telegram.alerts` and `email.inbox`).
-
-```bash
-cp stack/notifiers/telegram_bot_token.yaml.example stack/notifiers/telegram_bot_token.yaml
-```
-
-Set `app.telegram.bot_token`, and `app.endpoints.alerts.chat_id` in `stack/notifiers/telegram.yaml`. Then:
-
-```bash
-make stack-up-demo
-```
-
-MailHog: http://127.0.0.1:8025. Stop with `make stack-down`.
-
-<p align="center">
-  <img src="./assets/telegram-earthquake-alert.png" alt="Telegram notification from the earthquake demo" width="420">
-</p>
-
 ## Docs
 
-[Features](docs/features.md) · [Contracts](docs/contracts.md) · [Configuration](docs/configuration.md) · [Example YAML](docs/boomerang-config.example.yaml) · [Contributing](CONTRIBUTING.md) · [License](LICENSE) Apache-2.0
+Each service README above lists every `app.*` key. [Contributing](CONTRIBUTING.md) · [License](LICENSE) Apache-2.0

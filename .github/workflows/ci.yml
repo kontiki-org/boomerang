@@ -33,9 +33,52 @@ jobs:
       - name: Run lint
         run: make lint
 
-  integration-tests:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      subscription: ${{ steps.filter.outputs.subscription }}
+      alert_engine: ${{ steps.filter.outputs.alert_engine }}
+      email: ${{ steps.filter.outputs.email }}
+      telegram: ${{ steps.filter.outputs.telegram }}
+      ntfy: ${{ steps.filter.outputs.ntfy }}
+      notifiers_common: ${{ steps.filter.outputs.notifiers_common }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Detect impacted suites
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python .github/scripts/impacted_suites.py
+
+  integration:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.changes.outputs.shared == 'true' ||
+      (matrix.id == 'subscription' && needs.changes.outputs.subscription == 'true') ||
+      (matrix.id == 'alert_engine' && needs.changes.outputs.alert_engine == 'true') ||
+      (matrix.id == 'email' && (needs.changes.outputs.email == 'true' || needs.changes.outputs.notifiers_common == 'true')) ||
+      (matrix.id == 'telegram' && (needs.changes.outputs.telegram == 'true' || needs.changes.outputs.notifiers_common == 'true')) ||
+      (matrix.id == 'ntfy' && (needs.changes.outputs.ntfy == 'true' || needs.changes.outputs.notifiers_common == 'true'))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: subscription
+            target: integration-test-subscription
+          - id: alert_engine
+            target: integration-test-alert-engine
+          - id: email
+            target: integration-test-email-notifier
+          - id: telegram
+            target: integration-test-telegram-notifier
+          - id: ntfy
+            target: integration-test-ntfy-notifier
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,8 +99,5 @@ jobs:
       - name: Prepare log volume
         run: mkdir -p logs
 
-      - name: Start local platform
-        run: make run-dev-platform
-
-      - name: Run core Behave suites
-        run: make integration-test-core
+      - name: Run ${{ matrix.target }}
+        run: make ${{ matrix.target }}

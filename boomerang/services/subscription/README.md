@@ -1,49 +1,39 @@
-# Subscription Service
+# Subscription
 
-`subscription-service` loads subscription preferences from YAML and resolves
-recipients for alerts.
+Subscription matches each `NormalizedAlert` to the rules in `app.subscriptions` and returns the notifier endpoints that should receive it. A notifier delivers the notification.
 
-It is domain-agnostic: it does not produce alerts and it does not send
-notifications.
+## Configure and run
 
-## What it does
+Each rule has an id, a `category`, and a non-empty `endpoints` list of `<channel>.<endpoint_id>` refs. `event_type` defaults to `*`. `criteria` is optional; every entry must match (`eq`, `gte`, `lte`, `contains`). Restart the service after a change. Field reference: [configuration](../../../docs/configuration.md#subscription-service).
 
-- Load subscriptions from YAML (`app.subscriptions`).
-- Aggregate alert subscription catalogs from configured connectors
-  (`GET /alert-catalog`, RPC `get_alert_subscription_catalog`).
-- Aggregate notification channel catalogs from configured notifiers
-  (`GET /notification-channels/catalog`, RPC `get_notification_channels_catalog`).
-- Provide recipient targeting through RPC (`get_recipients_for_alert`).
+```yaml
+app:
+  subscriptions:
+    quakes:
+      category: natural.earthquake
+      event_type: "*"
+      criteria:
+        - key: magnitude
+          operator: gte
+          value: 4.5
+      endpoints:
+        - telegram.ops_alerts
+```
 
-## Stack
+`app.alert_connectors` and `app.notification_channels` only feed the catalog endpoints. RabbitMQ and the registry come from `stack/common.services.yaml`. HTTP catalogs listen on port 8002.
 
-- Config: `stack/subscription.yaml` (demo overlay: `stack/subscription.demo.yaml`)
-- HTTP (catalogues): port **8002** → http://127.0.0.1:8002/api/v1/docs
-- Connectors: `app.alert_connectors`
-- Notifiers: `app.notification_channels`
+```bash
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-subscription:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/subscription.yaml
+```
 
-Subscriptions are YAML-only (`app.subscriptions`). There is no SQLite store and
-no interactive CRUD HTTP/RPC surface on this service.
+From a checkout:
 
-Entries are keyed by **rule id**. The rule id names one targeting rule and is
-not sent to notifiers. Delivery resolves via notifier `endpoint_key`.
-
-## Architecture notes
-
-- Subscriptions are declared in YAML (`app.subscriptions`).
-- Alert connectors are listed in `app.alert_connectors` (RPC fan-out to each
-  connector’s `get_alert_subscription_catalog`).
-- Notification notifiers are listed in `app.notification_channels` (RPC fan-out
-  to each notifier’s `get_notification_channel_catalog`).
-- Allowed channel IDs (`email`, `telegram`, …) come from the aggregated
-  notification channel catalog.
-- Channel endpoint credentials are not stored here; notifier services own
-  `app.endpoints` and delivery.
-
-## Service boundaries
-
-This service does **not**:
-
-- ingest domain events,
-- evaluate alert generation rules,
-- send notifications directly.
+```bash
+poetry run boomerang-subscription \
+  --config stack/common.services.yaml \
+  --config stack/subscription.yaml
+```

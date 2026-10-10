@@ -1,51 +1,34 @@
-# Earthquake feed service
+# Earthquake feed
 
-`earthquake-feed-service` polls the **USGS** public GeoJSON earthquake feed and
-publishes **`alert.normalized`** events (`NormalizedAlert`) for the rest of the
-Boomerang pipeline.
+The earthquake feed polls the USGS GeoJSON feed and publishes a `NormalizedAlert` for each new quake. `make stack-up-demo` runs it with the rest of the stack.
 
-It also exposes RPC **`get_alert_subscription_catalog`**, returning an
-`AlertConnectorCatalog` for aggregation by `subscription-service`.
+## Configure and run
 
-This is the optional **demo** producer (`make stack-up-demo`), not part of the
-core alerting runtime.
+`app.earthquake.min_magnitude` drops smaller events. `app.earthquake.usgs.feed_url` is the feed. Published alerts use `app.earthquake.category`. Field reference: [configuration](../../../../docs/configuration.md#earthquake-feed-service-demo-producer).
 
-## Run
-
-Stack (with core):
-
-```bash
-make stack-up-demo
+```yaml
+app:
+  earthquake:
+    usgs:
+      feed_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.geojson"
+    min_magnitude: 2
+    category: natural.earthquake
 ```
 
-Standalone:
+RabbitMQ and the registry come from `stack/common.services.yaml`. The demo subscription is `stack/subscription.demo.yaml`.
 
 ```bash
-poetry run boomerang-earthquake-feed --config /path/to/config.yaml
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-earthquake-feed:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/earthquake.yaml
 ```
 
-Example config: `stack/earthquake.yaml` (merged with `stack/common.services.yaml`
-in Compose). Keys under `app.earthquake.*` cover feed URL, `min_magnitude`,
-category, TTL, and HTTP timeout.
-
-Demo overlay (`stack/subscription.demo.yaml`) registers the connector
-(`app.alert_connectors`) and ships an active subscription:
-`natural.earthquake` / `earthquake`, `magnitude >= 2`, endpoints
-`telegram.alerts` and `email.inbox`.
-
-## Subscription matching (demo)
-
-Alerts ship with **empty `areas`**. The sample rule matches category /
-event_type and **`magnitude` `gte` 2**. Feed-level filtering uses
-`app.earthquake.min_magnitude` (stock: `2`).
-
-True geographic targeting (USGS coordinates → zones) is future work: enrich
-alerts or match at subscription time — not at notifier delivery.
-
-## Integration tests (Behave)
-
-With the local platform running (e.g. `make run-dev-platform`):
+From a checkout:
 
 ```bash
-make integration-test-earthquake-feed
+poetry run boomerang-earthquake-feed \
+  --config stack/common.services.yaml \
+  --config stack/earthquake.yaml
 ```

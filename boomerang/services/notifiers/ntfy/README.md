@@ -1,91 +1,78 @@
-# ntfy Notifier Service
+# ntfy
 
-`ntfy-notifier-service` resolves ntfy topics and delivers notifications for the
-ntfy channel. With `app.sentinel`, it also holds external watchdogs and sends
-a Down or Recovered alert on ntfy.
+The ntfy notifier publishes each `NotificationRequest` for the ntfy channel to `app.ntfy.server_url`. The same image can run as an external probe for a Kontiki environment.
 
-HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
-route answers 404. Health in Compose stays the Kontiki registry live probe.
+## Configure and run
 
-## What it does
+Each endpoint needs a `topic`. `server_url` defaults to `https://ntfy.sh`. A private topic sets `app.ntfy.token` in `stack/notifiers/ntfy_token.yaml`, copied from `stack/notifiers/ntfy_token.yaml.example`, and that file is an extra `--config`. `app.ntfy.category_icons` is an optional category-to-emoji map, sent as tags. Field reference: [configuration](../../../../docs/configuration.md#ntfy-notifier-service).
 
-- Load ntfy endpoints from YAML (`app.endpoints`).
-- Expose the ntfy channel catalog (RPC `get_notification_channel_catalog`).
-- Consume `ntfy.alerting.notification.requested`.
-- Resolve the topic using configured `endpoint_key`.
-- Format alert notifications as Markdown (shared parsing with email and
-  Telegram via `notifiers.common.structured_alert`).
-- Publish via JSON `POST` to the ntfy server.
-- When `app.sentinel` is set, accept watchdog heartbeats and send a structured
-  Down or Recovered alert on the watchdog’s endpoint.
-- Mark the instance degraded on repeated publish failures (`@degraded_on`);
-  alert-delivery failures surface through Kontiki exception / alerting.
+### Standard mode
 
-## Stack
+The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`.
 
-1. Copy `stack/notifiers/ntfy_token.yaml.example` to
-   `stack/notifiers/ntfy_token.yaml` (gitignored) when the topic requires an
-   access token:
+```yaml
+app:
+  ntfy:
+    server_url: https://ntfy.sh
+  endpoints:
+    alerts:
+      topic: your_topic
+```
 
-   ```yaml
-   app:
-     ntfy:
-       token: "tk_YOUR_ACCESS_TOKEN"
-   ```
+```bash
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/notifiers/ntfy.yaml
+```
 
-   That file is merged on top of `stack/notifiers/ntfy.yaml` at startup.
-   Leave it out for an open topic on a server you trust.
+From a checkout:
 
-2. Set `app.ntfy.server_url` in `stack/notifiers/ntfy.yaml` (default
-   `https://ntfy.sh`). A self-hosted server keeps delivery on your machines.
+```bash
+poetry run boomerang-ntfy-notifier \
+  --config stack/common.services.yaml \
+  --config stack/notifiers/ntfy.yaml
+```
 
-3. Declare endpoints in `stack/notifiers/ntfy.yaml` (`app.endpoints`) and
-   subscriptions (core: `stack/subscription.yaml`).
+### Sentinel mode
 
-4. Start the stack:
+The process runs outside the environment and watches its heartbeats. Silence (hosts or RabbitMQ down) sends Down on this channel; the next heartbeat sends Recovered. `kontiki.amqp.disable: true` keeps startup independent of that environment's broker. The ntfy server must stay reachable from this process. `POST /watchdogs/{name}/heartbeat` listens on the HTTP port. Keys: [configuration](../../../../docs/configuration.md#external-sentinel-appsentinel).
 
-   ```bash
-   make stack-up
-   ```
+```yaml
+kontiki:
+  amqp:
+    disable: true
+  http:
+    address: 0.0.0.0
+    port: 8006
+app:
+  ntfy:
+    server_url: https://ntfy.sh
+  endpoints:
+    ops_alerts:
+      topic: ops_alerts
+  sentinel:
+    state_path: /var/lib/boomerang/sentinel-state.json
+    sweep_seconds: 10
+    watchdogs:
+      prod:
+        token: "change-me"
+        timeout_seconds: 180
+        endpoint_key: ops_alerts
+```
 
-Events:
+```bash
+docker run --rm \
+  -v "$PWD/sentinel.yaml:/sentinel.yaml:ro" \
+  -v "$PWD/sentinel-state:/var/lib/boomerang" \
+  -p 8006:8006 \
+  ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0 \
+  --config /sentinel.yaml
+```
 
-- consume `ntfy.alerting.notification.requested`
-- publish JSON to `{server_url}/` (failures propagate as Kontiki exceptions)
+From a checkout:
 
-## Message formatting
-
-Alert notifications are a JSON publish:
-
-- `title`: humanized `event_type`, or the last category segment
-- `message`: Markdown attributes, then `Message:` when the body differs from
-  the title
-- `priority`: `low` → 2, `moderate` → 3, `severe` → 4, `critical` → 5
-- `tags`: category emoji from `app.ntfy.category_icons` when one matches
-- `click`: detail URL when one is available
-- `markdown`: true
-
-Non-alert messages stay plain text (`markdown` false, priority 3). Watchdog
-Down and Recovered alerts use this layout (`category` `kontiki.sentinel`).
-
-### Category icons (`app.ntfy.category_icons`)
-
-Optional map of category key → emoji. Matching is exact, then prefix
-(e.g. `weather` matches `weather.wind`). When unset or unmatched, the publish
-has no tag.
-
-See [`docs/configuration.md`](../../../../docs/configuration.md) and
-[`docs/boomerang-config.example.yaml`](../../../../docs/boomerang-config.example.yaml).
-
-## External sentinel
-
-Optional. `POST /watchdogs/{name}/heartbeat` with `Authorization: Bearer <token>`
-refreshes one watchdog. A matching token on a known name answers 204. A missing
-or wrong token answers 401. An unknown name, or no `app.sentinel` section,
-answers 404.
-
-Down (`event_type` `down`, critical) and Recovered (`event_type` `recovered`,
-low) are structured alerts. The attribute `watchdog` is the heartbeat name.
-They go through the endpoint named by `endpoint_key`, not through the bus.
-
-Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).
+```bash
+poetry run boomerang-ntfy-notifier --config sentinel.yaml
+```

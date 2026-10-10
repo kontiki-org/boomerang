@@ -1,91 +1,80 @@
-# Telegram Notifier Service
+# Telegram
 
-`telegram-notifier-service` resolves Telegram destinations and delivers
-notifications for the telegram channel. With `app.sentinel`, it also holds
-external watchdogs and sends a Down or Recovered alert on Telegram.
+The Telegram notifier delivers each `NotificationRequest` for the telegram channel through the Bot API. The same image can run as an external probe for a Kontiki environment.
 
-HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
-route answers 404. Health in Compose stays the Kontiki registry live probe.
+## Configure and run
 
-## What it does
+Each endpoint needs a `chat_id`. `app.telegram.bot_token` comes from BotFather. Copy `stack/notifiers/telegram_bot_token.yaml.example` to `stack/notifiers/telegram_bot_token.yaml` and set the token and the chat id. `app.telegram.category_icons` is an optional category-to-emoji map. Field reference: [configuration](../../../../docs/configuration.md#telegram-notifier-service).
 
-- Load Telegram endpoints from YAML (`app.endpoints`).
-- Expose the telegram channel catalog (RPC `get_notification_channel_catalog`).
-- Consume `telegram.alerting.notification.requested`.
-- Resolve destination using configured `endpoint_key`.
-- Format alert notifications as structured HTML (shared parsing with email via
-  `notifiers.common.structured_alert`).
-- Send via Telegram Bot API.
-- When `app.sentinel` is set, accept watchdog heartbeats and send a structured
-  Down or Recovered alert on the watchdog’s endpoint.
-- Mark the instance degraded on repeated API failures (`@degraded_on`);
-  alert-delivery failures surface through Kontiki exception / alerting.
+### Standard mode
 
-## Stack E2E
+The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`.
 
-1. Copy `stack/notifiers/telegram_bot_token.yaml.example` to
-   `stack/notifiers/telegram_bot_token.yaml` (gitignored) and set your bot token:
+```yaml
+app:
+  telegram:
+    bot_token: "123456789:YOUR_BOT_TOKEN_FROM_BOTFATHER"
+  endpoints:
+    alerts:
+      chat_id: "123456789"
+```
 
-   ```yaml
-   app:
-     telegram:
-       bot_token: "123456789:YOUR_BOT_TOKEN_FROM_BOTFATHER"
-   ```
+```bash
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/notifiers/telegram.yaml \
+  --config /stack/notifiers/telegram_bot_token.yaml
+```
 
-   That file is merged on top of `stack/notifiers/telegram.yaml` at startup.
+From a checkout:
 
-2. Declare endpoints in `stack/notifiers/telegram.yaml` (`app.endpoints`) and
-   subscriptions (core: `stack/subscription.yaml`; demo overlay:
-   `stack/subscription.demo.yaml`).
+```bash
+poetry run boomerang-telegram-notifier \
+  --config stack/common.services.yaml \
+  --config stack/notifiers/telegram.yaml \
+  --config stack/notifiers/telegram_bot_token.yaml
+```
 
-3. Start the stack:
+### Sentinel mode
 
-   ```bash
-   make stack-up
-   # or make stack-up-demo for the earthquake producer + sample subscription
-   ```
+The process runs outside the environment and watches its heartbeats. Silence (hosts or RabbitMQ down) sends Down on this channel; the next heartbeat sends Recovered. `kontiki.amqp.disable: true` keeps startup independent of that environment's broker. `POST /watchdogs/{name}/heartbeat` listens on the HTTP port. Keys: [configuration](../../../../docs/configuration.md#external-sentinel-appsentinel).
 
-Events:
+```yaml
+kontiki:
+  amqp:
+    disable: true
+  http:
+    address: 0.0.0.0
+    port: 8004
+app:
+  telegram:
+    bot_token: "123456789:YOUR_BOT_TOKEN_FROM_BOTFATHER"
+  endpoints:
+    ops_alerts:
+      chat_id: "123456789"
+  sentinel:
+    state_path: /var/lib/boomerang/sentinel-state.json
+    sweep_seconds: 10
+    watchdogs:
+      prod:
+        token: "change-me"
+        timeout_seconds: 180
+        endpoint_key: ops_alerts
+```
 
-- consume `telegram.alerting.notification.requested`
-- send via Bot API (failures propagate as Kontiki exceptions)
+```bash
+docker run --rm \
+  -v "$PWD/sentinel.yaml:/sentinel.yaml:ro" \
+  -v "$PWD/sentinel-state:/var/lib/boomerang" \
+  -p 8004:8004 \
+  ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0 \
+  --config /sentinel.yaml
+```
 
-## Message formatting
+From a checkout:
 
-Alert notifications are rendered as structured HTML messages for Telegram:
-
-- optional category icon from config + banner label from `event_type`
-  (humanized; falls back to last category segment when event_type is absent;
-  shared with email via `notifiers.common.structured_alert`)
-- severity icon (🟢 low → 🔴 critical)
-- metadata from `context.data.attributes` in producer insertion order
-  (keys humanized: `response_time` → `Response Time`)
-- body shown as `Message:` when it differs from the title
-- clickable details link when a URL is available
-
-Non-alert messages stay plain text. Watchdog Down and Recovered alerts use
-this layout: banner **Down** or **Recovered**, severity icon, and a
-`Watchdog` attribute (`category` `kontiki.sentinel`).
-
-### Category icons (`app.telegram.category_icons`)
-
-Optional map of category key → emoji. Matching is exact, then prefix
-(e.g. `weather` matches `weather.wind`). When unset or unmatched, the banner
-has no domain emoji (severity icon only).
-
-See [`docs/configuration.md`](../../../../docs/configuration.md) and
-[`docs/boomerang-config.example.yaml`](../../../../docs/boomerang-config.example.yaml).
-
-## External sentinel
-
-Optional. `POST /watchdogs/{name}/heartbeat` with `Authorization: Bearer <token>`
-refreshes one watchdog. A matching token on a known name answers 204. A missing
-or wrong token answers 401. An unknown name, or no `app.sentinel` section,
-answers 404.
-
-Down (`event_type` `down`, critical) and Recovered (`event_type` `recovered`,
-low) are structured alerts. The banner is **Down** or **Recovered**. The
-attribute `watchdog` is the heartbeat name. They go through the endpoint
-named by `endpoint_key`, not through the bus.
-
-Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).
+```bash
+poetry run boomerang-telegram-notifier --config sentinel.yaml
+```

@@ -1,32 +1,31 @@
-# Alert Engine Service
+# Alert engine
 
-`alert-engine-service` turns a `NormalizedAlert` into channel-ready
-`NotificationRequest` events for notifier services.
+The alert engine accepts a `NormalizedAlert` from the bus or from `POST /alerts`, asks subscription for the recipients, and publishes one `NotificationRequest` per endpoint.
 
-## What it does
+## Configure and run
 
-- Ingest alerts via:
-  - AMQP event `alert.normalized`
-  - HTTP `POST /alerts` (Bearer token = `app.http.token`)
-- Resolve recipients via RPC `subscription-service.get_recipients_for_alert`.
-- Build one `NotificationRequest` per `(channel, endpoint_key)`.
-- Publish `{channel}.alerting.notification.requested` (e.g.
-  `email.alerting.notification.requested`,
-  `telegram.alerting.notification.requested`).
+`POST /alerts` expects `Authorization: Bearer` set to `app.http.token`. HTTP listens on port 8005. Field reference: [configuration](../../../docs/configuration.md#alert-engine-service).
 
-## Stack
+```yaml
+app:
+  http:
+    token: "change-me"
+```
 
-- Config: `stack/alert_engine.yaml`
-- HTTP: port **8005** → `POST /alerts` only (no auto OpenAPI page unless the
-  route sets `version=` — Kontiki docs are version-scoped)
-- Token: `app.http.token` (default in stack: `change-me`)
+RabbitMQ and the registry come from `stack/common.services.yaml`.
 
-## Payload and contract notes
+```bash
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-alert-engine:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/alert_engine.yaml
+```
 
-- Inbound: `boomerang_contracts.alert.normalized.NormalizedAlert`
-  (validated with Pydantic on both AMQP and HTTP paths).
-- Outbound: `boomerang_contracts.notification.message.NotificationRequest`.
-- Message `title` / `body` come from the alert; `context.kind` is `"alert"` and
-  `context.data` carries `alert_id`, `category`, `event_type`, `severity`,
-  `attributes`.
-- The full alert is sent to `get_recipients_for_alert` for subscription matching.
+From a checkout:
+
+```bash
+poetry run boomerang-alert-engine \
+  --config stack/common.services.yaml \
+  --config stack/alert_engine.yaml
+```

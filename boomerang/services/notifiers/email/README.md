@@ -1,72 +1,86 @@
-# Email Notifier Service
+# Email
 
-`email-notifier-service` resolves email destinations and delivers notifications
-for the email channel. With `app.sentinel`, it also holds external watchdogs
-and sends a Down or Recovered alert by email.
+The email notifier delivers each `NotificationRequest` for the email channel over SMTP. The same image can run as an external probe for a Kontiki environment.
 
-HTTP serves `POST /watchdogs/{name}/heartbeat`. Without `app.sentinel` that
-route answers 404. Health in Compose stays the Kontiki registry live probe.
+## Configure and run
 
-## What it does
+Each endpoint needs an `address`. SMTP and the From address are `app.email`. Restart the service after a change. Field reference: [configuration](../../../../docs/configuration.md#email-notifier-service).
 
-- Load email endpoints from YAML (`app.endpoints`).
-- Expose the email channel catalog (RPC `get_notification_channel_catalog`).
-- Consume `email.alerting.notification.requested`.
-- Resolve destination using configured `endpoint_key`.
-- Format alert notifications as multipart **plain + HTML** (same structured
-  layout as Telegram: event_type banner, humanized attributes, Message when
-  body adds info). Subject is the banner label.
-- Send email through configured SMTP.
-- When `app.sentinel` is set, accept watchdog heartbeats and send a structured
-  Down or Recovered mail on the watchdog’s endpoint.
-- Mark the instance degraded on repeated SMTP failures (`@degraded_on`);
-  alert-delivery failures surface through Kontiki exception / alerting.
+### Standard mode
 
-## Stack
+The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`. The stack file points SMTP at MailHog.
 
-- Config: `stack/notifiers/email.yaml` (demo ships `app.endpoints.inbox` → MailHog)
-- Local SMTP: MailHog (`mailhog:1025`, UI http://127.0.0.1:8025)
-- Matching subscriptions: `stack/subscription.yaml` (core) or
-  `stack/subscription.demo.yaml` (demo).
+```yaml
+app:
+  email:
+    smtp:
+      host: localhost
+      port: 25
+    from:
+      address: no-reply@example.org
+  endpoints:
+    inbox:
+      address: you@example.org
+```
 
-## Message formatting
+```bash
+docker run --rm \
+  -v "$PWD/stack:/stack:ro" \
+  ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0 \
+  --config /stack/common.services.yaml \
+  --config /stack/notifiers/email.yaml
+```
 
-Alert notifications (`context.kind` = `alert` or a non-empty `category`) are
-rendered as `multipart/alternative`:
+From a checkout:
 
-- **Subject**: humanized `event_type` (falls back to last category segment)
-- **text/plain**: banner, attribute rows in producer insertion order, optional
-  `Message:` when body differs from title, optional Details link
-- **text/html**: same layout plus severity icon on the banner
+```bash
+poetry run boomerang-email-notifier \
+  --config stack/common.services.yaml \
+  --config stack/notifiers/email.yaml
+```
 
-Non-alert messages keep title as subject and title/body as content.
+### Sentinel mode
 
-Shared parsing lives in `boomerang.services.notifiers.common.structured_alert`
-(also used by the Telegram notifier).
+The process runs outside the environment and watches its heartbeats. Silence (hosts or RabbitMQ down) sends Down on this channel; the next heartbeat sends Recovered. `kontiki.amqp.disable: true` keeps startup independent of that environment's broker. SMTP must stay reachable from this process. `POST /watchdogs/{name}/heartbeat` listens on the HTTP port. Keys: [configuration](../../../../docs/configuration.md#external-sentinel-appsentinel).
 
-## Event flow
+```yaml
+kontiki:
+  amqp:
+    disable: true
+  http:
+    address: 0.0.0.0
+    port: 8003
+app:
+  email:
+    smtp:
+      host: localhost
+      port: 25
+    from:
+      address: no-reply@example.org
+  endpoints:
+    ops_alerts:
+      address: ops@example.org
+  sentinel:
+    state_path: /var/lib/boomerang/sentinel-state.json
+    sweep_seconds: 10
+    watchdogs:
+      prod:
+        token: "change-me"
+        timeout_seconds: 180
+        endpoint_key: ops_alerts
+```
 
-Consumes:
+```bash
+docker run --rm \
+  -v "$PWD/sentinel.yaml:/sentinel.yaml:ro" \
+  -v "$PWD/sentinel-state:/var/lib/boomerang" \
+  -p 8003:8003 \
+  ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0 \
+  --config /sentinel.yaml
+```
 
-- `email.alerting.notification.requested`
+From a checkout:
 
-Behavior:
-
-- parse payload as `NotificationRequest`,
-- resolve address from configured endpoint,
-- format plain + HTML body,
-- send via SMTP (failures propagate as Kontiki exceptions).
-
-## External sentinel
-
-Optional. `POST /watchdogs/{name}/heartbeat` with `Authorization: Bearer <token>`
-refreshes one watchdog. A matching token on a known name answers 204. A missing
-or wrong token answers 401. An unknown name, or no `app.sentinel` section,
-answers 404.
-
-Down and Recovered are structured alerts (`category` `kontiki.sentinel`).
-The subject is **Down** (critical) or **Recovered** (low). The heartbeat name
-is the `Watchdog` attribute. They are sent through the endpoint named by
-`endpoint_key`. They do not go through the bus.
-
-Keys and state machine: [`docs/configuration.md`](../../../../docs/configuration.md#external-sentinel-appsentinel).
+```bash
+poetry run boomerang-email-notifier --config sentinel.yaml
+```

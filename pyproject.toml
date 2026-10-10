@@ -44,7 +44,6 @@ boomerang-email-notifier = "boomerang.services.notifiers.email.main:run"
 boomerang-telegram-notifier = "boomerang.services.notifiers.telegram.main:run"
 boomerang-ntfy-notifier = "boomerang.services.notifiers.ntfy.main:run"
 boomerang-alert-engine = "boomerang.services.alert_engine.main:run"
-boomerang-earthquake-feed = "boomerang.services.alert_services.earthquake.main:run"
 boomerang-demo-app = "boomerang.testing.demo_app.main:run"
 
 [tool.black]

@@ -9,7 +9,6 @@ Producer → NormalizedAlert → subscription + alert-engine → NotificationReq
 
 Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the notifier’s `app.endpoints`.
 
-## Services
 
 ## Services
 

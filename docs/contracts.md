@@ -14,8 +14,12 @@ Shared models live in the `boomerang-contracts` package
 
 Notifiers deliver `NotificationRequest` events (SMTP / Bot API / ntfy). Delivery
 failures surface through Kontiki exception / alerting. Watchdog Down /
-Recovered alerts are built by the notifier (`category` `kontiki.sentinel`)
-and sent on that same delivery path; they are not bus events.
+Recovered alerts are built by the notifier and sent on that same delivery
+path; they are not bus events. `message.context.kind` is `alert`, and
+`message.context.data` is `category` `kontiki.sentinel`, `event_type` `down`
+or `recovered`, `severity` `critical` or `low`, and attribute `watchdog` (the
+heartbeat name). The banner and the email subject are **Down** or
+**Recovered**.
 
 Constant for the ingest event:
 

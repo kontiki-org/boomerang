@@ -5,8 +5,12 @@
 - ntfy notifier (`boomerang-ntfy-notifier`). Topic endpoints, JSON publish
   to `app.ntfy.server_url`, optional bearer token, and the same external
   sentinel as email and telegram.
-- Sentinel Down and Recovered alerts use the structured layout
-  (`category` `kontiki.sentinel`, `event_type` `down` or `recovered`).
+
+## [2.1.1] - 2026-10-08
+
+- Sentinel Down and Recovered notifications use the structured alert layout
+  (`category` `kontiki.sentinel`, banner **Down** or **Recovered**, attribute
+  `watchdog`). Down is critical, Recovered is low.
 
 ## [2.1.0] - 2026-10-07
 

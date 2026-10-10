@@ -1,0 +1,24 @@
+# suite  path
+# A changed file matches when its path starts with the path.
+# notifiers_common runs the email, telegram and ntfy suites.
+# shared runs every suite.
+# Several lines with the same suite name are alternatives.
+
+subscription boomerang/services/subscription/
+alert_engine boomerang/services/alert_engine/
+email boomerang/services/notifiers/email/
+telegram boomerang/services/notifiers/telegram/
+ntfy boomerang/services/notifiers/ntfy/
+notifiers_common boomerang/services/notifiers/common/
+
+shared boomerang/core/
+shared boomerang/testing/
+shared boomerang/__init__.py
+shared packages/boomerang-contracts/
+shared pyproject.toml
+shared poetry.lock
+shared Makefile
+shared stack/
+shared docker-compose
+shared Dockerfile
+shared docker/

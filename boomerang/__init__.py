@@ -1,3 +1,5 @@
+import os
 from importlib.metadata import version
 
-__version__ = version("kontiki-boomerang")
+image_version = os.environ.get("BOOMERANG_VERSION", "")
+__version__ = image_version or version("kontiki-boomerang")

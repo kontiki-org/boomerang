@@ -1,114 +1,54 @@
 <img src="./assets/boomerang_logo.png" width="500">
 
----
-
-## Overview
-
-**Boomerang** is an alerting engine built on [Kontiki](https://github.com/kontiki-org/kontiki).
-Producers publish alerts; the core matches **YAML subscriptions**; notifiers deliver
-(email, Telegram, ntfy, …).
-
-**2.1.1** runs on Kontiki 2 (JSON AMQP, RabbitMQ ≥ 4.3).
-Subscriptions are a map of rule id to `category`, optional `event_type` and `criteria`, and `endpoints`.
-`NotificationRequest` carries `channel`, `endpoint_key`, and `message`
-(`boomerang-contracts` 2.0.0). Both ends speak shared contracts:
+Boomerang is an alerting engine on [Kontiki](https://github.com/kontiki-org/kontiki).
+A producer emits a `NormalizedAlert`. Subscription and the alert engine match YAML rules and emit a `NotificationRequest` per channel endpoint. A notifier delivers it.
 
 ```text
-Producers ──► NormalizedAlert ──► subscription + alert-engine ──► NotificationRequest ──► Notifiers
+Producer → NormalizedAlert → subscription + alert-engine → NotificationRequest → notifier
 ```
 
-- **Upstream**: add a producer that emits `NormalizedAlert` (AMQP `alert.normalized`
-  or `POST /alerts`) — no change to the engine.
-- **Downstream**: add a notifier that consumes `{channel}.alerting.notification.requested`
-  and exposes a channel catalogue — same targeting model.
-- **Middle**: who gets notified is declared in YAML (`app.subscriptions` +
-  notifier `app.endpoints`).
+Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the notifier’s `app.endpoints`.
 
-More detail: [`docs/features.md`](docs/features.md) · [`docs/contracts.md`](docs/contracts.md) · [`docs/configuration.md`](docs/configuration.md).
+## Services
 
----
+## Services
 
-## Install
+| Service | Image |
+|---------|--------|
+| [Subscription](boomerang/services/subscription/README.md) | `ghcr.io/kontiki-org/boomerang-subscription:1.0.0` |
+| [Alert engine](boomerang/services/alert_engine/README.md) | `ghcr.io/kontiki-org/boomerang-alert-engine:1.0.0` |
+| [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0` |
+| [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0` |
+| [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0` |
 
-**Run the platform** (CLI entrypoints):
+## Contracts
 
-```bash
-pip install kontiki-boomerang
-# boomerang-subscription, boomerang-alert-engine,
-# boomerang-email-notifier, boomerang-telegram-notifier, boomerang-ntfy-notifier, …
-```
-
-**Extend Boomerang** (producers / notifiers — contracts only):
+Producers and notifiers share [`boomerang-contracts`](packages/boomerang-contracts/README.md) (`2.0.0`):
 
 ```bash
 pip install boomerang-contracts
 ```
 
-The quickstart below uses Docker Compose instead of a local pip install.
+## Demo
 
----
-
-## Quickstart — earthquake → Telegram / MailHog
-
-The demo stack polls USGS, normalizes quakes, and notifies Telegram plus email
-(MailHog). Targeting lives in `stack/subscription.demo.yaml`
-(`magnitude >= 2` → `telegram.alerts` and `email.inbox`).
-
-**1. Bot token** (once):
+USGS quakes, normalized, then Telegram and email (MailHog). Rules: `stack/subscription.demo.yaml` (`magnitude >= 2` → `telegram.alerts` and `email.inbox`).
 
 ```bash
-cp stack/notifiers/telegram_bot_token.yaml.example \
-   stack/notifiers/telegram_bot_token.yaml
-# set app.telegram.bot_token from BotFather
+cp stack/notifiers/telegram_bot_token.yaml.example stack/notifiers/telegram_bot_token.yaml
 ```
 
-**2. Telegram chat** in `stack/notifiers/telegram.yaml`:
-
-```yaml
-app:
-  endpoints:
-    alerts:
-      chat_id: "YOUR_CHAT_ID"
-```
-
-**3. Start the demo:**
+Set `app.telegram.bot_token`, and `app.endpoints.alerts.chat_id` in `stack/notifiers/telegram.yaml`. Then:
 
 ```bash
 make stack-up-demo
 ```
 
-Email copies land in MailHog (http://127.0.0.1:8025). When a matching quake
-arrives, Telegram looks like this:
+MailHog: http://127.0.0.1:8025. Stop with `make stack-down`.
 
 <p align="center">
-  <img src="./assets/telegram-earthquake-alert.png" alt="Telegram notification from Boomerang earthquake demo" width="420">
+  <img src="./assets/telegram-earthquake-alert.png" alt="Telegram notification from the earthquake demo" width="420">
 </p>
 
-Stop the stack:
+## Docs
 
-```bash
-make stack-down
-```
-
-Details (pipeline, HTTP ingest, catalogues, contracts): [`docs/features.md`](docs/features.md).
-
----
-
-## Documentation
-
-- Index: [`docs/README.md`](docs/README.md)
-- Features: [`docs/features.md`](docs/features.md)
-- Contracts: [`docs/contracts.md`](docs/contracts.md)
-- Configuration: [`docs/configuration.md`](docs/configuration.md) · [`docs/boomerang-config.example.yaml`](docs/boomerang-config.example.yaml)
-- Stack config: [`stack/`](stack/)
-- Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- License: [`LICENSE`](LICENSE) (Apache-2.0)
-
-| Service | README |
-|---------|--------|
-| Subscription | [`boomerang/services/subscription/README.md`](boomerang/services/subscription/README.md) |
-| Alert engine | [`boomerang/services/alert_engine/README.md`](boomerang/services/alert_engine/README.md) |
-| Email notifier | [`boomerang/services/notifiers/email/README.md`](boomerang/services/notifiers/email/README.md) |
-| Telegram notifier | [`boomerang/services/notifiers/telegram/README.md`](boomerang/services/notifiers/telegram/README.md) |
-| ntfy notifier | [`boomerang/services/notifiers/ntfy/README.md`](boomerang/services/notifiers/ntfy/README.md) |
-| Earthquake feed (demo) | [`boomerang/services/alert_services/earthquake/README.md`](boomerang/services/alert_services/earthquake/README.md) |
+[Features](docs/features.md) · [Contracts](docs/contracts.md) · [Configuration](docs/configuration.md) · [Example YAML](docs/boomerang-config.example.yaml) · [Contributing](CONTRIBUTING.md) · [License](LICENSE) Apache-2.0

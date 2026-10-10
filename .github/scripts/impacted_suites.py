@@ -5,28 +5,11 @@ GITHUB_OUTPUT is set by Actions.
 """
 
 import os
-import re
 import subprocess
 import sys
 
 EMPTY_SHA = "0000000000000000000000000000000000000000"
-
-# Sentinel and the structured alert layout are shared by every notifier.
-# Core, contracts, tooling, stack, and the image build can change any suite.
-SUITES = (
-    ("subscription", r"^boomerang/services/subscription/"),
-    ("alert_engine", r"^boomerang/services/alert_engine/"),
-    ("email", r"^boomerang/services/notifiers/email/"),
-    ("telegram", r"^boomerang/services/notifiers/telegram/"),
-    ("ntfy", r"^boomerang/services/notifiers/ntfy/"),
-    ("notifiers_common", r"^boomerang/services/notifiers/common/"),
-    (
-        "shared",
-        r"^(boomerang/core/|boomerang/testing/|boomerang/__init__\.py|"
-        r"packages/boomerang-contracts/|pyproject\.toml$|poetry\.lock$|"
-        r"Makefile$|stack/|docker-compose|Dockerfile$|docker/)",
-    ),
-)
+SUITES_FILE = os.path.join(os.path.dirname(__file__), "impacted-suites.txt")
 
 
 def changed_files(base):
@@ -49,13 +32,27 @@ def changed_files(base):
     return diff.stdout.splitlines()
 
 
+def load_suites():
+    suites = {}
+    with open(SUITES_FILE, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            name, prefix = line.split(None, 1)
+            suites.setdefault(name, []).append(prefix)
+    return suites
+
+
 def main():
     files = changed_files(os.environ.get("BASE_SHA", ""))
     output = os.environ["GITHUB_OUTPUT"]
     with open(output, "a", encoding="utf-8") as handle:
-        for name, pattern in SUITES:
+        for name, prefixes in load_suites().items():
             # None means every suite runs.
-            hit = files is None or any(re.search(pattern, path) for path in files)
+            hit = files is None or any(
+                path.startswith(prefix) for path in files for prefix in prefixes
+            )
             handle.write(f"{name}={'true' if hit else 'false'}\n")
 
 

@@ -12,13 +12,15 @@ Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the no
 
 ## Services
 
-| Service | Image |
-|---------|--------|
-| [Subscription](boomerang/services/subscription/README.md) | `ghcr.io/kontiki-org/boomerang-subscription:1.0.0` |
-| [Alert engine](boomerang/services/alert_engine/README.md) | `ghcr.io/kontiki-org/boomerang-alert-engine:1.0.0` |
-| [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0` |
-| [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0` |
-| [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0` |
+| Service | Image | Package |
+|---------|--------|---------|
+| [Subscription](boomerang/services/subscription/README.md) | `ghcr.io/kontiki-org/boomerang-subscription:1.0.0` | `boomerang-subscription` |
+| [Alert engine](boomerang/services/alert_engine/README.md) | `ghcr.io/kontiki-org/boomerang-alert-engine:1.0.0` | `boomerang-alert-engine` |
+| [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0` | `boomerang-email-notifier` |
+| [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0` | `boomerang-telegram-notifier` |
+| [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0` | `boomerang-ntfy-notifier` |
+
+The package version is the image tag. Install one service per environment.
 
 ## Contracts
 

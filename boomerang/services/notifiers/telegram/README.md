@@ -32,6 +32,14 @@ app:
 
 Structured messages use built-in severity icons (`low` → 🟢 … `critical` → 🔴). The banner title is the humanized `event_type` when present, otherwise the last category segment. Attribute labels are auto-humanized; order follows the producer’s attribute dict.
 
+## Install
+
+```bash
+pip install boomerang-telegram-notifier==1.0.0
+```
+
+The package version is the image tag. After install the command is `boomerang-telegram-notifier`.
+
 ## Standard mode
 
 The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`.

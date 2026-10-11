@@ -20,6 +20,14 @@ app:
 
 RabbitMQ and the registry come from `stack/common.services.yaml`.
 
+## Install
+
+```bash
+pip install boomerang-alert-engine==1.0.0
+```
+
+The package version is the image tag. After install the command is `boomerang-alert-engine`.
+
 ## Run
 
 ```bash

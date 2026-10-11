@@ -1,5 +1,6 @@
 # suite  path
 # A changed file matches when its path starts with the path.
+# Markdown, docs/ and assets/ are ignored by impacted_suites.py.
 # notifiers_common runs the email, telegram and ntfy suites.
 # shared runs every suite.
 # Several lines with the same suite name are alternatives.

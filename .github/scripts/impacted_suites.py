@@ -12,6 +12,21 @@ EMPTY_SHA = "0000000000000000000000000000000000000000"
 SUITES_FILE = os.path.join(os.path.dirname(__file__), "impacted-suites.txt")
 
 
+def code_changes(files):
+    # None means the base is unknown: every suite runs.
+    if files is None:
+        return None
+    kept = []
+    for path in files:
+        name = path.rsplit("/", 1)[-1]
+        if path.startswith(("docs/", "assets/")):
+            continue
+        if name.endswith(".md") or name == "LICENSE":
+            continue
+        kept.append(path)
+    return kept
+
+
 def changed_files(base):
     # A brand-new branch, or a push with no parent, has nothing to diff.
     if not base or base == EMPTY_SHA:
@@ -45,15 +60,19 @@ def load_suites():
 
 
 def main():
-    files = changed_files(os.environ.get("BASE_SHA", ""))
+    files = code_changes(changed_files(os.environ.get("BASE_SHA", "")))
+    suites = load_suites()
+    flags = {}
+    for name, prefixes in suites.items():
+        flags[name] = files is None or any(
+            path.startswith(prefix) for path in files for prefix in prefixes
+        )
+    any_suite = any(flags.values())
     output = os.environ["GITHUB_OUTPUT"]
     with open(output, "a", encoding="utf-8") as handle:
-        for name, prefixes in load_suites().items():
-            # None means every suite runs.
-            hit = files is None or any(
-                path.startswith(prefix) for path in files for prefix in prefixes
-            )
+        for name, hit in flags.items():
             handle.write(f"{name}={'true' if hit else 'false'}\n")
+        handle.write(f"any={'true' if any_suite else 'false'}\n")
 
 
 if __name__ == "__main__":

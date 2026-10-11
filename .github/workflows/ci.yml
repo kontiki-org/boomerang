@@ -58,27 +58,8 @@ jobs:
   integration:
     needs: changes
     runs-on: ubuntu-latest
-    if: |
-      needs.changes.outputs.shared == 'true' ||
-      (matrix.id == 'subscription' && needs.changes.outputs.subscription == 'true') ||
-      (matrix.id == 'alert_engine' && needs.changes.outputs.alert_engine == 'true') ||
-      (matrix.id == 'email' && (needs.changes.outputs.email == 'true' || needs.changes.outputs.notifiers_common == 'true')) ||
-      (matrix.id == 'telegram' && (needs.changes.outputs.telegram == 'true' || needs.changes.outputs.notifiers_common == 'true')) ||
-      (matrix.id == 'ntfy' && (needs.changes.outputs.ntfy == 'true' || needs.changes.outputs.notifiers_common == 'true'))
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - id: subscription
-            target: integration-test-subscription
-          - id: alert_engine
-            target: integration-test-alert-engine
-          - id: email
-            target: integration-test-email-notifier
-          - id: telegram
-            target: integration-test-telegram-notifier
-          - id: ntfy
-            target: integration-test-ntfy-notifier
+    # A matrix whose every cell is skipped fails the workflow. Skip the job.
+    if: needs.changes.outputs.any == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,5 +80,31 @@ jobs:
       - name: Prepare log volume
         run: mkdir -p logs
 
-      - name: Run ${{ matrix.target }}
-        run: make ${{ matrix.target }}
+      - name: Subscription
+        if: needs.changes.outputs.subscription == 'true' || needs.changes.outputs.shared == 'true'
+        run: make integration-test-subscription
+
+      - name: Alert engine
+        if: needs.changes.outputs.alert_engine == 'true' || needs.changes.outputs.shared == 'true'
+        run: make integration-test-alert-engine
+
+      - name: Email
+        if: |
+          needs.changes.outputs.email == 'true' ||
+          needs.changes.outputs.notifiers_common == 'true' ||
+          needs.changes.outputs.shared == 'true'
+        run: make integration-test-email-notifier
+
+      - name: Telegram
+        if: |
+          needs.changes.outputs.telegram == 'true' ||
+          needs.changes.outputs.notifiers_common == 'true' ||
+          needs.changes.outputs.shared == 'true'
+        run: make integration-test-telegram-notifier
+
+      - name: ntfy
+        if: |
+          needs.changes.outputs.ntfy == 'true' ||
+          needs.changes.outputs.notifiers_common == 'true' ||
+          needs.changes.outputs.shared == 'true'
+        run: make integration-test-ntfy-notifier

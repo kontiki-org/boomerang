@@ -10,7 +10,8 @@
 	stack-up stack-down stack-build stack-rebuild \
 	run-service \
 	publish-subscription publish-alert-engine \
-	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier
+	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier \
+	build-service-package
 
 PY ?= poetry run python
 COMPOSE_FILE ?= docker-compose.dev.yaml
@@ -105,8 +106,14 @@ run-service:
 	poetry run boomerang-subscription --config config.example.yaml
 
 # -----------------------------------------------------------------------------
-# Publish one image. One tag per push, so Actions runs one workflow per service.
-# make publish-subscription VERSION=1.0.0
+# Tag service/VERSION. Actions publishes the GHCR image and the PyPI package
+# boomerang-<service> at that version.
+# make publish-subscription VERSION=1.0.1
+#
+# Build a wheel locally (does not publish). SOURCE_REF reads that tag's tree
+# so an existing image tag can get a matching package without a rebuild.
+# make build-service-package SERVICE=telegram-notifier VERSION=1.0.0 \
+#     SOURCE_REF=telegram-notifier/1.0.0
 # -----------------------------------------------------------------------------
 define publish_image
 	@test -n "$(VERSION)" || { echo "VERSION is required, e.g. make $@ VERSION=1.0.0" >&2; exit 1; }
@@ -129,3 +136,8 @@ publish-telegram-notifier:
 
 publish-ntfy-notifier:
 	$(call publish_image,ntfy-notifier)
+
+build-service-package:
+	@test -n "$(SERVICE)" || { echo "SERVICE is required, e.g. make $@ SERVICE=telegram-notifier VERSION=1.0.0" >&2; exit 1; }
+	@test -n "$(VERSION)" || { echo "VERSION is required, e.g. make $@ SERVICE=telegram-notifier VERSION=1.0.0" >&2; exit 1; }
+	SERVICE="$(SERVICE)" VERSION="$(VERSION)" SOURCE_REF="$(SOURCE_REF)" python3 .github/scripts/build_service_wheel.py

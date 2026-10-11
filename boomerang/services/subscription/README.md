@@ -42,6 +42,14 @@ app:
 
 HTTP catalogs listen on port 8002. RabbitMQ and the registry come from `stack/common.services.yaml`.
 
+## Install
+
+```bash
+pip install boomerang-subscription==1.0.0
+```
+
+The package version is the image tag. After install the command is `boomerang-subscription`.
+
 ## Run
 
 ```bash

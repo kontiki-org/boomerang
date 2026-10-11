@@ -39,6 +39,14 @@ app:
 
 Alert notifications are sent as multipart plain+HTML. The subject and banner use `event_type` when present, otherwise the category, with humanized attributes.
 
+## Install
+
+```bash
+pip install boomerang-email-notifier==1.0.0
+```
+
+The package version is the image tag. After install the command is `boomerang-email-notifier`.
+
 ## Standard mode
 
 The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`. The stack file points SMTP at MailHog.

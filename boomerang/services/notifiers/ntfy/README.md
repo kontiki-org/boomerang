@@ -34,6 +34,14 @@ app:
 
 Publish is a JSON `POST` to `{server_url}/` with `topic`, `title`, `message`, `markdown`, and `priority`. Severity maps to ntfy priority (`low` → 2, `moderate` → 3, `severe` → 4, `critical` → 5). A detail URL is sent as `click`. A configured category icon is sent as `tags`.
 
+## Install
+
+```bash
+pip install boomerang-ntfy-notifier==1.0.0
+```
+
+The package version is the image tag. After install the command is `boomerang-ntfy-notifier`.
+
 ## Standard mode
 
 The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`.

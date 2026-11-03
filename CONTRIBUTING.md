@@ -53,7 +53,11 @@ Per service:
 
 ```bash
 make integration-test-subscription
+make integration-test-alert-engine
 make integration-test-email-notifier
+make integration-test-telegram-notifier
+make integration-test-ntfy-notifier
+make integration-test-zulip-notifier
 ```
 
 Tear down local deps:

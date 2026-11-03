@@ -12,6 +12,7 @@
 	run-service \
 	publish-subscription publish-alert-engine \
 	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier \
+	publish-zulip-notifier \
 	build-service-package
 
 PY ?= poetry run python
@@ -144,6 +145,9 @@ publish-telegram-notifier:
 
 publish-ntfy-notifier:
 	$(call publish_image,ntfy-notifier)
+
+publish-zulip-notifier:
+	$(call publish_image,zulip-notifier)
 
 build-service-package:
 	@test -n "$(SERVICE)" || { echo "SERVICE is required, e.g. make $@ SERVICE=telegram-notifier VERSION=1.0.0" >&2; exit 1; }

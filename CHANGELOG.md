@@ -1,5 +1,12 @@
 # Changelog
 
+## Repository — 2026-11-03
+
+- Zulip notifier (`boomerang-zulip-notifier`). Channel and topic endpoints,
+  JSON `POST` to `{site_url}/api/v1/messages`, Basic auth with the bot email
+  and API key, and the same external sentinel as email, telegram, and ntfy.
+
+
 ## Repository — 2026-10-10
 
 - Removes the earthquake feed producer and the Compose demo (`make stack-up-demo`).

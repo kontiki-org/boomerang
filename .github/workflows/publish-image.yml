@@ -9,7 +9,7 @@ name: Publish service
 # Each package needs a PyPI trusted publisher for this workflow file and
 # the environment name pypi:
 #   boomerang-subscription, boomerang-alert-engine, boomerang-email-notifier,
-#   boomerang-telegram-notifier, boomerang-ntfy-notifier.
+#   boomerang-telegram-notifier, boomerang-ntfy-notifier, boomerang-zulip-notifier.
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       service:
-        description: "subscription, alert-engine, email-notifier, telegram-notifier, or ntfy-notifier"
+        description: "subscription, alert-engine, email-notifier, telegram-notifier, ntfy-notifier, or zulip-notifier"
         required: true
         type: string
       version:

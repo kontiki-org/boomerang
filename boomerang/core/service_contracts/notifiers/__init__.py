@@ -1,1 +1,1 @@
-# Notifier service contracts (email, telegram, ntfy).
+# Notifier service contracts (email, telegram, ntfy, zulip).

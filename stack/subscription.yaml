@@ -9,3 +9,4 @@ app:
     - email-notifier-service
     - telegram-notifier-service
     - ntfy-notifier-service
+    - zulip-notifier-service

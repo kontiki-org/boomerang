@@ -5,12 +5,14 @@
 	integration-test-email-notifier integration-test-email-notifier-tag \
 	integration-test-telegram-notifier integration-test-telegram-notifier-tag \
 	integration-test-ntfy-notifier integration-test-ntfy-notifier-tag \
+	integration-test-zulip-notifier integration-test-zulip-notifier-tag \
 	integration-test-alert-engine integration-test-alert-engine-tag \
 	run-dev-platform down-dev-platform \
 	stack-up stack-down stack-build stack-rebuild \
 	run-service \
 	publish-subscription publish-alert-engine \
 	publish-email-notifier publish-telegram-notifier publish-ntfy-notifier \
+	publish-zulip-notifier \
 	build-service-package
 
 PY ?= poetry run python
@@ -53,6 +55,7 @@ integration-test-core:
 	poetry run behave boomerang/services/notifiers/email/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/telegram/tests/integration --stop
 	poetry run behave boomerang/services/notifiers/ntfy/tests/integration --stop
+	poetry run behave boomerang/services/notifiers/zulip/tests/integration --stop
 
 integration-test: run-dev-platform
 	@$(MAKE) integration-test-core
@@ -80,6 +83,12 @@ integration-test-ntfy-notifier: run-dev-platform
 
 integration-test-ntfy-notifier-tag: run-dev-platform
 	poetry run behave boomerang/services/notifiers/ntfy/tests/integration --stop --tags "$(TAG)"
+
+integration-test-zulip-notifier: run-dev-platform
+	poetry run behave boomerang/services/notifiers/zulip/tests/integration --stop
+
+integration-test-zulip-notifier-tag: run-dev-platform
+	poetry run behave boomerang/services/notifiers/zulip/tests/integration --stop --tags "$(TAG)"
 
 integration-test-alert-engine: run-dev-platform
 	poetry run behave boomerang/services/alert_engine/tests/integration --stop
@@ -136,6 +145,9 @@ publish-telegram-notifier:
 
 publish-ntfy-notifier:
 	$(call publish_image,ntfy-notifier)
+
+publish-zulip-notifier:
+	$(call publish_image,zulip-notifier)
 
 build-service-package:
 	@test -n "$(SERVICE)" || { echo "SERVICE is required, e.g. make $@ SERVICE=telegram-notifier VERSION=1.0.0" >&2; exit 1; }

@@ -28,6 +28,7 @@ READMES = {
     "email-notifier": "boomerang/services/notifiers/email/README.md",
     "telegram-notifier": "boomerang/services/notifiers/telegram/README.md",
     "ntfy-notifier": "boomerang/services/notifiers/ntfy/README.md",
+    "zulip-notifier": "boomerang/services/notifiers/zulip/README.md",
 }
 
 DESCRIPTIONS = {
@@ -36,6 +37,7 @@ DESCRIPTIONS = {
     "email-notifier": "Boomerang email notifier.",
     "telegram-notifier": "Boomerang Telegram notifier.",
     "ntfy-notifier": "Boomerang ntfy notifier.",
+    "zulip-notifier": "Boomerang Zulip notifier.",
 }
 
 

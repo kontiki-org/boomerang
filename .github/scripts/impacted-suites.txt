@@ -1,7 +1,7 @@
 # suite  path
 # A changed file matches when its path starts with the path.
 # Markdown, docs/ and assets/ are ignored by impacted_suites.py.
-# notifiers_common runs the email, telegram and ntfy suites.
+# notifiers_common runs the email, telegram, ntfy and zulip suites.
 # shared runs every suite.
 # Several lines with the same suite name are alternatives.
 
@@ -10,6 +10,7 @@ alert_engine boomerang/services/alert_engine/
 email boomerang/services/notifiers/email/
 telegram boomerang/services/notifiers/telegram/
 ntfy boomerang/services/notifiers/ntfy/
+zulip boomerang/services/notifiers/zulip/
 notifiers_common boomerang/services/notifiers/common/
 
 shared boomerang/core/

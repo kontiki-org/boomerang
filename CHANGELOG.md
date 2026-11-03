@@ -1,6 +1,6 @@
 # Changelog
 
-## Repository — 2026-11-03
+## [zulip-notifier/1.0.0] - 2026-11-03
 
 - Zulip notifier (`boomerang-zulip-notifier`). Channel and topic endpoints,
   JSON `POST` to `{site_url}/api/v1/messages`, Basic auth with the bot email

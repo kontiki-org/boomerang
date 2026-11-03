@@ -41,6 +41,7 @@ jobs:
       email: ${{ steps.filter.outputs.email }}
       telegram: ${{ steps.filter.outputs.telegram }}
       ntfy: ${{ steps.filter.outputs.ntfy }}
+      zulip: ${{ steps.filter.outputs.zulip }}
       notifiers_common: ${{ steps.filter.outputs.notifiers_common }}
       shared: ${{ steps.filter.outputs.shared }}
     steps:
@@ -108,3 +109,10 @@ jobs:
           needs.changes.outputs.notifiers_common == 'true' ||
           needs.changes.outputs.shared == 'true'
         run: make integration-test-ntfy-notifier
+
+      - name: Zulip
+        if: |
+          needs.changes.outputs.zulip == 'true' ||
+          needs.changes.outputs.notifiers_common == 'true' ||
+          needs.changes.outputs.shared == 'true'
+        run: make integration-test-zulip-notifier

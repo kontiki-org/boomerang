@@ -1,0 +1,19 @@
+kontiki:
+  http:
+    address: "0.0.0.0"
+    port: 8007
+
+app:
+  zulip:
+    site_url: https://chat.example.com
+    bot_email: boomerang-bot@chat.example.com
+    # api_key: stack/notifiers/zulip_api_key.yaml (gitignored, merged at startup).
+    # Optional domain icons shown in the Markdown banner (exact key, then prefix).
+    category_icons:
+      natural.earthquake: "🌍"
+      weather: "🌧"
+      wildfire: "🔥"
+      safety.fire: "🔥"
+      website: "🌐"
+      kontiki.registry: "⚙️"
+      certificate: "🔒"

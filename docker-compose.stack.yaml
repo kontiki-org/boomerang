@@ -162,6 +162,33 @@ services:
       retries: 30
       start_period: 30s
 
+  zulip-notifier-service:
+    build:
+      context: .
+    container_name: boomerang-zulip-notifier-service
+    command: >
+      sh -c 'EXTRA=""; if [ -f /stack/notifiers/zulip_api_key.yaml ]; then EXTRA="--config /stack/notifiers/zulip_api_key.yaml"; fi;
+      exec boomerang-zulip-notifier --config /stack/common.services.yaml --config /stack/notifiers/zulip.yaml $$EXTRA'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      kontiki-registry:
+        condition: service_healthy
+    volumes:
+      - ./stack:/stack:ro
+      - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://kontiki-registry:8080/live/zulip-notifier-service\", timeout=2).read()'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
   alert-engine-service:
     build:
       context: .

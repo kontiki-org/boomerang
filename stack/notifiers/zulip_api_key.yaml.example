@@ -1,0 +1,9 @@
+# Copy to zulip_api_key.yaml (gitignored) and set your Zulip bot API key.
+app:
+  zulip:
+    api_key: "REPLACE_WITH_YOUR_BOT_API_KEY"
+
+  endpoints:
+    alerts:
+      channel: ops
+      topic: alerts

@@ -35,7 +35,7 @@ app:
       topic: alerts
 ```
 
-Delivery is a JSON `POST` to `{site_url}/api/v1/messages` with `type` `stream`, `to` (the channel), `topic`, and `content`. Authorization is `Basic` over `bot_email:api_key`. A response without `result: success` is a failure.
+Delivery is a form-encoded `POST` to `{site_url}/api/v1/messages` with `type` `stream`, `to` (the channel), `topic`, and `content`. Authorization is `Basic` over `bot_email:api_key`. A response without `result: success` is a failure.
 
 `content` is Markdown. Structured alerts use built-in severity icons (`low` → 🟢, `moderate` → 🟡, `severe` → 🟠, `critical` → 🔴). The banner title is the humanized `event_type` when present, otherwise the last category segment. Attribute labels are auto-humanized; order follows the producer’s attribute dict. A detail URL becomes a Details link.
 

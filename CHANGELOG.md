@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Zulip `POST /api/v1/messages` is form-urlencoded. A JSON body is not read, so
+  `content` is missing (`REQUEST_VARIABLE_MISSING`). HTTP failures include the
+  Zulip response body.
+
+
 ## [zulip-notifier/1.0.0] - 2026-11-03
 
 - Zulip notifier (`boomerang-zulip-notifier`). Channel and topic endpoints,

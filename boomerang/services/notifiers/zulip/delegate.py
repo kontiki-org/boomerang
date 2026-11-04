@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from boomerang_contracts.notification.message import NotificationRequest
@@ -94,7 +95,7 @@ class ZulipNotifierDelegate(ServiceDelegate):
             raise RuntimeError("zulip site url is not configured")
 
         token = base64.b64encode(f"{email}:{api_key}".encode("utf-8")).decode("ascii")
-        payload = json.dumps(
+        payload = urllib.parse.urlencode(
             {
                 "type": "stream",
                 "to": channel,
@@ -108,14 +109,15 @@ class ZulipNotifierDelegate(ServiceDelegate):
             data=payload,
             headers={
                 "Authorization": f"Basic {token}",
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
             },
         )
         try:
             with urllib.request.urlopen(request, timeout=10) as response:
                 body = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
-            raise RuntimeError(f"zulip api error: {exc.code}") from exc
+            detail = exc.read().decode("utf-8")
+            raise RuntimeError(f"zulip api error: {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"zulip api unreachable: {exc.reason}") from exc
 

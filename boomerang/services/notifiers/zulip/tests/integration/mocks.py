@@ -7,7 +7,13 @@ class ZulipServerMock(MockService):
 
     @http("/api/v1/messages", "POST", version="v1")
     async def send_message(self, request):
-        payload = await request.json()
+        form = await request.post()
+        payload = {
+            "type": form.get("type", ""),
+            "to": form.get("to", ""),
+            "topic": form.get("topic", ""),
+            "content": form.get("content", ""),
+        }
         authorization = request.headers.get("Authorization", "")
         self.http_manager.store_request(
             {"authorization": authorization, "body": payload}

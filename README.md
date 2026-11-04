@@ -19,7 +19,7 @@ Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the no
 | [Email](boomerang/services/notifiers/email/README.md) | `ghcr.io/kontiki-org/boomerang-email-notifier:1.0.0` | `boomerang-email-notifier` |
 | [Telegram](boomerang/services/notifiers/telegram/README.md) | `ghcr.io/kontiki-org/boomerang-telegram-notifier:1.0.0` | `boomerang-telegram-notifier` |
 | [ntfy](boomerang/services/notifiers/ntfy/README.md) | `ghcr.io/kontiki-org/boomerang-ntfy-notifier:1.0.0` | `boomerang-ntfy-notifier` |
-| [Zulip](boomerang/services/notifiers/zulip/README.md) | `ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.0` | `boomerang-zulip-notifier` |
+| [Zulip](boomerang/services/notifiers/zulip/README.md) | `ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.1` | `boomerang-zulip-notifier` |
 
 The package version is the image tag. Install one service per environment.
 

@@ -44,7 +44,7 @@ The bot must already be a member of the channel and allowed to post. The first s
 ## Install
 
 ```bash
-pip install boomerang-zulip-notifier==1.0.0
+pip install boomerang-zulip-notifier==1.0.1
 ```
 
 The package version is the image tag. After install the command is `boomerang-zulip-notifier`.
@@ -56,7 +56,7 @@ The process joins the environment bus and delivers notifications. RabbitMQ and t
 ```bash
 docker run --rm \
   -v "$PWD/stack:/stack:ro" \
-  ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.0 \
+  ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.1 \
   --config /stack/common.services.yaml \
   --config /stack/notifiers/zulip.yaml
 ```
@@ -132,7 +132,7 @@ docker run --rm \
   -v "$PWD/sentinel.yaml:/sentinel.yaml:ro" \
   -v "$PWD/sentinel-state:/var/lib/boomerang" \
   -p 8007:8007 \
-  ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.0 \
+  ghcr.io/kontiki-org/boomerang-zulip-notifier:1.0.1 \
   --config /sentinel.yaml
 ```
 

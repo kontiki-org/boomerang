@@ -1,6 +1,6 @@
 kontiki:
   amqp:
-    url: amqp://guest:guest@rabbitmq/
+    url: amqp://guest:guest@lavinmq/
   registration:
     delay: 3
 

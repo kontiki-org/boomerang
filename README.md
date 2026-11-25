@@ -7,7 +7,7 @@ A producer emits a `NormalizedAlert`. Subscription and the alert engine match YA
 Producer → NormalizedAlert → subscription + alert-engine → NotificationRequest → notifier
 ```
 
-Kontiki 2, RabbitMQ ≥ 4.3. Who gets notified is `app.subscriptions` and the notifier’s `app.endpoints`.
+Kontiki 2. LavinMQ ≥ 2.11 is the reference broker. RabbitMQ ≥ 4.3 runs the same declarations. Who gets notified is `app.subscriptions` and the notifier’s `app.endpoints`.
 
 
 ## Services

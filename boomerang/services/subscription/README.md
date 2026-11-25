@@ -40,7 +40,7 @@ app:
 | `app.alert_connectors` | `[]` | Kontiki service names of alert producers. |
 | `app.notification_channels` | `[]` | Kontiki service names of notifiers. |
 
-HTTP catalogs listen on port 8002. RabbitMQ and the registry come from `stack/common.services.yaml`.
+HTTP catalogs listen on port 8002. LavinMQ and the registry come from `stack/common.services.yaml`.
 
 ## Install
 

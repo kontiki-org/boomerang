@@ -18,7 +18,7 @@ app:
     token: "change-me"
 ```
 
-RabbitMQ and the registry come from `stack/common.services.yaml`.
+LavinMQ and the registry come from `stack/common.services.yaml`.
 
 ## Install
 

@@ -49,7 +49,7 @@ The package version is the image tag. After install the command is `boomerang-em
 
 ## Standard mode
 
-The process joins the environment bus and delivers notifications. RabbitMQ and the registry come from `stack/common.services.yaml`. The stack file points SMTP at MailHog.
+The process joins the environment bus and delivers notifications. LavinMQ and the registry come from `stack/common.services.yaml`. The stack file points SMTP at MailHog.
 
 ```bash
 docker run --rm \
@@ -69,7 +69,7 @@ poetry run boomerang-email-notifier \
 
 ## Sentinel mode
 
-The process runs outside the environment and watches its heartbeats. Silence (hosts or RabbitMQ down) sends Down on this channel; the next heartbeat sends Recovered. `kontiki.amqp.disable: true` keeps startup independent of that environment's broker. SMTP must stay reachable from this process. The heartbeat route still needs `kontiki.http`.
+The process runs outside the environment and watches its heartbeats. Silence (hosts or the broker down) sends Down on this channel; the next heartbeat sends Recovered. `kontiki.amqp.disable: true` keeps startup independent of that environment's broker. SMTP must stay reachable from this process. The heartbeat route still needs `kontiki.http`.
 
 Omit `app.sentinel` on a notifier that only delivers alerts. `POST /watchdogs/{name}/heartbeat` then answers **404**, and no sweep runs.
 

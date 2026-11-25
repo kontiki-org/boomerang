@@ -1,5 +1,10 @@
 # Changelog
 
+## Repository — 2026-11-25
+
+- Example stack and integration tests use LavinMQ 2.11 (`cloudamqp/lavinmq:2.11.1`).
+  AMQP on port 5672, management UI on 15672 (`guest` / `guest`).
+
 ## [zulip-notifier/1.0.1] - 2026-11-04
 
 - Zulip `POST /api/v1/messages` is form-urlencoded. A JSON body is not read, so

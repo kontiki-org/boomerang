@@ -29,12 +29,12 @@ make check
 On `main` and pull requests, GitHub Actions runs:
 
 - lint (Python 3.11–3.13)
-- core Behave suites (`make integration-test-core`) with RabbitMQ + MailHog +
+- core Behave suites (`make integration-test-core`) with LavinMQ + MailHog +
   kontiki-registry
 
 ## Integration tests (Behave)
 
-Needs RabbitMQ + MailHog + `kontiki-registry` (heartbeats / degradation
+Needs LavinMQ + MailHog + `kontiki-registry` (heartbeats / degradation
 scenarios). `make integration-test` starts them (`run-dev-platform`), then runs
 the core suites:
 

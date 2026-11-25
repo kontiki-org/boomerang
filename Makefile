@@ -37,10 +37,10 @@ clean:
 	rm -rf .venv .mypy_cache .pytest_cache .ruff_cache .coverage dist build htmlcov
 
 # -----------------------------------------------------------------------------
-# Local deps for Behave (RabbitMQ + MailHog + kontiki-registry)
+# Local deps for Behave (LavinMQ + MailHog + kontiki-registry)
 # -----------------------------------------------------------------------------
 run-dev-platform:
-	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 rabbitmq mailhog kontiki-registry
+	docker compose -f $(COMPOSE_FILE) up -d --wait --wait-timeout 180 lavinmq mailhog kontiki-registry
 
 down-dev-platform:
 	docker compose -f $(COMPOSE_FILE) down
